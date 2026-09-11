@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Libera HTTP (sem TLS) apenas para o host do emulador Android, usado durante o desenvolvimento
+     contra o "php artisan serve" local. Remover/ajustar antes de publicar em produção. -->
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">192.168.3.4</domain>
+    </domain-config>
+</network-security-config>

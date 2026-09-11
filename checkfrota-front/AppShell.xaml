@@ -3,12 +3,23 @@
     x:Class="checkfrota_front.AppShell"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:local="clr-namespace:checkfrota_front"
-    Title="checkfrota_front">
+    xmlns:views="clr-namespace:checkfrota_front.Views"
+    Title="checkfrota_front"
+    FlyoutBehavior="Disabled">
 
     <ShellContent
-        Title="Home"
-        ContentTemplate="{DataTemplate local:MainPage}"
-        Route="MainPage" />
+        Title="Login"
+        ContentTemplate="{DataTemplate views:LoginPage}"
+        Route="login" />
+
+    <ShellContent
+        Title="Admin"
+        ContentTemplate="{DataTemplate views:AdminHomePage}"
+        Route="admin" />
+
+    <ShellContent
+        Title="Motorista"
+        ContentTemplate="{DataTemplate views:MotoristaHomePage}"
+        Route="motorista" />
 
 </Shell>

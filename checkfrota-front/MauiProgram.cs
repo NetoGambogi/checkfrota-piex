@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using checkfrota_front.Services;
+using checkfrota_front.ViewModels;
+using Microsoft.Extensions.Logging;
 
 namespace checkfrota_front
 {
@@ -18,6 +20,20 @@ namespace checkfrota_front
 #if DEBUG
     		builder.Logging.AddDebug();
 #endif
+            builder.Services.AddHttpClient<ApiAuthService>();
+
+#if ANDROID
+            builder.Services.AddSingleton<IGoogleAuthService, checkfrota_front.Platforms.Android.Services.GoogleAuthService>();
+#endif
+
+            builder.Services.AddTransient<LoginViewModel>();
+            builder.Services.AddTransient<Views.LoginPage>();
+
+            builder.Services.AddTransient<AdminHomeViewModel>();
+            builder.Services.AddTransient<Views.AdminHomePage>();
+
+            builder.Services.AddTransient<MotoristaHomeViewModel>();
+            builder.Services.AddTransient<Views.MotoristaHomePage>();
 
             return builder.Build();
         }
