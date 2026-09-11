@@ -9,6 +9,8 @@ declarado em [AppShell.xaml](AppShell.xaml):
 <ShellContent Title="Login" ContentTemplate="{DataTemplate views:LoginPage}" Route="login" />
 <ShellContent Title="Admin" ContentTemplate="{DataTemplate views:AdminHomePage}" Route="admin" />
 <ShellContent Title="Motorista" ContentTemplate="{DataTemplate views:MotoristaHomePage}" Route="motorista" />
+<ShellContent Title="Frota" ContentTemplate="{DataTemplate views:FrotaHomePage}" Route="frota" />
+<ShellContent Title="Financeiro" ContentTemplate="{DataTemplate views:FinanceiroHomePage}" Route="financeiro" />
 ```
 
 Depois do login, [ViewModels/LoginViewModel.cs](ViewModels/LoginViewModel.cs) decide
@@ -19,6 +21,8 @@ var route = login.User.Role switch
 {
     "admin" => "//admin",
     "motorista" => "//motorista",
+    "frota" => "//frota",
+    "financeiro" => "//financeiro",
     _ => throw new InvalidOperationException($"Role desconhecida: {login.User.Role}")
 };
 
@@ -94,18 +98,69 @@ repositório do `checkfrota-api`. Do lado do front:
 5. Garanta que o backend realmente pode devolver `"role": "gestor"` pra algum
    usuário (ver documento do backend) — sem isso, ninguém nunca cai nesse caso.
 
-## Verificando a role dentro de uma página já aberta
+## Mostrando/escondendo uma tela ou botão só para uma role específica
 
-Se, em vez de uma página exclusiva, você precisar mostrar/esconder um botão pra
-uma role específica dentro de uma tela compartilhada, a role do usuário logado
-fica salva localmente e pode ser lida a qualquer momento:
+Existem dois níveis de controle de acesso no front-end, dependendo do que você
+precisa:
+
+1. **Tela inteira exclusiva de uma role** → já é o caso de `AdminHomePage`,
+   `MotoristaHomePage`, `FrotaHomePage` e `FinanceiroHomePage`: cada uma é sua
+   própria área (`ShellContent`), e só quem tem aquela role é roteado pra lá no
+   login (veja o `switch` em `LoginViewModel.cs` acima). Ninguém "cai" numa área
+   de outra role sem que o `LoginViewModel` mande pra lá.
+2. **Botão/seção específica dentro de uma tela compartilhada por várias roles**
+   → é o caso comum de "essa página todo mundo vê, mas só o financeiro vê esse
+   botão aqui". Pra isso, a role do usuário logado fica salva localmente
+   (`SecureStorage`, gravada por `ApiAuthService.SaveSessionAsync` logo após um
+   login bem-sucedido) e pode ser lida a qualquer momento:
+
+   ```csharp
+   var role = await SecureStorage.GetAsync("user_role");
+   ```
+
+### Exemplo prático: botão visível só para `financeiro`
+
+Suponha uma página compartilhada (ex: um dashboard que `admin` e `financeiro`
+acessam) onde só o `financeiro` deve ver um botão "Exportar relatório
+financeiro". No ViewModel dessa página, exponha uma propriedade booleana
+calculada a partir da role, atualizada no `AppearingCommand` (o mesmo padrão já
+usado pra carregar `UserName` em `AdminHomeViewModel`/`MotoristaHomeViewModel`):
 
 ```csharp
-var role = await SecureStorage.GetAsync("user_role");
+public partial class DashboardViewModel : ObservableObject
+{
+    [ObservableProperty]
+    private bool isFinanceiro;
+
+    [RelayCommand]
+    private async Task AppearingAsync()
+    {
+        var role = await SecureStorage.GetAsync("user_role");
+        IsFinanceiro = role == "financeiro";
+    }
+}
 ```
 
-(quem grava esse valor é `ApiAuthService.SaveSessionAsync`, chamado automaticamente
-depois de um login bem-sucedido).
+E no XAML, ligue a visibilidade do botão a essa propriedade:
+
+```xml
+<Button Text="Exportar relatório financeiro"
+        IsVisible="{Binding IsFinanceiro}"
+        Command="{Binding ExportarRelatorioCommand}" />
+```
+
+Se precisar liberar pra mais de uma role (ex: `admin` **ou** `financeiro`), o
+mesmo padrão funciona, só muda a comparação:
+
+```csharp
+IsFinanceiro = role is "admin" or "financeiro";
+```
+
+**Importante**: isso é controle de **exibição**, não de segurança — esconder um
+botão no app não impede alguém de chamar o endpoint diretamente. A proteção de
+verdade é sempre no backend, via `role:financeiro` nas rotas (veja o
+`ROLES-E-ACESSO.md` do `checkfrota-api`). Trate o `IsVisible` como UX, não como
+controle de acesso.
 
 ## Testando
 

@@ -24,6 +24,8 @@ namespace checkfrota_front
 
 #if ANDROID
             builder.Services.AddSingleton<IGoogleAuthService, checkfrota_front.Platforms.Android.Services.GoogleAuthService>();
+#elif WINDOWS
+            builder.Services.AddSingleton<IGoogleAuthService, checkfrota_front.Platforms.Windows.Services.GoogleAuthService>();
 #endif
 
             builder.Services.AddTransient<LoginViewModel>();
@@ -34,6 +36,12 @@ namespace checkfrota_front
 
             builder.Services.AddTransient<MotoristaHomeViewModel>();
             builder.Services.AddTransient<Views.MotoristaHomePage>();
+
+            builder.Services.AddTransient<FrotaHomeViewModel>();
+            builder.Services.AddTransient<Views.FrotaHomePage>();
+
+            builder.Services.AddTransient<FinanceiroHomeViewModel>();
+            builder.Services.AddTransient<Views.FinanceiroHomePage>();
 
             return builder.Build();
         }

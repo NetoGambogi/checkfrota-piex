@@ -31,14 +31,14 @@ public partial class LoginViewModel : ObservableObject
             IsBusy = true;
             ErrorMessage = null;
 
-            var idToken = await _googleAuth.SignInAsync();
-            if (idToken is null)
+            var signInResult = await _googleAuth.SignInAsync();
+            if (signInResult is null)
             {
                 ErrorMessage = "Login cancelado.";
                 return;
             }
 
-            var login = await _apiAuth.LoginWithGoogleAsync(idToken);
+            var login = await _apiAuth.LoginWithGoogleAsync(signInResult);
             if (login is null)
             {
                 ErrorMessage = "Não foi possível autenticar. Tente novamente.";
@@ -50,6 +50,8 @@ public partial class LoginViewModel : ObservableObject
             {
                 "admin" => "//admin",
                 "motorista" => "//motorista",
+                "frota" => "//frota",
+                "financeiro" => "//financeiro",
                 _ => throw new InvalidOperationException($"Role desconhecida: {login.User.Role}")
             };
 

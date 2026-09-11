@@ -35,4 +35,18 @@ class UserFactory extends Factory
             'role' => 'admin',
         ]);
     }
+
+    public function frota(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => 'frota',
+        ]);
+    }
+
+    public function financeiro(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => 'financeiro',
+        ]);
+    }
 }

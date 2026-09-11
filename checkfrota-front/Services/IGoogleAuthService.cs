@@ -6,6 +6,6 @@ namespace checkfrota_front.Services
 {
     public interface IGoogleAuthService
     {
-        Task<string?> SignInAsync();
+        Task<GoogleSignInResult?> SignInAsync();
     }
 }

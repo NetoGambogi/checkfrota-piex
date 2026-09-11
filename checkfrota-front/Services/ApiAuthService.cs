@@ -24,12 +24,22 @@ public class ApiAuthService
         _http.BaseAddress = new Uri(BaseUrl);
     }
 
-    public async Task<LoginResponse?> LoginWithGoogleAsync(string idToken)
+    public async Task<LoginResponse?> LoginWithGoogleAsync(GoogleSignInResult signInResult)
     {
-        var response = await _http.PostAsJsonAsync("auth/google", new { id_token = idToken });
+        var response = signInResult switch
+        {
+            GoogleIdTokenResult r => await _http.PostAsJsonAsync("auth/google", new { id_token = r.IdToken }),
+            GoogleAuthCodeResult r => await _http.PostAsJsonAsync("auth/google/desktop", new
+            {
+                code = r.Code,
+                code_verifier = r.CodeVerifier,
+                redirect_uri = r.RedirectUri,
+            }),
+            _ => throw new NotSupportedException($"Tipo de resultado de login não suportado: {signInResult.GetType().Name}")
+        };
 
         if (!response.IsSuccessStatusCode)
-            return null; // token inválido, usuário rejeitado, etc.
+            return null; // token/code inválido, usuário rejeitado, etc.
 
         var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
         if (result is not null)

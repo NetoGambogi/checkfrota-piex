@@ -22,4 +22,14 @@
         ContentTemplate="{DataTemplate views:MotoristaHomePage}"
         Route="motorista" />
 
+    <ShellContent
+        Title="Frota"
+        ContentTemplate="{DataTemplate views:FrotaHomePage}"
+        Route="frota" />
+
+    <ShellContent
+        Title="Financeiro"
+        ContentTemplate="{DataTemplate views:FinanceiroHomePage}"
+        Route="financeiro" />
+
 </Shell>

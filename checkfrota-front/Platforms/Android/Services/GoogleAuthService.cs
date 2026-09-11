@@ -11,7 +11,7 @@ public class GoogleAuthService : IGoogleAuthService
 {
     private const string WebClientId = "890385103906-386698d2j71nbtj81g51jp0c9uenfhac.apps.googleusercontent.com";
 
-    public Task<string?> SignInAsync()
+    public Task<GoogleSignInResult?> SignInAsync()
     {
         var activity = Platform.CurrentActivity
             ?? throw new NullReferenceException("Nenhuma Activity atual encontrada.");
@@ -29,7 +29,7 @@ public class GoogleAuthService : IGoogleAuthService
         var credentialManager = CredentialManager.Create(activity);
         var executor = ContextCompat.GetMainExecutor(activity)
             ?? throw new InvalidOperationException("Não foi possível obter o executor principal.");
-        var tcs = new TaskCompletionSource<string?>();
+        var tcs = new TaskCompletionSource<GoogleSignInResult?>();
 
         credentialManager.GetCredentialAsync(
             activity,
@@ -41,7 +41,7 @@ public class GoogleAuthService : IGoogleAuthService
         return tcs.Task;
     }
 
-    private sealed class CredentialCallback(TaskCompletionSource<string?> tcs)
+    private sealed class CredentialCallback(TaskCompletionSource<GoogleSignInResult?> tcs)
         : Java.Lang.Object, ICredentialManagerCallback
     {
         public void OnResult(Java.Lang.Object? result)
@@ -52,7 +52,7 @@ public class GoogleAuthService : IGoogleAuthService
                 && custom.Type == GoogleIdTokenCredential.TypeGoogleIdTokenCredential)
             {
                 var googleIdTokenCredential = GoogleIdTokenCredential.CreateFrom(custom.Data);
-                tcs.TrySetResult(googleIdTokenCredential.IdToken);
+                tcs.TrySetResult(new GoogleIdTokenResult(googleIdTokenCredential.IdToken));
             }
             else
             {

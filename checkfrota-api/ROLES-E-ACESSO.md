@@ -8,8 +8,9 @@ Este projeto não tem uma tabela de "roles" separada. Cada usuário tem uma colu
 $table->string('role')->default('motorista');
 ```
 
-Hoje o sistema usa duas roles: `admin` e `motorista`. Não existe uma lista fixa/enum
-validando os valores — qualquer string gravada nessa coluna funciona como role.
+Hoje o sistema usa quatro roles: `admin`, `motorista`, `frota` e `financeiro`. Não
+existe uma lista fixa/enum validando os valores — qualquer string gravada nessa
+coluna funciona como role.
 
 ## Como o acesso é checado
 
