@@ -48,11 +48,27 @@ public class ApiAuthService
     public async Task<string?> GetTokenAsync() => await SecureStorage.GetAsync("auth_token");
     public async Task<string?> GetRoleAsync() => await SecureStorage.GetAsync("user_role");
 
-    public void Logout()
+    public async Task LogoutAsync()
     {
-        SecureStorage.Remove("auth_token");
-        SecureStorage.Remove("user_role");
-        SecureStorage.Remove("user_name");
+        try
+        {
+            var token = await GetTokenAsync();
+            if (!string.IsNullOrEmpty(token))
+            {
+                _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                await _http.PostAsync("logout", null);
+            }
+        }
+        catch
+        {
+            // Sem rede, token já expirado, etc. — segue limpando a sessão local mesmo assim.
+        }
+        finally
+        {
+            SecureStorage.Remove("auth_token");
+            SecureStorage.Remove("user_role");
+            SecureStorage.Remove("user_name");
+        }
     }
 
     // Usar isso pra configurar qualquer HttpClient que precise chamar rotas autenticadas

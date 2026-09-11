@@ -25,7 +25,7 @@ public partial class MotoristaHomeViewModel : ObservableObject
     [RelayCommand]
     private async Task LogoutAsync()
     {
-        _apiAuth.Logout();
+        await _apiAuth.LogoutAsync();
         await Shell.Current.GoToAsync("//login");
     }
 }
