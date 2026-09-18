@@ -7,11 +7,19 @@ declarado em [AppShell.xaml](AppShell.xaml):
 
 ```xml
 <ShellContent Title="Login" ContentTemplate="{DataTemplate views:LoginPage}" Route="login" />
+<ShellContent Title="Pendente" ContentTemplate="{DataTemplate views:PendingApprovalPage}" Route="pendente" />
 <ShellContent Title="Admin" ContentTemplate="{DataTemplate views:AdminHomePage}" Route="admin" />
 <ShellContent Title="Motorista" ContentTemplate="{DataTemplate views:MotoristaHomePage}" Route="motorista" />
 <ShellContent Title="Frota" ContentTemplate="{DataTemplate views:FrotaHomePage}" Route="frota" />
 <ShellContent Title="Financeiro" ContentTemplate="{DataTemplate views:FinanceiroHomePage}" Route="financeiro" />
 ```
+
+`pendente` é um caso especial: não é uma área com telas próprias, é só a tela
+"Aguardando aprovação" (`PendingApprovalPage`) que todo usuário novo vê até um
+admin atribuir a role definitiva no backend (ver `ROLES-E-ACESSO.md` do
+`checkfrota-api`). O botão "Voltar para login" nela faz logout e volta pra
+`//login` — a pessoa precisa logar de novo depois que a role for atribuída pra
+cair na área certa.
 
 Depois do login, [ViewModels/LoginViewModel.cs](ViewModels/LoginViewModel.cs) decide
 pra onde navegar com base na `role` que a API devolveu:
@@ -23,6 +31,7 @@ var route = login.User.Role switch
     "motorista" => "//motorista",
     "frota" => "//frota",
     "financeiro" => "//financeiro",
+    "pendente" => "//pendente",
     _ => throw new InvalidOperationException($"Role desconhecida: {login.User.Role}")
 };
 

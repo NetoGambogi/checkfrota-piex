@@ -26,8 +26,8 @@ test('creates a new user on first google login', function () {
 
     $response->assertOk()
         ->assertJsonPath('user.email', 'nova@example.com')
-        ->assertJsonPath('user.role', 'motorista')
-        ->assertJsonStructure(['token', 'user' => ['id', 'name', 'email', 'role']]);
+        ->assertJsonPath('user.role', 'pendente')
+        ->assertJsonStructure(['token', 'user' => ['id', 'name', 'email', 'role', 'created_at']]);
 
     $this->assertDatabaseHas('users', [
         'email' => 'nova@example.com',
@@ -48,6 +48,26 @@ test('links google_id to a user pre-provisioned by email without breaking their 
     $response->assertOk()->assertJsonPath('user.role', 'admin');
 
     expect($admin->fresh()->google_id)->toBe('google-999');
+});
+
+test('blocks login for a soft-deleted user and does not recreate the account', function () {
+    $removed = User::factory()->create([
+        'email' => 'removido@example.com',
+        'google_id' => 'google-removido',
+    ]);
+    $removed->delete();
+
+    fakeGoogleTokenInfo('google-removido', 'removido@example.com', 'Removido');
+
+    $response = $this->postJson('/api/auth/google', ['id_token' => 'valid-token']);
+
+    $response->assertStatus(403);
+
+    $this->assertDatabaseHas('users', [
+        'id' => $removed->id,
+        'email' => 'removido@example.com',
+    ]);
+    $this->assertDatabaseCount('users', 1);
 });
 
 test('rejects a token whose audience does not match the configured google client id', function () {

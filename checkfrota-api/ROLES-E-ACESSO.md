@@ -8,9 +8,40 @@ Este projeto não tem uma tabela de "roles" separada. Cada usuário tem uma colu
 $table->string('role')->default('motorista');
 ```
 
-Hoje o sistema usa quatro roles: `admin`, `motorista`, `frota` e `financeiro`. Não
-existe uma lista fixa/enum validando os valores — qualquer string gravada nessa
-coluna funciona como role.
+Hoje o sistema usa cinco roles: `admin`, `motorista`, `frota`, `financeiro` e
+`pendente`. Não existe uma lista fixa/enum validando os valores — qualquer string
+gravada nessa coluna funciona como role.
+
+`pendente` é a role padrão de todo usuário novo (ver
+[app/Http/Controllers/AuthController.php](app/Http/Controllers/AuthController.php),
+`issueSession`): quem faz o primeiro login via Google entra nessa role até um
+`admin` atribuir a role definitiva. Não é uma role "normal" com rotas próprias —
+é um estado de espera; a tela que o front-end mostra pra ela é só informativa
+(ver `ROLES-E-ACESSO.md` do front).
+
+### Contas removidas (soft delete)
+
+A tabela `users` usa `SoftDeletes` (`deleted_at`). Um usuário indesejado deve ser
+removido com `$user->delete()` (nunca `forceDelete()`), o que:
+
+- some da listagem normal (qualquer `User::where(...)` já ignora registros
+  removidos automaticamente, por causa do global scope do `SoftDeletes`);
+- **bloqueia login futuro**: `AuthController::issueSession` busca o usuário com
+  `withTrashed()` e, se encontrar um registro removido (`$user->trashed()`),
+  aborta com 403 em vez de deixar logar ou criar uma conta nova com o mesmo
+  e-mail/`google_id`. Sem o `withTrashed()` aqui, a busca padrão não acharia o
+  registro removido e tentaria criar um novo — e bateria na constraint `unique`
+  de `email`/`google_id`.
+
+Pra reativar (funcionário recontratado, remoção por engano, etc.), restaure o
+registro em vez de recriar o usuário:
+
+```
+php artisan tinker --execute='App\Models\User::withTrashed()->where("email", "fulano@empresa.com")->restore();'
+```
+
+Isso preserva o histórico (id, tokens antigos revogados, etc.) e evita duplicar
+a linha em `users`.
 
 ## Como o acesso é checado
 

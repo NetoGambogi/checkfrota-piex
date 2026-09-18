@@ -59,36 +59,49 @@ class AuthController extends Controller
 
     private function issueSession(HttpResponse $googleUser, string $tokenName): array
     {
-        $user = User::where('google_id', $googleUser['sub'])
+        $user = User::withTrashed()
+            ->where('google_id', $googleUser['sub'])
             ->orWhere('email', $googleUser['email'])
             ->first();
+
+        if ($user && $user->trashed()) {
+            abort(403, 'Sua conta foi removida pelo administrador. Entre em contato com o setor responsável.');
+        }
 
         if ($user) {
             $user->update([
                 'google_id' => $googleUser['sub'],
                 'name' => $googleUser['name'],
+                'avatar' => $googleUser['picture'] ?? $user->avatar,
             ]);
         } else {
             $user = User::create([
                 'google_id' => $googleUser['sub'],
                 'name' => $googleUser['name'],
                 'email' => $googleUser['email'],
+                'avatar' => $googleUser['picture'] ?? null,
                 'password' => null,
-                'role' => 'motorista',
+                'role' => 'pendente',
             ]);
         }
 
         return [
             'token' => $user->createToken($tokenName)->plainTextToken,
-            'user' => $user->only('id', 'name', 'email', 'role'),
+            'user' => $this->serializeUser($user),
         ];
+    }
+
+    private function serializeUser(User $user): array
+    {
+        return array_merge(
+            $user->only('id', 'name', 'email', 'role', 'avatar'),
+            ['created_at' => $user->created_at?->toIso8601String()],
+        );
     }
 
     public function me(Request $request): JsonResponse
     {
-        return response()->json(
-            $request->user()->only('id', 'name', 'email', 'role')
-        );
+        return response()->json($this->serializeUser($request->user()));
     }
 
     public function logout(Request $request): JsonResponse

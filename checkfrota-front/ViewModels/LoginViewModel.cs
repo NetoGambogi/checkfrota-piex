@@ -52,6 +52,7 @@ public partial class LoginViewModel : ObservableObject
                 "motorista" => "//motorista",
                 "frota" => "//frota",
                 "financeiro" => "//financeiro",
+                "pendente" => "//pendente",
                 _ => throw new InvalidOperationException($"Role desconhecida: {login.User.Role}")
             };
 

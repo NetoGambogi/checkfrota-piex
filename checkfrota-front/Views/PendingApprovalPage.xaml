@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:checkfrota_front.ViewModels"
+             x:Class="checkfrota_front.Views.PendingApprovalPage"
+             x:DataType="viewmodels:PendingApprovalViewModel"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="#0A1330"
+             Title="Aguardando aprovação">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <Color x:Key="PendingHeaderBg">#0A1330</Color>
+            <Color x:Key="PendingTitle">#1F2430</Color>
+            <Color x:Key="PendingSubtitle">#6B7280</Color>
+            <Color x:Key="PendingCardBg">#F1F2F4</Color>
+            <Color x:Key="PendingCardLabel">#6B7280</Color>
+            <Color x:Key="PendingStatus">#DC2626</Color>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="Auto,*" BackgroundColor="White">
+
+        <!-- Cabeçalho -->
+        <Grid Grid.Row="0" BackgroundColor="{StaticResource PendingHeaderBg}" HeightRequest="64" Padding="20,0">
+
+            <!-- Avatar do usuário; ainda não é clicável (sem GestureRecognizer) -->
+            <Border WidthRequest="36" HeightRequest="36"
+                    StrokeShape="Ellipse"
+                    Stroke="Transparent"
+                    Padding="0"
+                    HorizontalOptions="End"
+                    VerticalOptions="Center">
+                <Grid>
+                    <Image Source="person_icon.svg" Aspect="AspectFill" />
+                    <Image Source="{Binding AvatarUrl}" Aspect="AspectFill" IsVisible="{Binding HasAvatar}" />
+                </Grid>
+            </Border>
+
+        </Grid>
+
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Padding="32,40,32,32" Spacing="0">
+
+                <Image Source="pending_clock.svg"
+                       HeightRequest="120"
+                       HorizontalOptions="Center"
+                       Margin="0,0,0,28" />
+
+                <Label Text="Aguardando aprovação"
+                       TextColor="{StaticResource PendingTitle}"
+                       FontAttributes="Bold"
+                       FontSize="22"
+                       HorizontalOptions="Center"
+                       HorizontalTextAlignment="Center" />
+
+                <Label Text="Seu perfil encontra-se em análise pelo administrador do sistema"
+                       TextColor="{StaticResource PendingSubtitle}"
+                       FontSize="14"
+                       HorizontalOptions="Center"
+                       HorizontalTextAlignment="Center"
+                       Margin="0,8,0,32" />
+
+                <Border BackgroundColor="{StaticResource PendingCardBg}"
+                        Stroke="Transparent"
+                        StrokeShape="RoundRectangle 12"
+                        Padding="20,16">
+
+                    <VerticalStackLayout Spacing="14">
+
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Label Grid.Column="0" Text="Solicitado" TextColor="{StaticResource PendingCardLabel}" FontSize="14" />
+                            <Label Grid.Column="1" Text="{Binding RequestedAtText}" TextColor="{StaticResource PendingTitle}" FontAttributes="Bold" FontSize="14" />
+                        </Grid>
+
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Label Grid.Column="0" Text="Status" TextColor="{StaticResource PendingCardLabel}" FontSize="14" />
+                            <Label Grid.Column="1" Text="PENDENTE" TextColor="{StaticResource PendingStatus}" FontAttributes="Bold" FontSize="14" />
+                        </Grid>
+
+                    </VerticalStackLayout>
+                </Border>
+
+                <Label Text="Você será notificado por e-mail assim que a aprovação for concluída."
+                       TextColor="{StaticResource PendingSubtitle}"
+                       FontSize="13"
+                       HorizontalOptions="Center"
+                       HorizontalTextAlignment="Center"
+                       Margin="0,28,0,28" />
+
+                <Button Text="VOLTAR PARA LOGIN"
+                        Command="{Binding VoltarParaLoginCommand}"
+                        BackgroundColor="White"
+                        TextColor="{StaticResource PendingTitle}"
+                        BorderColor="{StaticResource PendingTitle}"
+                        BorderWidth="1"
+                        FontAttributes="Bold"
+                        FontSize="14"
+                        CornerRadius="24"
+                        HeightRequest="50"
+                        HorizontalOptions="Fill" />
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+    </Grid>
+
+</ContentPage>

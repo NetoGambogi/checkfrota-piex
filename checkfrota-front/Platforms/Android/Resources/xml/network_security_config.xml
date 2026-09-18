@@ -3,6 +3,6 @@
      contra o "php artisan serve" local. Remover/ajustar antes de publicar em produção. -->
 <network-security-config>
     <domain-config cleartextTrafficPermitted="true">
-        <domain includeSubdomains="false">192.168.3.4</domain>
+        <domain includeSubdomains="false">192.168.3.21</domain>
     </domain-config>
 </network-security-config>

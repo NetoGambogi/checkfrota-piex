@@ -13,7 +13,7 @@ public class ApiAuthService
     // Barra final obrigatória: combinada com caminhos relativos SEM "/" inicial abaixo,
     // isso garante que o HttpClient acrescente ao invés de substituir o "/api" do BaseAddress.
 #if ANDROID
-    private const string BaseUrl = "http://192.168.3.4:8000/api/";
+    private const string BaseUrl = "http://192.168.3.21:8000/api/";
 #else
     private const string BaseUrl = "http://localhost:8000/api/";
 #endif
@@ -53,10 +53,14 @@ public class ApiAuthService
         await SecureStorage.SetAsync("auth_token", login.Token);
         await SecureStorage.SetAsync("user_role", login.User.Role);
         await SecureStorage.SetAsync("user_name", login.User.Name);
+        await SecureStorage.SetAsync("user_avatar", login.User.Avatar ?? string.Empty);
+        await SecureStorage.SetAsync("user_created_at", login.User.CreatedAt ?? string.Empty);
     }
 
     public async Task<string?> GetTokenAsync() => await SecureStorage.GetAsync("auth_token");
     public async Task<string?> GetRoleAsync() => await SecureStorage.GetAsync("user_role");
+    public async Task<string?> GetAvatarAsync() => await SecureStorage.GetAsync("user_avatar");
+    public async Task<string?> GetCreatedAtAsync() => await SecureStorage.GetAsync("user_created_at");
 
     public async Task LogoutAsync()
     {
@@ -78,6 +82,8 @@ public class ApiAuthService
             SecureStorage.Remove("auth_token");
             SecureStorage.Remove("user_role");
             SecureStorage.Remove("user_name");
+            SecureStorage.Remove("user_avatar");
+            SecureStorage.Remove("user_created_at");
         }
     }
 

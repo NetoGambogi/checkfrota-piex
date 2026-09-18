@@ -13,6 +13,11 @@
         Route="login" />
 
     <ShellContent
+        Title="Pendente"
+        ContentTemplate="{DataTemplate views:PendingApprovalPage}"
+        Route="pendente" />
+
+    <ShellContent
         Title="Admin"
         ContentTemplate="{DataTemplate views:AdminHomePage}"
         Route="admin" />
