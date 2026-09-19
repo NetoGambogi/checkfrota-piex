@@ -2,20 +2,31 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:viewmodels="clr-namespace:checkfrota_front.ViewModels"
+             xmlns:shared="clr-namespace:checkfrota_front.Views.Shared"
              x:Class="checkfrota_front.Views.FrotaHomePage"
              x:DataType="viewmodels:FrotaHomeViewModel"
+             Shell.NavBarIsVisible="False"
              Title="Frota">
 
-    <VerticalStackLayout Padding="30" Spacing="25" VerticalOptions="Center">
+    <Grid RowDefinitions="Auto,*">
 
-        <Label Text="{Binding UserName, StringFormat='Bem-vindo, {0}'}"
-               FontSize="24"
-               HorizontalOptions="Center" />
+        <shared:AdminTopBar Grid.Row="0"
+                             Title="Frota"
+                             AvatarUrl="{Binding AvatarUrl}"
+                             HasAvatar="{Binding HasAvatar}" />
 
-        <Button Text="Sair"
-                Command="{Binding LogoutCommand}"
-                HorizontalOptions="Fill" />
+        <VerticalStackLayout Grid.Row="1" Padding="30" Spacing="25" VerticalOptions="Center">
 
-    </VerticalStackLayout>
+            <Label Text="{Binding UserName, StringFormat='Bem-vindo, {0}'}"
+                   FontSize="24"
+                   HorizontalOptions="Center" />
+
+            <Button Text="Sair"
+                    Command="{Binding LogoutCommand}"
+                    HorizontalOptions="Fill" />
+
+        </VerticalStackLayout>
+
+    </Grid>
 
 </ContentPage>

@@ -87,21 +87,13 @@ class AuthController extends Controller
 
         return [
             'token' => $user->createToken($tokenName)->plainTextToken,
-            'user' => $this->serializeUser($user),
+            'user' => $user->toApiPayload(),
         ];
-    }
-
-    private function serializeUser(User $user): array
-    {
-        return array_merge(
-            $user->only('id', 'name', 'email', 'role', 'avatar'),
-            ['created_at' => $user->created_at?->toIso8601String()],
-        );
     }
 
     public function me(Request $request): JsonResponse
     {
-        return response()->json($this->serializeUser($request->user()));
+        return response()->json($request->user()->toApiPayload());
     }
 
     public function logout(Request $request): JsonResponse

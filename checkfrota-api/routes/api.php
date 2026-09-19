@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/auth/google', [AuthController::class, 'loginWithGoogle']);
@@ -11,7 +12,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
 
     Route::middleware('role:admin')->group(function () {
-        // rotas só de admin — gestão de frota, relatórios, etc.
+        Route::get('/users', [UserController::class, 'index']);
+        Route::patch('/users/{user}/role', [UserController::class, 'updateRole']);
+        Route::delete('/users/{user}', [UserController::class, 'deactivate']);
+        Route::patch('/users/{user}/restore', [UserController::class, 'restore'])->withTrashed();
     });
 
     Route::middleware('role:motorista')->group(function () {

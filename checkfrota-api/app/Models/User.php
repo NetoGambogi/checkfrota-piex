@@ -31,4 +31,20 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    /**
+     * Representação do usuário devolvida pela API (login, /me, listagem de usuários).
+     *
+     * @return array<string, mixed>
+     */
+    public function toApiPayload(): array
+    {
+        return array_merge(
+            $this->only('id', 'name', 'email', 'role', 'avatar'),
+            [
+                'created_at' => $this->created_at?->toIso8601String(),
+                'active' => $this->deleted_at === null,
+            ],
+        );
+    }
 }

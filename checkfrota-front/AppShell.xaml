@@ -4,8 +4,11 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:views="clr-namespace:checkfrota_front.Views"
+    xmlns:helpers="clr-namespace:checkfrota_front.Helpers"
     Title="checkfrota_front"
-    FlyoutBehavior="Disabled">
+    FlyoutBehavior="Disabled"
+    TabBarForegroundColor="#0A1330"
+    TabBarUnselectedColor="#9CA3AF">
 
     <ShellContent
         Title="Login"
@@ -17,10 +20,28 @@
         ContentTemplate="{DataTemplate views:PendingApprovalPage}"
         Route="pendente" />
 
-    <ShellContent
-        Title="Admin"
-        ContentTemplate="{DataTemplate views:AdminHomePage}"
-        Route="admin" />
+    <TabBar Route="admin">
+        <ShellContent Title="Dashboard" ContentTemplate="{DataTemplate views:AdminHomePage}">
+            <ShellContent.Icon>
+                <FontImageSource FontFamily="FontAwesomeSolid" Glyph="{x:Static helpers:IconFont.Dashboard}" Color="#0A1330" Size="20" />
+            </ShellContent.Icon>
+        </ShellContent>
+        <ShellContent Title="Financeiro" ContentTemplate="{DataTemplate views:FinanceiroHomePage}">
+            <ShellContent.Icon>
+                <FontImageSource FontFamily="FontAwesomeSolid" Glyph="{x:Static helpers:IconFont.Financeiro}" Color="#0A1330" Size="20" />
+            </ShellContent.Icon>
+        </ShellContent>
+        <ShellContent Title="Frota" ContentTemplate="{DataTemplate views:FrotaHomePage}">
+            <ShellContent.Icon>
+                <FontImageSource FontFamily="FontAwesomeSolid" Glyph="{x:Static helpers:IconFont.Frota}" Color="#0A1330" Size="20" />
+            </ShellContent.Icon>
+        </ShellContent>
+        <ShellContent Title="Usuários" ContentTemplate="{DataTemplate views:UserManagementPage}">
+            <ShellContent.Icon>
+                <FontImageSource FontFamily="FontAwesomeSolid" Glyph="{x:Static helpers:IconFont.Usuarios}" Color="#0A1330" Size="20" />
+            </ShellContent.Icon>
+        </ShellContent>
+    </TabBar>
 
     <ShellContent
         Title="Motorista"

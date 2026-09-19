@@ -4,14 +4,14 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace checkfrota_front.ViewModels;
 
-public partial class FinanceiroHomeViewModel : ObservableObject
+public partial class FinanceiroHomeViewModel : AdminSectionViewModelBase
 {
     private readonly ApiAuthService _apiAuth;
 
     [ObservableProperty]
     private string? userName;
 
-    public FinanceiroHomeViewModel(ApiAuthService apiAuth)
+    public FinanceiroHomeViewModel(ApiAuthService apiAuth) : base(apiAuth)
     {
         _apiAuth = apiAuth;
     }
@@ -20,6 +20,7 @@ public partial class FinanceiroHomeViewModel : ObservableObject
     private async Task AppearingAsync()
     {
         UserName = await SecureStorage.GetAsync("user_name");
+        await LoadAvatarAsync();
     }
 
     [RelayCommand]

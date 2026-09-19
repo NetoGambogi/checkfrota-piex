@@ -15,6 +15,7 @@ namespace checkfrota_front
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                     fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+                    fonts.AddFont("fa-solid-900.ttf", "FontAwesomeSolid");
                 });
 
 #if DEBUG
@@ -36,6 +37,10 @@ namespace checkfrota_front
 
             builder.Services.AddTransient<AdminHomeViewModel>();
             builder.Services.AddTransient<Views.AdminHomePage>();
+
+            builder.Services.AddTransient<UserManagementService>();
+            builder.Services.AddTransient<UserManagementViewModel>();
+            builder.Services.AddTransient<Views.UserManagementPage>();
 
             builder.Services.AddTransient<MotoristaHomeViewModel>();
             builder.Services.AddTransient<Views.MotoristaHomePage>();

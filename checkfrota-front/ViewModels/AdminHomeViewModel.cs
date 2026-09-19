@@ -4,14 +4,14 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace checkfrota_front.ViewModels;
 
-public partial class AdminHomeViewModel : ObservableObject
+public partial class AdminHomeViewModel : AdminSectionViewModelBase
 {
     private readonly ApiAuthService _apiAuth;
 
     [ObservableProperty]
     private string? userName;
 
-    public AdminHomeViewModel(ApiAuthService apiAuth)
+    public AdminHomeViewModel(ApiAuthService apiAuth) : base(apiAuth)
     {
         _apiAuth = apiAuth;
     }
@@ -20,6 +20,7 @@ public partial class AdminHomeViewModel : ObservableObject
     private async Task AppearingAsync()
     {
         UserName = await SecureStorage.GetAsync("user_name");
+        await LoadAvatarAsync();
     }
 
     [RelayCommand]

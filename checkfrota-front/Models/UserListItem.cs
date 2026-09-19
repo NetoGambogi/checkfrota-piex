@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Text.Json.Serialization;
 
 namespace checkfrota_front.Models
 {
-    public class UserModel
+    public class UserListItem
     {
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
@@ -15,12 +12,12 @@ namespace checkfrota_front.Models
 
         [JsonPropertyName("created_at")]
         public string? CreatedAt { get; set; }
+
+        public bool Active { get; set; }
     }
 
-    // Models/LoginResponse.cs
-    public class LoginResponse
+    public class UserListResponse
     {
-        public string Token { get; set; } = string.Empty;
-        public UserModel User { get; set; } = new();
+        public List<UserListItem> Users { get; set; } = new();
     }
 }
