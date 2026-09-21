@@ -1,3 +1,5 @@
+using checkfrota_front.Views;
+
 namespace checkfrota_front.Views.Shared;
 
 public partial class AdminTopBar : ContentView
@@ -10,6 +12,15 @@ public partial class AdminTopBar : ContentView
 
     public static readonly BindableProperty TitleProperty =
         BindableProperty.Create(nameof(Title), typeof(string), typeof(AdminTopBar));
+
+    public static readonly BindableProperty ShowBackButtonProperty =
+        BindableProperty.Create(nameof(ShowBackButton), typeof(bool), typeof(AdminTopBar));
+
+    public bool ShowBackButton
+    {
+        get => (bool)GetValue(ShowBackButtonProperty);
+        set => SetValue(ShowBackButtonProperty, value);
+    }
 
     public string? AvatarUrl
     {
@@ -32,5 +43,18 @@ public partial class AdminTopBar : ContentView
     public AdminTopBar()
     {
         InitializeComponent();
+    }
+
+    private async void OnAvatarTapped(object? sender, TappedEventArgs e)
+    {
+        if (ShowBackButton)
+            return;
+
+        await Shell.Current.GoToAsync(nameof(PerfilPage));
+    }
+
+    private async void OnBackTapped(object? sender, TappedEventArgs e)
+    {
+        await Shell.Current.GoToAsync("..");
     }
 }

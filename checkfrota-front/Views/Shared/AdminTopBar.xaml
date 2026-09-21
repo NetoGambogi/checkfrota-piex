@@ -1,12 +1,25 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:helpers="clr-namespace:checkfrota_front.Helpers"
              x:Class="checkfrota_front.Views.Shared.AdminTopBar"
              x:Name="Root">
 
-    <Grid BackgroundColor="#0A1330" HeightRequest="64" Padding="20,0" ColumnDefinitions="*,Auto">
+    <Grid BackgroundColor="#0A1330" HeightRequest="64" Padding="20,0" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
 
         <Label Grid.Column="0"
+               Text="{x:Static helpers:IconFont.Back}"
+               FontFamily="FontAwesomeSolid"
+               FontSize="18"
+               TextColor="White"
+               VerticalOptions="Center"
+               IsVisible="{Binding ShowBackButton, Source={x:Reference Root}}">
+            <Label.GestureRecognizers>
+                <TapGestureRecognizer Tapped="OnBackTapped" />
+            </Label.GestureRecognizers>
+        </Label>
+
+        <Label Grid.Column="1"
                Text="{Binding Title, Source={x:Reference Root}}"
                TextColor="White"
                FontAttributes="Bold"
@@ -14,7 +27,7 @@
                VerticalOptions="Center"
                LineBreakMode="TailTruncation" />
 
-        <Border Grid.Column="1"
+        <Border Grid.Column="2"
                 WidthRequest="36"
                 HeightRequest="36"
                 StrokeShape="Ellipse"
@@ -27,6 +40,9 @@
                 <Image Source="{Binding AvatarUrl, Source={x:Reference Root}}"
                        Aspect="AspectFill"
                        IsVisible="{Binding HasAvatar, Source={x:Reference Root}}" />
+                <Grid.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnAvatarTapped" />
+                </Grid.GestureRecognizers>
             </Grid>
         </Border>
     </Grid>

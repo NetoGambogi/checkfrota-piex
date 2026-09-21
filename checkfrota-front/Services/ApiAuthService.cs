@@ -58,6 +58,7 @@ public class ApiAuthService
     }
 
     public async Task<string?> GetTokenAsync() => await SecureStorage.GetAsync("auth_token");
+    public async Task<string?> GetNameAsync() => await SecureStorage.GetAsync("user_name");
     public async Task<string?> GetRoleAsync() => await SecureStorage.GetAsync("user_role");
     public async Task<string?> GetAvatarAsync() => await SecureStorage.GetAsync("user_avatar");
     public async Task<string?> GetCreatedAtAsync() => await SecureStorage.GetAsync("user_created_at");

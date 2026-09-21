@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:checkfrota_front.ViewModels"
+             xmlns:shared="clr-namespace:checkfrota_front.Views.Shared"
+             x:Class="checkfrota_front.Views.PerfilPage"
+             x:DataType="viewmodels:PerfilViewModel"
+             Shell.NavBarIsVisible="False"
+             Shell.PresentationMode="Modal"
+             BackgroundColor="White"
+             Title="Perfil">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <Color x:Key="PerfilHeaderBg">#0A1330</Color>
+            <Color x:Key="PerfilTitle">#1F2430</Color>
+            <Color x:Key="PerfilSubtitle">#6B7280</Color>
+            <Color x:Key="PerfilCardBg">#F1F2F4</Color>
+            <Color x:Key="PerfilDanger">#DC2626</Color>
+            <Color x:Key="PerfilDivider">#E5E7EB</Color>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="Auto,*">
+
+        <shared:AdminTopBar Grid.Row="0"
+                             Title="Perfil"
+                             AvatarUrl="{Binding AvatarUrl}"
+                             HasAvatar="{Binding HasAvatar}"
+                             ShowBackButton="True" />
+
+        <Grid Grid.Row="1" Padding="24" RowDefinitions="*,Auto">
+
+            <VerticalStackLayout Grid.Row="0" Spacing="24" VerticalOptions="Start">
+
+                <VerticalStackLayout Spacing="16" HorizontalOptions="Center">
+
+                    <Border WidthRequest="88"
+                            HeightRequest="88"
+                            StrokeShape="Ellipse"
+                            Stroke="Transparent"
+                            Padding="0">
+                        <Grid>
+                            <BoxView Color="{StaticResource PerfilHeaderBg}" />
+                            <Label Text="{Binding Initials}"
+                                   IsVisible="{Binding NoAvatar}"
+                                   TextColor="White"
+                                   FontAttributes="Bold"
+                                   FontSize="28"
+                                   HorizontalOptions="Center"
+                                   VerticalOptions="Center" />
+                            <Image Source="{Binding AvatarUrl}"
+                                   Aspect="AspectFill"
+                                   IsVisible="{Binding HasAvatar}" />
+                        </Grid>
+                    </Border>
+
+                    <VerticalStackLayout Spacing="4" HorizontalOptions="Center">
+                        <Label Text="{Binding UserName}"
+                               TextColor="{StaticResource PerfilTitle}"
+                               FontAttributes="Bold"
+                               FontSize="20"
+                               HorizontalOptions="Center" />
+
+                        <Border BackgroundColor="{StaticResource PerfilCardBg}"
+                                Stroke="Transparent"
+                                StrokeShape="RoundRectangle 20"
+                                Padding="12,4"
+                                HorizontalOptions="Center">
+                            <Label Text="{Binding RoleDisplay}"
+                                   TextColor="{StaticResource PerfilSubtitle}"
+                                   FontAttributes="Bold"
+                                   FontSize="12" />
+                        </Border>
+                    </VerticalStackLayout>
+
+                </VerticalStackLayout>
+
+                <BoxView HeightRequest="1" Color="{StaticResource PerfilDivider}" />
+
+                <Button Text="Sair"
+                        Command="{Binding LogoutCommand}"
+                        BackgroundColor="{StaticResource PerfilDanger}"
+                        TextColor="White"
+                        FontAttributes="Bold"
+                        CornerRadius="10"
+                        HeightRequest="48" />
+
+            </VerticalStackLayout>
+
+            <Label Grid.Row="1"
+                   Text="{Binding AppVersion}"
+                   TextColor="{StaticResource PerfilSubtitle}"
+                   FontSize="12"
+                   HorizontalOptions="Center"
+                   Margin="0,16,0,0" />
+
+        </Grid>
+
+    </Grid>
+
+</ContentPage>

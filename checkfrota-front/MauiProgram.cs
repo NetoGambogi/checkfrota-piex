@@ -35,6 +35,9 @@ namespace checkfrota_front
             builder.Services.AddTransient<PendingApprovalViewModel>();
             builder.Services.AddTransient<Views.PendingApprovalPage>();
 
+            builder.Services.AddTransient<PerfilViewModel>();
+            builder.Services.AddTransient<Views.PerfilPage>();
+
             builder.Services.AddTransient<AdminHomeViewModel>();
             builder.Services.AddTransient<Views.AdminHomePage>();
 
