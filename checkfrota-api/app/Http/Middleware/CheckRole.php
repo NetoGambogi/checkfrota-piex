@@ -13,9 +13,9 @@ class CheckRole
      *
      * @param  Closure(Request): (Response)  $next
      */
-    public function handle($request, Closure $next, string $role)
+    public function handle($request, Closure $next, string ...$roles)
     {
-        if ($request->user()->role !== $role) {
+        if (! in_array($request->user()->role, $roles, true)) {
             abort(403, 'Acesso negado.');
         }
 

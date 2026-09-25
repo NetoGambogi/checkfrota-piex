@@ -3,10 +3,22 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:viewmodels="clr-namespace:checkfrota_front.ViewModels"
              xmlns:shared="clr-namespace:checkfrota_front.Views.Shared"
+             xmlns:helpers="clr-namespace:checkfrota_front.Helpers"
              x:Class="checkfrota_front.Views.FinanceiroHomePage"
              x:DataType="viewmodels:FinanceiroHomeViewModel"
              Shell.NavBarIsVisible="False"
+             BackgroundColor="White"
              Title="Financeiro">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <Color x:Key="FinTitle">#1F2430</Color>
+            <Color x:Key="FinSubtitle">#6B7280</Color>
+            <Color x:Key="FinCardBg">#F1F2F4</Color>
+            <Color x:Key="FinIconBg">#E3E7FD</Color>
+            <Color x:Key="FinPrimary">#3D4FE0</Color>
+        </ResourceDictionary>
+    </ContentPage.Resources>
 
     <Grid RowDefinitions="Auto,*">
 
@@ -15,15 +27,104 @@
                              AvatarUrl="{Binding AvatarUrl}"
                              HasAvatar="{Binding HasAvatar}" />
 
-        <VerticalStackLayout Grid.Row="1" Padding="30" Spacing="25" VerticalOptions="Center">
+        <VerticalStackLayout Grid.Row="1" Padding="20,20,20,20" Spacing="14">
 
-            <Label Text="{Binding UserName, StringFormat='Bem-vindo, {0}'}"
-                   FontSize="24"
-                   HorizontalOptions="Center" />
+            <Label Text="Configurações"
+                   TextColor="{StaticResource FinTitle}"
+                   FontAttributes="Bold"
+                   FontSize="20" />
 
-            <Button Text="Sair"
-                    Command="{Binding LogoutCommand}"
-                    HorizontalOptions="Fill" />
+            <Border BackgroundColor="{StaticResource FinCardBg}"
+                    Stroke="Transparent"
+                    StrokeShape="RoundRectangle 16"
+                    Padding="16">
+
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding AbrirCategoriasCommand}" />
+                </Border.GestureRecognizers>
+
+                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+
+                    <Border Grid.Column="0"
+                            WidthRequest="46"
+                            HeightRequest="46"
+                            StrokeShape="Ellipse"
+                            Stroke="Transparent"
+                            Padding="0"
+                            BackgroundColor="{StaticResource FinIconBg}">
+                        <Label Text="{x:Static helpers:IconFont.Financeiro}"
+                               FontFamily="FontAwesomeSolid"
+                               TextColor="{StaticResource FinPrimary}"
+                               FontSize="18"
+                               HorizontalOptions="Center"
+                               VerticalOptions="Center" />
+                    </Border>
+
+                    <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                        <Label Text="Categorias financeiras"
+                               TextColor="{StaticResource FinTitle}"
+                               FontAttributes="Bold"
+                               FontSize="16" />
+                        <Label Text="Despesas e receitas"
+                               TextColor="{StaticResource FinSubtitle}"
+                               FontSize="13" />
+                    </VerticalStackLayout>
+
+                    <Label Grid.Column="2"
+                           Text="{x:Static helpers:IconFont.ChevronDireita}"
+                           FontFamily="FontAwesomeSolid"
+                           TextColor="{StaticResource FinSubtitle}"
+                           FontSize="14"
+                           VerticalOptions="Center" />
+
+                </Grid>
+            </Border>
+
+            <Border BackgroundColor="{StaticResource FinCardBg}"
+                    Stroke="Transparent"
+                    StrokeShape="RoundRectangle 16"
+                    Padding="16">
+
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding AbrirFormasPagamentoCommand}" />
+                </Border.GestureRecognizers>
+
+                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+
+                    <Border Grid.Column="0"
+                            WidthRequest="46"
+                            HeightRequest="46"
+                            StrokeShape="Ellipse"
+                            Stroke="Transparent"
+                            Padding="0"
+                            BackgroundColor="{StaticResource FinIconBg}">
+                        <Label Text="{x:Static helpers:IconFont.Pagamento}"
+                               FontFamily="FontAwesomeSolid"
+                               TextColor="{StaticResource FinPrimary}"
+                               FontSize="18"
+                               HorizontalOptions="Center"
+                               VerticalOptions="Center" />
+                    </Border>
+
+                    <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                        <Label Text="Formas de pagamento"
+                               TextColor="{StaticResource FinTitle}"
+                               FontAttributes="Bold"
+                               FontSize="16" />
+                        <Label Text="Dinheiro, Pix, cartão, etc."
+                               TextColor="{StaticResource FinSubtitle}"
+                               FontSize="13" />
+                    </VerticalStackLayout>
+
+                    <Label Grid.Column="2"
+                           Text="{x:Static helpers:IconFont.ChevronDireita}"
+                           FontFamily="FontAwesomeSolid"
+                           TextColor="{StaticResource FinSubtitle}"
+                           FontSize="14"
+                           VerticalOptions="Center" />
+
+                </Grid>
+            </Border>
 
         </VerticalStackLayout>
 

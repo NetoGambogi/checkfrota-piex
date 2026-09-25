@@ -8,6 +8,10 @@ namespace checkfrota_front
         {
             InitializeComponent();
             Routing.RegisterRoute(nameof(PerfilPage), typeof(PerfilPage));
+            Routing.RegisterRoute(nameof(CategoriaFinanceiraManagementPage), typeof(CategoriaFinanceiraManagementPage));
+            Routing.RegisterRoute(nameof(CategoriaFinanceiraFormPage), typeof(CategoriaFinanceiraFormPage));
+            Routing.RegisterRoute(nameof(FormaPagamentoManagementPage), typeof(FormaPagamentoManagementPage));
+            Routing.RegisterRoute(nameof(FormaPagamentoFormPage), typeof(FormaPagamentoFormPage));
         }
     }
 }

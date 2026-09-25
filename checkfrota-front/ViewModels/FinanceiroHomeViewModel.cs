@@ -1,4 +1,5 @@
 using checkfrota_front.Services;
+using checkfrota_front.Views;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -6,27 +7,25 @@ namespace checkfrota_front.ViewModels;
 
 public partial class FinanceiroHomeViewModel : AdminSectionViewModelBase
 {
-    private readonly ApiAuthService _apiAuth;
-
-    [ObservableProperty]
-    private string? userName;
-
     public FinanceiroHomeViewModel(ApiAuthService apiAuth) : base(apiAuth)
     {
-        _apiAuth = apiAuth;
     }
 
     [RelayCommand]
     private async Task AppearingAsync()
     {
-        UserName = await SecureStorage.GetAsync("user_name");
         await LoadAvatarAsync();
     }
 
     [RelayCommand]
-    private async Task LogoutAsync()
+    private async Task AbrirCategoriasAsync()
     {
-        await _apiAuth.LogoutAsync();
-        await Shell.Current.GoToAsync("//login");
+        await Shell.Current.GoToAsync(nameof(CategoriaFinanceiraManagementPage));
+    }
+
+    [RelayCommand]
+    private async Task AbrirFormasPagamentoAsync()
+    {
+        await Shell.Current.GoToAsync(nameof(FormaPagamentoManagementPage));
     }
 }

@@ -11,6 +11,8 @@ public partial class UserManagementViewModel : AdminSectionViewModelBase
 
     private List<UserRowViewModel> _allUsers = new();
 
+    private bool _isLoadingUsers;
+
     public List<string> RoleFilterOptions { get; } = new()
     {
         "Todas", "admin", "motorista", "frota", "financeiro", "pendente",
@@ -61,10 +63,11 @@ public partial class UserManagementViewModel : AdminSectionViewModelBase
     [RelayCommand]
     private async Task LoadUsersAsync()
     {
-        if (IsBusy) return;
+        if (_isLoadingUsers) return;
 
         try
         {
+            _isLoadingUsers = true;
             IsBusy = true;
             ErrorMessage = null;
 
@@ -80,6 +83,7 @@ public partial class UserManagementViewModel : AdminSectionViewModelBase
         finally
         {
             IsBusy = false;
+            _isLoadingUsers = false;
         }
     }
 

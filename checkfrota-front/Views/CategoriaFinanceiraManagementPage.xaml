@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:checkfrota_front.ViewModels"
+             xmlns:shared="clr-namespace:checkfrota_front.Views.Shared"
+             x:Class="checkfrota_front.Views.CategoriaFinanceiraManagementPage"
+             x:DataType="viewmodels:CategoriaFinanceiraManagementViewModel"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="White"
+             Title="Categorias financeiras">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <Color x:Key="FinTitle">#1F2430</Color>
+            <Color x:Key="FinSubtitle">#6B7280</Color>
+            <Color x:Key="FinCardBg">#F1F2F4</Color>
+            <Color x:Key="FinIconBg">#FBE3E3</Color>
+            <Color x:Key="FinIconFg">#D9534F</Color>
+            <Color x:Key="FinPrimary">#3D4FE0</Color>
+            <Color x:Key="FinFieldBg">#F8F9FB</Color>
+            <Color x:Key="FinFieldBorder">#E2E4E9</Color>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="Auto,Auto,*">
+
+        <shared:AdminTopBar Grid.Row="0"
+                             Title="Financeiro"
+                             AvatarUrl="{Binding AvatarUrl}"
+                             HasAvatar="{Binding HasAvatar}"
+                             ShowBackButton="True" />
+
+        <VerticalStackLayout Grid.Row="1" Padding="20,16,20,12" Spacing="12" BackgroundColor="White">
+
+            <Label Text="Categoria Financeiras"
+                   TextColor="{StaticResource FinTitle}"
+                   FontAttributes="Bold"
+                   FontSize="20" />
+
+            <Border BackgroundColor="{StaticResource FinFieldBg}"
+                    Stroke="{StaticResource FinFieldBorder}"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 10"
+                    HeightRequest="46"
+                    Padding="4,0">
+                <SearchBar Placeholder="Buscar categoria..."
+                           Text="{Binding SearchText}"
+                           BackgroundColor="Transparent"
+                           VerticalOptions="Center" />
+            </Border>
+
+            <Label Text="{Binding ErrorMessage}"
+                   TextColor="{StaticResource FinIconFg}"
+                   FontSize="13" />
+
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                <Button Grid.Column="0"
+                        Text="Despesas"
+                        CornerRadius="10"
+                        HeightRequest="44"
+                        Command="{Binding SelectDespesaCommand}">
+                    <Button.Triggers>
+                        <DataTrigger TargetType="Button" Binding="{Binding IsDespesaSelected}" Value="True">
+                            <Setter Property="BackgroundColor" Value="{StaticResource FinPrimary}" />
+                            <Setter Property="TextColor" Value="White" />
+                            <Setter Property="BorderWidth" Value="0" />
+                        </DataTrigger>
+                        <DataTrigger TargetType="Button" Binding="{Binding IsDespesaSelected}" Value="False">
+                            <Setter Property="BackgroundColor" Value="White" />
+                            <Setter Property="TextColor" Value="{StaticResource FinTitle}" />
+                            <Setter Property="BorderColor" Value="{StaticResource FinFieldBorder}" />
+                            <Setter Property="BorderWidth" Value="1" />
+                        </DataTrigger>
+                    </Button.Triggers>
+                </Button>
+                <Button Grid.Column="1"
+                        Text="Receitas"
+                        CornerRadius="10"
+                        HeightRequest="44"
+                        Command="{Binding SelectReceitaCommand}">
+                    <Button.Triggers>
+                        <DataTrigger TargetType="Button" Binding="{Binding IsReceitaSelected}" Value="True">
+                            <Setter Property="BackgroundColor" Value="{StaticResource FinPrimary}" />
+                            <Setter Property="TextColor" Value="White" />
+                            <Setter Property="BorderWidth" Value="0" />
+                        </DataTrigger>
+                        <DataTrigger TargetType="Button" Binding="{Binding IsReceitaSelected}" Value="False">
+                            <Setter Property="BackgroundColor" Value="White" />
+                            <Setter Property="TextColor" Value="{StaticResource FinTitle}" />
+                            <Setter Property="BorderColor" Value="{StaticResource FinFieldBorder}" />
+                            <Setter Property="BorderWidth" Value="1" />
+                        </DataTrigger>
+                    </Button.Triggers>
+                </Button>
+            </Grid>
+
+        </VerticalStackLayout>
+
+        <Grid Grid.Row="2">
+
+            <Label Text="Carregando categorias…"
+                   IsVisible="{Binding ShowInitialLoading}"
+                   TextColor="{StaticResource FinSubtitle}"
+                   HorizontalOptions="Center"
+                   VerticalOptions="Center" />
+
+            <Label Text="Nenhuma categoria encontrada."
+                   IsVisible="{Binding ShowEmptyState}"
+                   TextColor="{StaticResource FinSubtitle}"
+                   HorizontalOptions="Center"
+                   VerticalOptions="Center" />
+
+            <RefreshView Command="{Binding LoadCategoriasCommand}" IsRefreshing="{Binding IsBusy}">
+                <CollectionView x:Name="CategoriasCollectionView" ItemsSource="{Binding Categorias}" Margin="20,0,20,16">
+
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="viewmodels:CategoriaFinanceiraRowViewModel">
+                            <Border BackgroundColor="{StaticResource FinCardBg}"
+                                    Stroke="Transparent"
+                                    StrokeShape="RoundRectangle 16"
+                                    Padding="16"
+                                    Margin="0,8,0,0">
+
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding Path=BindingContext.EditCategoriaCommand, Source={x:Reference CategoriasCollectionView}}"
+                                                           CommandParameter="{Binding .}" />
+                                </Border.GestureRecognizers>
+
+                                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="14">
+
+                                    <Border Grid.Column="0"
+                                            WidthRequest="46"
+                                            HeightRequest="46"
+                                            StrokeShape="Ellipse"
+                                            Stroke="Transparent"
+                                            Padding="0"
+                                            BackgroundColor="{StaticResource FinIconBg}">
+                                        <Label Text="{Binding IconGlyph}"
+                                               FontFamily="FontAwesomeSolid"
+                                               TextColor="{StaticResource FinIconFg}"
+                                               FontSize="18"
+                                               HorizontalOptions="Center"
+                                               VerticalOptions="Center" />
+                                    </Border>
+
+                                    <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                                        <Label Text="{Binding Nome}"
+                                               TextColor="{StaticResource FinTitle}"
+                                               FontAttributes="Bold"
+                                               FontSize="16" />
+                                        <Label Text="{Binding Descricao}"
+                                               TextColor="{StaticResource FinSubtitle}"
+                                               FontSize="13"
+                                               LineBreakMode="TailTruncation" />
+                                    </VerticalStackLayout>
+
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+
+                </CollectionView>
+            </RefreshView>
+
+            <Border HeightRequest="56"
+                    WidthRequest="56"
+                    StrokeShape="Ellipse"
+                    Stroke="Transparent"
+                    Padding="0"
+                    BackgroundColor="{StaticResource FinPrimary}"
+                    HorizontalOptions="End"
+                    VerticalOptions="End"
+                    Margin="0,0,20,20">
+
+                <Border.Shadow>
+                    <Shadow Brush="Black" Opacity="0.25" Radius="10" Offset="0,4" />
+                </Border.Shadow>
+
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding AddCategoriaCommand}" />
+                </Border.GestureRecognizers>
+
+                <Label Text="+"
+                       TextColor="White"
+                       FontAttributes="Bold"
+                       FontSize="30"
+                       HorizontalOptions="Center"
+                       VerticalOptions="Center"
+                       Margin="0,-4,0,0" />
+            </Border>
+
+        </Grid>
+
+    </Grid>
+
+</ContentPage>

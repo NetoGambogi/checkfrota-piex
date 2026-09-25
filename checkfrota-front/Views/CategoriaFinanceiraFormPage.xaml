@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:checkfrota_front.ViewModels"
+             xmlns:shared="clr-namespace:checkfrota_front.Views.Shared"
+             x:Class="checkfrota_front.Views.CategoriaFinanceiraFormPage"
+             x:DataType="viewmodels:CategoriaFinanceiraFormViewModel"
+             Shell.NavBarIsVisible="False"
+             Shell.PresentationMode="Modal"
+             BackgroundColor="White"
+             Title="Categoria financeira">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <Color x:Key="FormTitle">#1F2430</Color>
+            <Color x:Key="FormSubtitle">#6B7280</Color>
+            <Color x:Key="FormFieldBg">#F8F9FB</Color>
+            <Color x:Key="FormFieldBorder">#E2E4E9</Color>
+            <Color x:Key="FormPrimary">#3D4FE0</Color>
+            <Color x:Key="FormDanger">#DC2626</Color>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="Auto,*">
+
+        <shared:AdminTopBar Grid.Row="0"
+                             Title="{Binding PageTitle}"
+                             AvatarUrl="{Binding AvatarUrl}"
+                             HasAvatar="{Binding HasAvatar}"
+                             ShowBackButton="True" />
+
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Padding="20,20,20,32" Spacing="18">
+
+                <Label Text="{Binding ErrorMessage}"
+                       TextColor="{StaticResource FormDanger}"
+                       FontSize="13" />
+
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Tipo" TextColor="{StaticResource FormSubtitle}" FontSize="12" />
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                        <Button Grid.Column="0"
+                                Text="Despesa"
+                                CornerRadius="10"
+                                HeightRequest="46"
+                                Command="{Binding SelectDespesaCommand}">
+                            <Button.Triggers>
+                                <DataTrigger TargetType="Button" Binding="{Binding Tipo}" Value="despesa">
+                                    <Setter Property="BackgroundColor" Value="{StaticResource FormPrimary}" />
+                                    <Setter Property="TextColor" Value="White" />
+                                </DataTrigger>
+                                <DataTrigger TargetType="Button" Binding="{Binding Tipo}" Value="receita">
+                                    <Setter Property="BackgroundColor" Value="White" />
+                                    <Setter Property="TextColor" Value="{StaticResource FormTitle}" />
+                                    <Setter Property="BorderColor" Value="{StaticResource FormFieldBorder}" />
+                                    <Setter Property="BorderWidth" Value="1" />
+                                </DataTrigger>
+                            </Button.Triggers>
+                        </Button>
+                        <Button Grid.Column="1"
+                                Text="Receita"
+                                CornerRadius="10"
+                                HeightRequest="46"
+                                Command="{Binding SelectReceitaCommand}">
+                            <Button.Triggers>
+                                <DataTrigger TargetType="Button" Binding="{Binding Tipo}" Value="receita">
+                                    <Setter Property="BackgroundColor" Value="{StaticResource FormPrimary}" />
+                                    <Setter Property="TextColor" Value="White" />
+                                </DataTrigger>
+                                <DataTrigger TargetType="Button" Binding="{Binding Tipo}" Value="despesa">
+                                    <Setter Property="BackgroundColor" Value="White" />
+                                    <Setter Property="TextColor" Value="{StaticResource FormTitle}" />
+                                    <Setter Property="BorderColor" Value="{StaticResource FormFieldBorder}" />
+                                    <Setter Property="BorderWidth" Value="1" />
+                                </DataTrigger>
+                            </Button.Triggers>
+                        </Button>
+                    </Grid>
+                </VerticalStackLayout>
+
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Nome" TextColor="{StaticResource FormSubtitle}" FontSize="12" />
+                    <Border BackgroundColor="{StaticResource FormFieldBg}"
+                            Stroke="{StaticResource FormFieldBorder}"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 10"
+                            HeightRequest="48"
+                            Padding="12,0">
+                        <Entry Text="{Binding Nome}"
+                               Placeholder="Ex: Combustível"
+                               BackgroundColor="Transparent"
+                               VerticalOptions="Center" />
+                    </Border>
+                </VerticalStackLayout>
+
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Descrição" TextColor="{StaticResource FormSubtitle}" FontSize="12" />
+                    <Border BackgroundColor="{StaticResource FormFieldBg}"
+                            Stroke="{StaticResource FormFieldBorder}"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 10"
+                            HeightRequest="48"
+                            Padding="12,0">
+                        <Entry Text="{Binding Descricao}"
+                               Placeholder="Ex: Abastecimento dos veículos"
+                               BackgroundColor="Transparent"
+                               VerticalOptions="Center" />
+                    </Border>
+                </VerticalStackLayout>
+
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Ícone" TextColor="{StaticResource FormSubtitle}" FontSize="12" />
+                    <Border BackgroundColor="{StaticResource FormFieldBg}"
+                            Stroke="{StaticResource FormFieldBorder}"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 10"
+                            HeightRequest="48"
+                            Padding="12,0">
+                        <Picker ItemsSource="{Binding Icones}"
+                                ItemDisplayBinding="{Binding Label}"
+                                SelectedItem="{Binding SelectedIcone}"
+                                TextColor="{StaticResource FormTitle}"
+                                BackgroundColor="Transparent"
+                                VerticalOptions="Center" />
+                    </Border>
+                </VerticalStackLayout>
+
+                <Button Text="Salvar"
+                        Command="{Binding SaveCommand}"
+                        IsEnabled="{Binding IsNotBusy}"
+                        BackgroundColor="{StaticResource FormPrimary}"
+                        TextColor="White"
+                        FontAttributes="Bold"
+                        CornerRadius="10"
+                        HeightRequest="50"
+                        Margin="0,10,0,0" />
+
+                <Button Text="Excluir categoria"
+                        Command="{Binding DeleteCommand}"
+                        IsVisible="{Binding IsEditing}"
+                        IsEnabled="{Binding IsNotBusy}"
+                        BackgroundColor="Transparent"
+                        TextColor="{StaticResource FormDanger}"
+                        FontAttributes="Bold"
+                        BorderColor="{StaticResource FormDanger}"
+                        BorderWidth="1"
+                        CornerRadius="10"
+                        HeightRequest="50" />
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+    </Grid>
+
+</ContentPage>

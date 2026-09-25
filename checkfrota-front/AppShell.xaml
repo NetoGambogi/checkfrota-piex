@@ -53,9 +53,12 @@
         ContentTemplate="{DataTemplate views:FrotaHomePage}"
         Route="frota" />
 
-    <ShellContent
-        Title="Financeiro"
-        ContentTemplate="{DataTemplate views:FinanceiroHomePage}"
-        Route="financeiro" />
+    <TabBar Route="financeiro">
+        <ShellContent Title="Financeiro" ContentTemplate="{DataTemplate views:FinanceiroHomePage}">
+            <ShellContent.Icon>
+                <FontImageSource FontFamily="FontAwesomeSolid" Glyph="{x:Static helpers:IconFont.Financeiro}" Color="#0A1330" Size="20" />
+            </ShellContent.Icon>
+        </ShellContent>
+    </TabBar>
 
 </Shell>
