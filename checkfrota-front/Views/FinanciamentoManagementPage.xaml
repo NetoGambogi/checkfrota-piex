@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:checkfrota_front.ViewModels"
+             xmlns:shared="clr-namespace:checkfrota_front.Views.Shared"
+             xmlns:helpers="clr-namespace:checkfrota_front.Helpers"
+             x:Class="checkfrota_front.Views.FinanciamentoManagementPage"
+             x:DataType="viewmodels:FinanciamentoManagementViewModel"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="White"
+             Title="Financiamentos">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <Color x:Key="FinTitle">#1F2430</Color>
+            <Color x:Key="FinSubtitle">#6B7280</Color>
+            <Color x:Key="FinCardBg">#F1F2F4</Color>
+            <Color x:Key="FinIconBg">#E3E7FD</Color>
+            <Color x:Key="FinPrimary">#3D4FE0</Color>
+            <Color x:Key="FinDanger">#DC2626</Color>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="Auto,Auto,*">
+
+        <shared:AdminTopBar Grid.Row="0"
+                             Title="Financeiro"
+                             AvatarUrl="{Binding AvatarUrl}"
+                             HasAvatar="{Binding HasAvatar}"
+                             ShowBackButton="True" />
+
+        <VerticalStackLayout Grid.Row="1" Padding="20,16,20,12" Spacing="8" BackgroundColor="White">
+            <Label Text="Financiamentos"
+                   TextColor="{StaticResource FinTitle}"
+                   FontAttributes="Bold"
+                   FontSize="20" />
+            <Label Text="Compras parceladas, como veículos financiados"
+                   TextColor="{StaticResource FinSubtitle}"
+                   FontSize="13" />
+            <Label Text="{Binding ErrorMessage}"
+                   TextColor="{StaticResource FinDanger}"
+                   FontSize="13" />
+        </VerticalStackLayout>
+
+        <Grid Grid.Row="2">
+
+            <Label Text="Carregando financiamentos…"
+                   IsVisible="{Binding ShowInitialLoading}"
+                   TextColor="{StaticResource FinSubtitle}"
+                   HorizontalOptions="Center"
+                   VerticalOptions="Center" />
+
+            <Label Text="Nenhum financiamento cadastrado."
+                   IsVisible="{Binding ShowEmptyState}"
+                   TextColor="{StaticResource FinSubtitle}"
+                   HorizontalOptions="Center"
+                   VerticalOptions="Center" />
+
+            <RefreshView Command="{Binding LoadFinanciamentosCommand}" IsRefreshing="{Binding IsBusy}">
+                <CollectionView x:Name="FinanciamentosCollectionView" ItemsSource="{Binding Financiamentos}" Margin="20,0,20,16">
+
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="viewmodels:FinanciamentoRowViewModel">
+                            <Border BackgroundColor="{StaticResource FinCardBg}"
+                                    Stroke="Transparent"
+                                    StrokeShape="RoundRectangle 16"
+                                    Padding="16"
+                                    Margin="0,8,0,0">
+
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding Path=BindingContext.OpenFinanciamentoCommand, Source={x:Reference FinanciamentosCollectionView}}"
+                                                           CommandParameter="{Binding .}" />
+                                </Border.GestureRecognizers>
+
+                                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+
+                                    <Border Grid.Column="0"
+                                            WidthRequest="46"
+                                            HeightRequest="46"
+                                            StrokeShape="Ellipse"
+                                            Stroke="Transparent"
+                                            Padding="0"
+                                            BackgroundColor="{StaticResource FinIconBg}">
+                                        <Label Text="{x:Static helpers:IconFont.Financiamento}"
+                                               FontFamily="FontAwesomeSolid"
+                                               TextColor="{StaticResource FinPrimary}"
+                                               FontSize="16"
+                                               HorizontalOptions="Center"
+                                               VerticalOptions="Center" />
+                                    </Border>
+
+                                    <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                                        <Label Text="{Binding Descricao}"
+                                               TextColor="{StaticResource FinTitle}"
+                                               FontAttributes="Bold"
+                                               FontSize="16"
+                                               LineBreakMode="TailTruncation" />
+                                        <Label Text="{Binding CategoriaNome}"
+                                               TextColor="{StaticResource FinSubtitle}"
+                                               FontSize="13" />
+                                        <Label Text="{Binding ProgressoLabel}"
+                                               TextColor="{StaticResource FinSubtitle}"
+                                               FontSize="12" />
+                                    </VerticalStackLayout>
+
+                                    <VerticalStackLayout Grid.Column="2" Spacing="2" HorizontalOptions="End" VerticalOptions="Center">
+                                        <Label Text="{Binding ValorTotalFormatado}"
+                                               TextColor="{StaticResource FinTitle}"
+                                               FontAttributes="Bold"
+                                               FontSize="14"
+                                               HorizontalOptions="End" />
+                                        <Label Text="{Binding ValorParcelaFormatado}"
+                                               TextColor="{StaticResource FinSubtitle}"
+                                               FontSize="12"
+                                               HorizontalOptions="End" />
+                                    </VerticalStackLayout>
+
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+
+                </CollectionView>
+            </RefreshView>
+
+            <Border HeightRequest="56"
+                    WidthRequest="56"
+                    StrokeShape="Ellipse"
+                    Stroke="Transparent"
+                    Padding="0"
+                    BackgroundColor="{StaticResource FinPrimary}"
+                    HorizontalOptions="End"
+                    VerticalOptions="End"
+                    Margin="0,0,20,20">
+
+                <Border.Shadow>
+                    <Shadow Brush="Black" Opacity="0.25" Radius="10" Offset="0,4" />
+                </Border.Shadow>
+
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding AddFinanciamentoCommand}" />
+                </Border.GestureRecognizers>
+
+                <Label Text="+"
+                       TextColor="White"
+                       FontAttributes="Bold"
+                       FontSize="30"
+                       HorizontalOptions="Center"
+                       VerticalOptions="Center"
+                       Margin="0,-4,0,0" />
+            </Border>
+
+        </Grid>
+
+    </Grid>
+
+</ContentPage>

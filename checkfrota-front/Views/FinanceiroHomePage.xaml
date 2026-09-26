@@ -17,6 +17,7 @@
             <Color x:Key="FinCardBg">#F1F2F4</Color>
             <Color x:Key="FinIconBg">#E3E7FD</Color>
             <Color x:Key="FinPrimary">#3D4FE0</Color>
+            <Color x:Key="FinSaldoBg">#0A1330</Color>
         </ResourceDictionary>
     </ContentPage.Resources>
 
@@ -27,12 +28,142 @@
                              AvatarUrl="{Binding AvatarUrl}"
                              HasAvatar="{Binding HasAvatar}" />
 
-        <VerticalStackLayout Grid.Row="1" Padding="20,20,20,20" Spacing="14">
+        <ScrollView Grid.Row="1">
+        <VerticalStackLayout Padding="20,20,20,20" Spacing="14">
+
+            <Border BackgroundColor="{StaticResource FinSaldoBg}"
+                    Stroke="Transparent"
+                    StrokeShape="RoundRectangle 16"
+                    Padding="18">
+                <VerticalStackLayout Spacing="10">
+                    <HorizontalStackLayout Spacing="8">
+                        <Label Text="{x:Static helpers:IconFont.Saldo}"
+                               FontFamily="FontAwesomeSolid"
+                               TextColor="White"
+                               FontSize="14"
+                               VerticalOptions="Center" />
+                        <Label Text="Saldo atual"
+                               TextColor="#9CA3AF"
+                               FontSize="13"
+                               VerticalOptions="Center" />
+                    </HorizontalStackLayout>
+                    <Label Text="{Binding SaldoAtualFormatado}"
+                           TextColor="White"
+                           FontAttributes="Bold"
+                           FontSize="28" />
+                    <Label FontSize="12" TextColor="#9CA3AF">
+                        <Label.FormattedText>
+                            <FormattedString>
+                                <Span Text="Previsto: " />
+                                <Span Text="{Binding SaldoPrevistoFormatado}" />
+                            </FormattedString>
+                        </Label.FormattedText>
+                    </Label>
+                </VerticalStackLayout>
+            </Border>
+
+            <Label Text="Movimentações"
+                   TextColor="{StaticResource FinTitle}"
+                   FontAttributes="Bold"
+                   FontSize="20" />
+
+            <Border BackgroundColor="{StaticResource FinCardBg}"
+                    Stroke="Transparent"
+                    StrokeShape="RoundRectangle 16"
+                    Padding="16">
+
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding AbrirMovimentacoesCommand}" />
+                </Border.GestureRecognizers>
+
+                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+
+                    <Border Grid.Column="0"
+                            WidthRequest="46"
+                            HeightRequest="46"
+                            StrokeShape="Ellipse"
+                            Stroke="Transparent"
+                            Padding="0"
+                            BackgroundColor="{StaticResource FinIconBg}">
+                        <Label Text="{x:Static helpers:IconFont.Movimentacoes}"
+                               FontFamily="FontAwesomeSolid"
+                               TextColor="{StaticResource FinPrimary}"
+                               FontSize="18"
+                               HorizontalOptions="Center"
+                               VerticalOptions="Center" />
+                    </Border>
+
+                    <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                        <Label Text="Lançamentos"
+                               TextColor="{StaticResource FinTitle}"
+                               FontAttributes="Bold"
+                               FontSize="16" />
+                        <Label Text="Entradas e saídas, extrato completo"
+                               TextColor="{StaticResource FinSubtitle}"
+                               FontSize="13" />
+                    </VerticalStackLayout>
+
+                    <Label Grid.Column="2"
+                           Text="{x:Static helpers:IconFont.ChevronDireita}"
+                           FontFamily="FontAwesomeSolid"
+                           TextColor="{StaticResource FinSubtitle}"
+                           FontSize="14"
+                           VerticalOptions="Center" />
+
+                </Grid>
+            </Border>
+
+            <Border BackgroundColor="{StaticResource FinCardBg}"
+                    Stroke="Transparent"
+                    StrokeShape="RoundRectangle 16"
+                    Padding="16">
+
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding AbrirFinanciamentosCommand}" />
+                </Border.GestureRecognizers>
+
+                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+
+                    <Border Grid.Column="0"
+                            WidthRequest="46"
+                            HeightRequest="46"
+                            StrokeShape="Ellipse"
+                            Stroke="Transparent"
+                            Padding="0"
+                            BackgroundColor="{StaticResource FinIconBg}">
+                        <Label Text="{x:Static helpers:IconFont.Financiamento}"
+                               FontFamily="FontAwesomeSolid"
+                               TextColor="{StaticResource FinPrimary}"
+                               FontSize="18"
+                               HorizontalOptions="Center"
+                               VerticalOptions="Center" />
+                    </Border>
+
+                    <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                        <Label Text="Financiamentos"
+                               TextColor="{StaticResource FinTitle}"
+                               FontAttributes="Bold"
+                               FontSize="16" />
+                        <Label Text="Compras parceladas, ex: veículos"
+                               TextColor="{StaticResource FinSubtitle}"
+                               FontSize="13" />
+                    </VerticalStackLayout>
+
+                    <Label Grid.Column="2"
+                           Text="{x:Static helpers:IconFont.ChevronDireita}"
+                           FontFamily="FontAwesomeSolid"
+                           TextColor="{StaticResource FinSubtitle}"
+                           FontSize="14"
+                           VerticalOptions="Center" />
+
+                </Grid>
+            </Border>
 
             <Label Text="Configurações"
                    TextColor="{StaticResource FinTitle}"
                    FontAttributes="Bold"
-                   FontSize="20" />
+                   FontSize="20"
+                   Margin="0,8,0,0" />
 
             <Border BackgroundColor="{StaticResource FinCardBg}"
                     Stroke="Transparent"
@@ -127,6 +258,7 @@
             </Border>
 
         </VerticalStackLayout>
+        </ScrollView>
 
     </Grid>
 

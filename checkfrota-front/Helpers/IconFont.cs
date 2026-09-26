@@ -14,4 +14,11 @@ public static class IconFont
     public const string CategoriaOutros = "";
     public const string Pagamento = "";
     public const string ChevronDireita = "";
+    public const string Movimentacoes = "";
+    public const string Financiamento = "";
+    public const string Entrada = "";
+    public const string Saida = "";
+    public const string Pago = "";
+    public const string Pendente = "";
+    public const string Saldo = "";
 }

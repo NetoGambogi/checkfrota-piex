@@ -66,6 +66,20 @@ namespace checkfrota_front
             builder.Services.AddTransient<FormaPagamentoFormViewModel>();
             builder.Services.AddTransient<Views.FormaPagamentoFormPage>();
 
+            builder.Services.AddTransient<MovimentacaoFinanceiraService>();
+            builder.Services.AddTransient<MovimentacaoFinanceiraManagementViewModel>();
+            builder.Services.AddTransient<Views.MovimentacaoFinanceiraManagementPage>();
+            builder.Services.AddTransient<MovimentacaoFinanceiraFormViewModel>();
+            builder.Services.AddTransient<Views.MovimentacaoFinanceiraFormPage>();
+
+            builder.Services.AddTransient<FinanciamentoService>();
+            builder.Services.AddTransient<FinanciamentoManagementViewModel>();
+            builder.Services.AddTransient<Views.FinanciamentoManagementPage>();
+            builder.Services.AddTransient<FinanciamentoFormViewModel>();
+            builder.Services.AddTransient<Views.FinanciamentoFormPage>();
+            builder.Services.AddTransient<FinanciamentoDetalheViewModel>();
+            builder.Services.AddTransient<Views.FinanciamentoDetalhePage>();
+
             return builder.Build();
         }
     }
