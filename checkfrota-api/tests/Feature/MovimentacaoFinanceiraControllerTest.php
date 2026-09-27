@@ -44,6 +44,46 @@ test('admin can filter movimentacoes by tipo', function () {
     $response->assertOk()->assertJsonCount(1, 'movimentacoes')->assertJsonPath('movimentacoes.0.tipo', 'entrada');
 });
 
+test('filtering by data_inicio/data_fim usa data_vencimento por padrão', function () {
+    $admin = User::factory()->admin()->create();
+    MovimentacaoFinanceira::factory()->create([
+        'data_vencimento' => '2026-01-10',
+        'data_pagamento' => '2026-02-20',
+        'status' => 'pago',
+    ]);
+    MovimentacaoFinanceira::factory()->create([
+        'data_vencimento' => '2026-03-10',
+        'data_pagamento' => null,
+    ]);
+
+    $response = $this->actingAs($admin, 'sanctum')
+        ->getJson('/api/movimentacoes-financeiras?data_inicio=2026-01-01&data_fim=2026-01-31');
+
+    $response->assertOk()
+        ->assertJsonCount(1, 'movimentacoes')
+        ->assertJsonPath('movimentacoes.0.data_vencimento', '2026-01-10');
+});
+
+test('filtering by data_inicio/data_fim com campo_data=pagamento usa data_pagamento', function () {
+    $admin = User::factory()->admin()->create();
+    MovimentacaoFinanceira::factory()->create([
+        'data_vencimento' => '2026-01-10',
+        'data_pagamento' => '2026-02-20',
+        'status' => 'pago',
+    ]);
+    MovimentacaoFinanceira::factory()->create([
+        'data_vencimento' => '2026-02-10',
+        'data_pagamento' => null,
+    ]);
+
+    $response = $this->actingAs($admin, 'sanctum')
+        ->getJson('/api/movimentacoes-financeiras?campo_data=pagamento&data_inicio=2026-02-01&data_fim=2026-02-28');
+
+    $response->assertOk()
+        ->assertJsonCount(1, 'movimentacoes')
+        ->assertJsonPath('movimentacoes.0.data_pagamento', '2026-02-20');
+});
+
 test('admin can filter movimentacoes by status de pagamento', function () {
     $admin = User::factory()->admin()->create();
     MovimentacaoFinanceira::factory()->pago()->create();

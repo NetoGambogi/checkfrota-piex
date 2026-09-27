@@ -27,13 +27,35 @@ public partial class MovimentacaoFinanceiraManagementViewModel : AdminSectionVie
     [NotifyPropertyChangedFor(nameof(IsTipoTodosSelected))]
     [NotifyPropertyChangedFor(nameof(IsTipoEntradaSelected))]
     [NotifyPropertyChangedFor(nameof(IsTipoSaidaSelected))]
+    [NotifyPropertyChangedFor(nameof(FiltrosResumoLabel))]
     private string selectedTipo = "todos";
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsStatusTodosSelected))]
     [NotifyPropertyChangedFor(nameof(IsStatusPendenteSelected))]
     [NotifyPropertyChangedFor(nameof(IsStatusPagoSelected))]
+    [NotifyPropertyChangedFor(nameof(FiltrosResumoLabel))]
     private string selectedStatus = "todos";
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(FiltrosResumoLabel))]
+    private DateTime dataInicio = new(DateTime.Today.Year, DateTime.Today.Month, 1);
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(FiltrosResumoLabel))]
+    private DateTime dataFim = DateTime.Today;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsCampoDataVencimentoSelected))]
+    [NotifyPropertyChangedFor(nameof(IsCampoDataPagamentoSelected))]
+    [NotifyPropertyChangedFor(nameof(PeriodoLabel))]
+    [NotifyPropertyChangedFor(nameof(FiltrosResumoLabel))]
+    private string campoData = "vencimento";
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(FiltrosChevronRotation))]
+    [NotifyPropertyChangedFor(nameof(IsFiltrosColapsado))]
+    private bool isFiltrosExpandido;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowEmptyState))]
@@ -54,6 +76,34 @@ public partial class MovimentacaoFinanceiraManagementViewModel : AdminSectionVie
     public bool IsStatusTodosSelected => SelectedStatus == "todos";
     public bool IsStatusPendenteSelected => SelectedStatus == "pendente";
     public bool IsStatusPagoSelected => SelectedStatus == "pago";
+
+    public bool IsCampoDataVencimentoSelected => CampoData == "vencimento";
+    public bool IsCampoDataPagamentoSelected => CampoData == "pagamento";
+    public string PeriodoLabel => IsCampoDataVencimentoSelected ? "Vencimento" : "Pagamento";
+
+    public double FiltrosChevronRotation => IsFiltrosExpandido ? 90 : 0;
+    public bool IsFiltrosColapsado => !IsFiltrosExpandido;
+
+    public string FiltrosResumoLabel
+    {
+        get
+        {
+            var tipo = SelectedTipo switch
+            {
+                "entrada" => "Entradas",
+                "saida" => "Saídas",
+                _ => "Todos os tipos",
+            };
+            var status = SelectedStatus switch
+            {
+                "pendente" => "Pendentes",
+                "pago" => "Pagos",
+                _ => "Todos os status",
+            };
+
+            return $"{tipo} • {status} • {DataInicio:dd/MM} a {DataFim:dd/MM} ({PeriodoLabel})";
+        }
+    }
 
     public bool ShowEmptyState => HasNoResults && !IsBusy;
     public bool ShowInitialLoading => IsBusy && Movimentacoes.Count == 0;
@@ -84,7 +134,7 @@ public partial class MovimentacaoFinanceiraManagementViewModel : AdminSectionVie
             var tipo = SelectedTipo == "todos" ? null : SelectedTipo;
             var status = SelectedStatus == "todos" ? null : SelectedStatus;
 
-            var items = await _movimentacaoService.GetMovimentacoesAsync(tipo, status);
+            var items = await _movimentacaoService.GetMovimentacoesAsync(tipo, status, DataInicio, DataFim, CampoData);
             _todas = items.Select(m => new MovimentacaoFinanceiraRowViewModel(m)).ToList();
             ApplyFilter();
         }
@@ -105,6 +155,12 @@ public partial class MovimentacaoFinanceiraManagementViewModel : AdminSectionVie
     partial void OnSelectedTipoChanged(string value) => _ = LoadMovimentacoesAsync();
 
     partial void OnSelectedStatusChanged(string value) => _ = LoadMovimentacoesAsync();
+
+    partial void OnDataInicioChanged(DateTime value) => _ = LoadMovimentacoesAsync();
+
+    partial void OnDataFimChanged(DateTime value) => _ = LoadMovimentacoesAsync();
+
+    partial void OnCampoDataChanged(string value) => _ = LoadMovimentacoesAsync();
 
     private void ApplyFilter()
     {
@@ -136,6 +192,15 @@ public partial class MovimentacaoFinanceiraManagementViewModel : AdminSectionVie
 
     [RelayCommand]
     private void SelectStatusPago() => SelectedStatus = "pago";
+
+    [RelayCommand]
+    private void SelectCampoDataVencimento() => CampoData = "vencimento";
+
+    [RelayCommand]
+    private void SelectCampoDataPagamento() => CampoData = "pagamento";
+
+    [RelayCommand]
+    private void ToggleFiltros() => IsFiltrosExpandido = !IsFiltrosExpandido;
 
     [RelayCommand]
     private async Task AddMovimentacaoAsync()

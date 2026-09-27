@@ -125,18 +125,25 @@
                 </VerticalStackLayout>
 
                 <VerticalStackLayout Spacing="6">
-                    <Label Text="Valor (R$)" TextColor="{StaticResource FormSubtitle}" FontSize="12" />
+                    <Label Text="Valor" TextColor="{StaticResource FormSubtitle}" FontSize="12" />
                     <Border BackgroundColor="{StaticResource FormFieldBg}"
                             Stroke="{StaticResource FormFieldBorder}"
                             StrokeThickness="1"
                             StrokeShape="RoundRectangle 10"
                             HeightRequest="48"
                             Padding="12,0">
-                        <Entry Text="{Binding Valor}"
-                               Placeholder="0,00"
-                               Keyboard="Numeric"
-                               BackgroundColor="Transparent"
-                               VerticalOptions="Center" />
+                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="6">
+                            <Label Grid.Column="0"
+                                   Text="R$"
+                                   TextColor="{StaticResource FormSubtitle}"
+                                   VerticalOptions="Center" />
+                            <Entry Grid.Column="1"
+                                   Text="{Binding Valor}"
+                                   Placeholder="0,00"
+                                   Keyboard="Default"
+                                   BackgroundColor="Transparent"
+                                   VerticalOptions="Center" />
+                        </Grid>
                     </Border>
                 </VerticalStackLayout>
 
@@ -149,6 +156,7 @@
                             HeightRequest="48"
                             Padding="12,0">
                         <DatePicker Date="{Binding DataVencimento}"
+                                    Format="dd/MM/yyyy"
                                     TextColor="{StaticResource FormTitle}"
                                     BackgroundColor="Transparent"
                                     VerticalOptions="Center" />
@@ -197,7 +205,7 @@
                     <Switch Grid.Column="1" IsToggled="{Binding MarcarComoPago}" />
                 </Grid>
 
-                <VerticalStackLayout Spacing="6" IsVisible="{Binding MarcarComoPago}">
+                <VerticalStackLayout Spacing="6" IsVisible="{Binding ShowDataPagamentoPicker}">
                     <Label Text="Data do pagamento" TextColor="{StaticResource FormSubtitle}" FontSize="12" />
                     <Border BackgroundColor="{StaticResource FormFieldBg}"
                             Stroke="{StaticResource FormFieldBorder}"
@@ -206,6 +214,7 @@
                             HeightRequest="48"
                             Padding="12,0">
                         <DatePicker Date="{Binding DataPagamento}"
+                                    Format="dd/MM/yyyy"
                                     TextColor="{StaticResource FormTitle}"
                                     BackgroundColor="Transparent"
                                     VerticalOptions="Center" />

@@ -97,11 +97,18 @@
                             StrokeShape="RoundRectangle 10"
                             HeightRequest="48"
                             Padding="12,0">
-                        <Entry Text="{Binding ValorParcela}"
-                               Placeholder="0,00"
-                               Keyboard="Numeric"
-                               BackgroundColor="Transparent"
-                               VerticalOptions="Center" />
+                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="6">
+                            <Label Grid.Column="0"
+                                   Text="R$"
+                                   TextColor="{StaticResource FormSubtitle}"
+                                   VerticalOptions="Center" />
+                            <Entry Grid.Column="1"
+                                   Text="{Binding ValorParcela}"
+                                   Placeholder="0,00"
+                                   Keyboard="Default"
+                                   BackgroundColor="Transparent"
+                                   VerticalOptions="Center" />
+                        </Grid>
                     </Border>
                 </VerticalStackLayout>
 
@@ -148,6 +155,7 @@
                             HeightRequest="48"
                             Padding="12,0">
                         <DatePicker Date="{Binding DataInicio}"
+                                    Format="dd/MM/yyyy"
                                     TextColor="{StaticResource FormTitle}"
                                     BackgroundColor="Transparent"
                                     VerticalOptions="Center" />

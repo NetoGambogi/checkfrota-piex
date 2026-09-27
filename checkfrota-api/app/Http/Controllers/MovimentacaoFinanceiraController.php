@@ -17,6 +17,8 @@ class MovimentacaoFinanceiraController extends Controller
 
     private const SITUACOES = ['ativos', 'inativos', 'todos'];
 
+    private const CAMPOS_DATA = ['vencimento', 'pagamento'];
+
     public function index(Request $request): JsonResponse
     {
         $situacao = in_array($request->string('situacao')->toString(), self::SITUACOES, true)
@@ -28,6 +30,11 @@ class MovimentacaoFinanceiraController extends Controller
             'todos' => MovimentacaoFinanceira::withTrashed(),
             default => MovimentacaoFinanceira::query(),
         };
+
+        $campoData = in_array($request->string('campo_data')->toString(), self::CAMPOS_DATA, true)
+            ? $request->string('campo_data')->toString()
+            : 'vencimento';
+        $colunaData = $campoData === 'pagamento' ? 'data_pagamento' : 'data_vencimento';
 
         $movimentacoes = $baseQuery
             ->with(['categoriaFinanceira', 'formaPagamento'])
@@ -53,13 +60,13 @@ class MovimentacaoFinanceiraController extends Controller
             )
             ->when(
                 $request->filled('data_inicio'),
-                fn ($query) => $query->whereDate('data_vencimento', '>=', $request->string('data_inicio')),
+                fn ($query) => $query->whereDate($colunaData, '>=', $request->string('data_inicio')),
             )
             ->when(
                 $request->filled('data_fim'),
-                fn ($query) => $query->whereDate('data_vencimento', '<=', $request->string('data_fim')),
+                fn ($query) => $query->whereDate($colunaData, '<=', $request->string('data_fim')),
             )
-            ->orderBy('data_vencimento')
+            ->orderBy($colunaData)
             ->get();
 
         return response()->json([

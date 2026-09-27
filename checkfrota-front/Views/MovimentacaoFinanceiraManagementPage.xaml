@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:viewmodels="clr-namespace:checkfrota_front.ViewModels"
              xmlns:shared="clr-namespace:checkfrota_front.Views.Shared"
+             xmlns:helpers="clr-namespace:checkfrota_front.Helpers"
              x:Class="checkfrota_front.Views.MovimentacaoFinanceiraManagementPage"
              x:DataType="viewmodels:MovimentacaoFinanceiraManagementViewModel"
              Shell.NavBarIsVisible="False"
@@ -37,12 +38,36 @@
                              HasAvatar="{Binding HasAvatar}"
                              ShowBackButton="True" />
 
-        <VerticalStackLayout Grid.Row="1" Padding="20,16,20,12" Spacing="12" BackgroundColor="White">
+        <VerticalStackLayout Grid.Row="1" Padding="20,16,20,12" Spacing="10" BackgroundColor="White">
 
-            <Label Text="Lançamentos financeiros"
-                   TextColor="{StaticResource FinTitle}"
-                   FontAttributes="Bold"
-                   FontSize="20" />
+            <Grid ColumnDefinitions="*,Auto">
+                <Label Grid.Column="0"
+                       Text="Lançamentos financeiros"
+                       TextColor="{StaticResource FinTitle}"
+                       FontAttributes="Bold"
+                       FontSize="20"
+                       VerticalOptions="Center" />
+
+                <Border Grid.Column="1"
+                        BackgroundColor="{StaticResource FinFieldBg}"
+                        Stroke="{StaticResource FinFieldBorder}"
+                        StrokeThickness="1"
+                        StrokeShape="RoundRectangle 20"
+                        Padding="12,7">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding ToggleFiltrosCommand}" />
+                    </Border.GestureRecognizers>
+                    <HorizontalStackLayout Spacing="6">
+                        <Label Text="Filtros" TextColor="{StaticResource FinTitle}" FontSize="13" VerticalOptions="Center" />
+                        <Label Text="{x:Static helpers:IconFont.ChevronDireita}"
+                               FontFamily="FontAwesomeSolid"
+                               TextColor="{StaticResource FinSubtitle}"
+                               FontSize="11"
+                               Rotation="{Binding FiltrosChevronRotation}"
+                               VerticalOptions="Center" />
+                    </HorizontalStackLayout>
+                </Border>
+            </Grid>
 
             <Border BackgroundColor="{StaticResource FinFieldBg}"
                     Stroke="{StaticResource FinFieldBorder}"
@@ -59,6 +84,13 @@
             <Label Text="{Binding ErrorMessage}"
                    TextColor="{StaticResource FinDanger}"
                    FontSize="13" />
+
+            <Label Text="{Binding FiltrosResumoLabel}"
+                   IsVisible="{Binding IsFiltrosColapsado}"
+                   TextColor="{StaticResource FinSubtitle}"
+                   FontSize="12" />
+
+            <VerticalStackLayout IsVisible="{Binding IsFiltrosExpandido}" Spacing="10">
 
             <Grid ColumnDefinitions="*,*,*" ColumnSpacing="8">
                 <Button Grid.Column="0" Text="Todos" CornerRadius="10" HeightRequest="42" FontSize="13"
@@ -161,6 +193,98 @@
                     </Button.Triggers>
                 </Button>
             </Grid>
+
+            <Border BackgroundColor="{StaticResource FinCardBg}"
+                    Stroke="Transparent"
+                    StrokeShape="RoundRectangle 14"
+                    Padding="14">
+                <VerticalStackLayout Spacing="10">
+
+                    <Label Text="Período" TextColor="{StaticResource FinTitle}" FontAttributes="Bold" FontSize="14" />
+
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                        <Button Grid.Column="0"
+                                Text="Vencimento"
+                                CornerRadius="8"
+                                HeightRequest="36"
+                                FontSize="12"
+                                Command="{Binding SelectCampoDataVencimentoCommand}">
+                            <Button.Triggers>
+                                <DataTrigger TargetType="Button" Binding="{Binding IsCampoDataVencimentoSelected}" Value="True">
+                                    <Setter Property="BackgroundColor" Value="{StaticResource FinPrimary}" />
+                                    <Setter Property="TextColor" Value="White" />
+                                    <Setter Property="BorderWidth" Value="0" />
+                                </DataTrigger>
+                                <DataTrigger TargetType="Button" Binding="{Binding IsCampoDataVencimentoSelected}" Value="False">
+                                    <Setter Property="BackgroundColor" Value="White" />
+                                    <Setter Property="TextColor" Value="{StaticResource FinSubtitle}" />
+                                    <Setter Property="BorderColor" Value="{StaticResource FinFieldBorder}" />
+                                    <Setter Property="BorderWidth" Value="1" />
+                                </DataTrigger>
+                            </Button.Triggers>
+                        </Button>
+                        <Button Grid.Column="1"
+                                Text="Pagamento"
+                                CornerRadius="8"
+                                HeightRequest="36"
+                                FontSize="12"
+                                Command="{Binding SelectCampoDataPagamentoCommand}">
+                            <Button.Triggers>
+                                <DataTrigger TargetType="Button" Binding="{Binding IsCampoDataPagamentoSelected}" Value="True">
+                                    <Setter Property="BackgroundColor" Value="{StaticResource FinPrimary}" />
+                                    <Setter Property="TextColor" Value="White" />
+                                    <Setter Property="BorderWidth" Value="0" />
+                                </DataTrigger>
+                                <DataTrigger TargetType="Button" Binding="{Binding IsCampoDataPagamentoSelected}" Value="False">
+                                    <Setter Property="BackgroundColor" Value="White" />
+                                    <Setter Property="TextColor" Value="{StaticResource FinSubtitle}" />
+                                    <Setter Property="BorderColor" Value="{StaticResource FinFieldBorder}" />
+                                    <Setter Property="BorderWidth" Value="1" />
+                                </DataTrigger>
+                            </Button.Triggers>
+                        </Button>
+                    </Grid>
+
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                        <VerticalStackLayout Grid.Column="0" Spacing="4">
+                            <Label Text="De" TextColor="{StaticResource FinSubtitle}" FontSize="11" />
+                            <Border BackgroundColor="White"
+                                    Stroke="{StaticResource FinFieldBorder}"
+                                    StrokeThickness="1"
+                                    StrokeShape="RoundRectangle 10"
+                                    HeightRequest="42"
+                                    Padding="10,0">
+                                <DatePicker Date="{Binding DataInicio}"
+                                            Format="dd/MM/yyyy"
+                                            FontSize="13"
+                                            TextColor="{StaticResource FinTitle}"
+                                            BackgroundColor="Transparent"
+                                            VerticalOptions="Center" />
+                            </Border>
+                        </VerticalStackLayout>
+
+                        <VerticalStackLayout Grid.Column="1" Spacing="4">
+                            <Label Text="Até" TextColor="{StaticResource FinSubtitle}" FontSize="11" />
+                            <Border BackgroundColor="White"
+                                    Stroke="{StaticResource FinFieldBorder}"
+                                    StrokeThickness="1"
+                                    StrokeShape="RoundRectangle 10"
+                                    HeightRequest="42"
+                                    Padding="10,0">
+                                <DatePicker Date="{Binding DataFim}"
+                                            Format="dd/MM/yyyy"
+                                            FontSize="13"
+                                            TextColor="{StaticResource FinTitle}"
+                                            BackgroundColor="Transparent"
+                                            VerticalOptions="Center" />
+                            </Border>
+                        </VerticalStackLayout>
+                    </Grid>
+
+                </VerticalStackLayout>
+            </Border>
+
+            </VerticalStackLayout>
 
         </VerticalStackLayout>
 

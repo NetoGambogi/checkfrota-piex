@@ -12,13 +12,21 @@ public class MovimentacaoFinanceiraService
         _apiAuth = apiAuth;
     }
 
-    public async Task<List<MovimentacaoFinanceiraListItem>> GetMovimentacoesAsync(string? tipo = null, string? status = null)
+    public async Task<List<MovimentacaoFinanceiraListItem>> GetMovimentacoesAsync(
+        string? tipo = null,
+        string? status = null,
+        DateTime? dataInicio = null,
+        DateTime? dataFim = null,
+        string? campoData = null)
     {
         var client = await _apiAuth.GetAuthenticatedClientAsync();
 
         var query = new List<string>();
         if (!string.IsNullOrEmpty(tipo)) query.Add($"tipo={Uri.EscapeDataString(tipo)}");
         if (!string.IsNullOrEmpty(status)) query.Add($"status={Uri.EscapeDataString(status)}");
+        if (dataInicio is DateTime inicio) query.Add($"data_inicio={inicio:yyyy-MM-dd}");
+        if (dataFim is DateTime fim) query.Add($"data_fim={fim:yyyy-MM-dd}");
+        if (!string.IsNullOrEmpty(campoData)) query.Add($"campo_data={Uri.EscapeDataString(campoData)}");
 
         var url = "movimentacoes-financeiras" + (query.Count > 0 ? "?" + string.Join("&", query) : string.Empty);
         var response = await client.GetFromJsonAsync<MovimentacaoFinanceiraListResponse>(url);

@@ -43,7 +43,10 @@ class FinanciamentoController extends Controller
             'categoriaFinanceira',
             'formaPagamento',
             'movimentacoes' => fn ($query) => $query->orderBy('numero_parcela'),
+            'movimentacoes.categoriaFinanceira',
+            'movimentacoes.formaPagamento',
         ]);
+        $financiamento->loadCount(['movimentacoes as parcelas_pagas_count' => fn ($query) => $query->where('status', 'pago')]);
 
         return response()->json([
             'financiamento' => $financiamento->toApiPayload(),

@@ -79,13 +79,16 @@ public partial class FinanciamentoDetalheViewModel : AdminSectionViewModelBase, 
             Descricao = detalhe.Financiamento.Descricao;
             CategoriaNome = detalhe.Financiamento.Categoria?.Nome ?? "-";
             ValorTotalFormatado = detalhe.Financiamento.ValorTotal.ToString("C2", PtBr);
-            ProgressoLabel = $"{detalhe.Financiamento.ParcelasPagas ?? 0}/{detalhe.Financiamento.QuantidadeParcelas} parcelas pagas";
+
+            var parcelasPagas = detalhe.Parcelas.Count(p => p.Status == "pago");
+            ProgressoLabel = $"{parcelasPagas}/{detalhe.Financiamento.QuantidadeParcelas} parcelas pagas";
+
             Parcelas = new ObservableCollection<MovimentacaoFinanceiraRowViewModel>(
                 detalhe.Parcelas.Select(p => new MovimentacaoFinanceiraRowViewModel(p)));
         }
         catch (Exception ex)
         {
-            ErrorMessage = "Não foi possível carregar o financiamento.";
+            ErrorMessage = $"Não foi possível carregar o financiamento. ({ex.Message})";
             System.Diagnostics.Debug.WriteLine(ex);
         }
         finally

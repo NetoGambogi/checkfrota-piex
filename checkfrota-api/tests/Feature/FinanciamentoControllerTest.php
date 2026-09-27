@@ -112,6 +112,17 @@ test('admin can view a financiamento com suas parcelas', function () {
     $response->assertOk()->assertJsonCount(3, 'parcelas');
 });
 
+test('viewing a financiamento reflete a contagem de parcelas pagas', function () {
+    $admin = User::factory()->admin()->create();
+    $financiamento = Financiamento::factory()->create(['quantidade_parcelas' => 3]);
+    $financiamento->gerarParcelas();
+    $financiamento->movimentacoes()->where('numero_parcela', 1)->update(['status' => 'pago']);
+
+    $response = $this->actingAs($admin, 'sanctum')->getJson("/api/financiamentos/{$financiamento->id}");
+
+    $response->assertOk()->assertJsonPath('financiamento.parcelas_pagas', 1);
+});
+
 test('deleting a financiamento remove apenas as parcelas pendentes', function () {
     $admin = User::factory()->admin()->create();
     $financiamento = Financiamento::factory()->create(['quantidade_parcelas' => 2]);

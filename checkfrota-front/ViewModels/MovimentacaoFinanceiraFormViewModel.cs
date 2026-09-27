@@ -23,6 +23,7 @@ public partial class MovimentacaoFinanceiraFormViewModel : AdminSectionViewModel
     [NotifyPropertyChangedFor(nameof(PageTitle))]
     [NotifyPropertyChangedFor(nameof(IsCreating))]
     [NotifyPropertyChangedFor(nameof(CanMarcarComoPago))]
+    [NotifyPropertyChangedFor(nameof(ShowDataPagamentoPicker))]
     private bool isEditing;
 
     public string PageTitle => IsEditing ? "Editar lançamento" : "Novo lançamento";
@@ -58,6 +59,7 @@ public partial class MovimentacaoFinanceiraFormViewModel : AdminSectionViewModel
     [NotifyPropertyChangedFor(nameof(IsPendente))]
     [NotifyPropertyChangedFor(nameof(CanMarcarComoPago))]
     [NotifyPropertyChangedFor(nameof(StatusLabel))]
+    [NotifyPropertyChangedFor(nameof(ShowDataPagamentoPicker))]
     private string status = "pendente";
 
     public bool IsPendente => Status == "pendente";
@@ -65,10 +67,13 @@ public partial class MovimentacaoFinanceiraFormViewModel : AdminSectionViewModel
     public string StatusLabel => IsPendente ? "Pendente" : "Pago";
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowDataPagamentoPicker))]
     private bool marcarComoPago;
 
     [ObservableProperty]
     private DateTime dataPagamento = DateTime.Today;
+
+    public bool ShowDataPagamentoPicker => MarcarComoPago || CanMarcarComoPago;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasParcelaLabel))]
@@ -103,7 +108,7 @@ public partial class MovimentacaoFinanceiraFormViewModel : AdminSectionViewModel
             _movimentacaoId = item.Id;
             Tipo = item.Tipo;
             Descricao = item.Descricao;
-            Valor = item.Valor.ToString(CultureInfo.InvariantCulture);
+            Valor = item.Valor.ToString("0.00", CultureInfo.InvariantCulture).Replace(".", ",");
             if (DateTime.TryParse(item.DataVencimento, out var venc)) DataVencimento = venc;
             Status = item.Status;
             DataPagamento = DateTime.TryParse(item.DataPagamento, out var pag) ? pag : DateTime.Today;
@@ -172,7 +177,7 @@ public partial class MovimentacaoFinanceiraFormViewModel : AdminSectionViewModel
             return;
         }
 
-        if (!decimal.TryParse(Valor, NumberStyles.Number, CultureInfo.InvariantCulture, out var valorDecimal) || valorDecimal <= 0)
+        if (!TryParseValor(out var valorDecimal))
         {
             ErrorMessage = "Informe um valor válido.";
             return;
@@ -299,5 +304,11 @@ public partial class MovimentacaoFinanceiraFormViewModel : AdminSectionViewModel
         {
             IsBusy = false;
         }
+    }
+
+    private bool TryParseValor(out decimal valorDecimal)
+    {
+        var texto = Valor.Trim().Replace(",", ".");
+        return decimal.TryParse(texto, NumberStyles.Number, CultureInfo.InvariantCulture, out valorDecimal) && valorDecimal > 0;
     }
 }

@@ -95,7 +95,7 @@ public partial class FinanciamentoFormViewModel : AdminSectionViewModelBase
             return;
         }
 
-        if (!decimal.TryParse(ValorParcela, NumberStyles.Number, CultureInfo.InvariantCulture, out var valorParcelaDecimal) || valorParcelaDecimal <= 0)
+        if (!TryParseValorParcela(out var valorParcelaDecimal))
         {
             ErrorMessage = "Informe um valor de parcela válido.";
             return;
@@ -146,5 +146,11 @@ public partial class FinanciamentoFormViewModel : AdminSectionViewModelBase
         {
             IsBusy = false;
         }
+    }
+
+    private bool TryParseValorParcela(out decimal valorDecimal)
+    {
+        var texto = ValorParcela.Trim().Replace(",", ".");
+        return decimal.TryParse(texto, NumberStyles.Number, CultureInfo.InvariantCulture, out valorDecimal) && valorDecimal > 0;
     }
 }
