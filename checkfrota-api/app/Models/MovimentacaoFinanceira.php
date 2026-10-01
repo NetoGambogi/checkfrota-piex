@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-#[Fillable(['tipo', 'descricao', 'valor', 'data_vencimento', 'data_pagamento', 'status', 'categoria_financeira_id', 'forma_pagamento_id', 'financiamento_id', 'numero_parcela', 'user_id'])]
+#[Fillable(['tipo', 'descricao', 'valor', 'data_vencimento', 'data_pagamento', 'status', 'categoria_financeira_id', 'forma_pagamento_id', 'financiamento_id', 'numero_parcela', 'user_id', 'comprovante_public_id', 'comprovante_resource_type', 'comprovante_url', 'comprovante_nome', 'comprovante_mime', 'comprovante_tamanho'])]
 class MovimentacaoFinanceira extends Model
 {
     /** @use HasFactory<MovimentacaoFinanceiraFactory> */
@@ -74,6 +74,14 @@ class MovimentacaoFinanceira extends Model
                 : null,
             'forma_pagamento' => $this->relationLoaded('formaPagamento') && $this->formaPagamento
                 ? $this->formaPagamento->only('id', 'nome')
+                : null,
+            'comprovante' => $this->comprovante_url
+                ? [
+                    'url' => $this->comprovante_url,
+                    'nome' => $this->comprovante_nome,
+                    'mime' => $this->comprovante_mime,
+                    'tamanho' => $this->comprovante_tamanho,
+                ]
                 : null,
             'criado_em' => $this->created_at?->toIso8601String(),
             'ativo' => $this->deleted_at === null,

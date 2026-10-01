@@ -29,6 +29,8 @@ public class MovimentacaoFinanceiraRowViewModel
     public string? ParcelaLabel => Original.NumeroParcela is int numero ? $"Parcela {numero}" : null;
     public bool HasParcelaLabel => ParcelaLabel is not null;
 
+    public bool HasComprovante => Original.Comprovante is not null;
+
     public MovimentacaoFinanceiraRowViewModel(MovimentacaoFinanceiraListItem item)
     {
         Original = item;

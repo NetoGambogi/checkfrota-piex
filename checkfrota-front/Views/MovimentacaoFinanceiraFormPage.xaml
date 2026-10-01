@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:viewmodels="clr-namespace:checkfrota_front.ViewModels"
              xmlns:models="clr-namespace:checkfrota_front.Models"
+             xmlns:helpers="clr-namespace:checkfrota_front.Helpers"
              xmlns:shared="clr-namespace:checkfrota_front.Views.Shared"
              x:Class="checkfrota_front.Views.MovimentacaoFinanceiraFormPage"
              x:DataType="viewmodels:MovimentacaoFinanceiraFormViewModel"
@@ -218,6 +219,80 @@
                                     TextColor="{StaticResource FormTitle}"
                                     BackgroundColor="Transparent"
                                     VerticalOptions="Center" />
+                    </Border>
+                </VerticalStackLayout>
+
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Comprovante (opcional)" TextColor="{StaticResource FormSubtitle}" FontSize="12" />
+
+                    <Border IsVisible="{Binding HasNoComprovante}"
+                            BackgroundColor="{StaticResource FormFieldBg}"
+                            Stroke="{StaticResource FormFieldBorder}"
+                            StrokeThickness="1"
+                            StrokeDashArray="4,3"
+                            StrokeShape="RoundRectangle 10"
+                            Padding="12,14">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding AnexarComprovanteCommand}" />
+                        </Border.GestureRecognizers>
+                        <VerticalStackLayout Spacing="4" HorizontalOptions="Center">
+                            <HorizontalStackLayout Spacing="8" HorizontalOptions="Center">
+                                <Label Text="{x:Static helpers:IconFont.Anexo}"
+                                       FontFamily="FontAwesomeSolid"
+                                       FontSize="14"
+                                       TextColor="{StaticResource FormPrimary}"
+                                       VerticalOptions="Center" />
+                                <Label Text="Anexar comprovante"
+                                       TextColor="{StaticResource FormPrimary}"
+                                       FontAttributes="Bold"
+                                       FontSize="14"
+                                       VerticalOptions="Center" />
+                            </HorizontalStackLayout>
+                            <Label Text="Foto (JPG, PNG) ou PDF de até 10 MB"
+                                   TextColor="{StaticResource FormSubtitle}"
+                                   FontSize="12"
+                                   HorizontalOptions="Center" />
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <Border IsVisible="{Binding HasComprovante}"
+                            BackgroundColor="{StaticResource FormFieldBg}"
+                            Stroke="{StaticResource FormFieldBorder}"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 10"
+                            Padding="12,8">
+                        <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="10">
+                            <Label Grid.Column="0"
+                                   Text="{x:Static helpers:IconFont.Anexo}"
+                                   FontFamily="FontAwesomeSolid"
+                                   FontSize="14"
+                                   TextColor="{StaticResource FormSubtitle}"
+                                   VerticalOptions="Center" />
+                            <Label Grid.Column="1"
+                                   Text="{Binding ComprovanteNome}"
+                                   TextColor="{StaticResource FormTitle}"
+                                   FontSize="14"
+                                   LineBreakMode="MiddleTruncation"
+                                   VerticalOptions="Center" />
+                            <Button Grid.Column="2"
+                                    Text="Ver"
+                                    Command="{Binding AbrirComprovanteCommand}"
+                                    IsVisible="{Binding CanAbrirComprovante}"
+                                    BackgroundColor="Transparent"
+                                    TextColor="{StaticResource FormPrimary}"
+                                    FontAttributes="Bold"
+                                    Padding="8,0"
+                                    HeightRequest="36" />
+                            <Button Grid.Column="3"
+                                    Text="Remover"
+                                    Command="{Binding RemoverComprovanteCommand}"
+                                    IsEnabled="{Binding IsNotBusy}"
+                                    BackgroundColor="Transparent"
+                                    TextColor="{StaticResource FormDanger}"
+                                    FontAttributes="Bold"
+                                    Padding="8,0"
+                                    HeightRequest="36" />
+                        </Grid>
                     </Border>
                 </VerticalStackLayout>
 

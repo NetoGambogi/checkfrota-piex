@@ -41,6 +41,13 @@ return [
         'redirect' => env('GOOGLE_REDIRECT_URI'),
         'desktop_client_id' => env('GOOGLE_CLIENT_ID_DESKTOP'),
         'desktop_client_secret' => env('GOOGLE_CLIENT_SECRET_DESKTOP'),
-    ]
+    ],
+
+    'cloudinary' => [
+        'cloud_name' => env('CLOUDINARY_CLOUD_NAME'),
+        'api_key' => env('CLOUDINARY_API_KEY'),
+        'api_secret' => env('CLOUDINARY_API_SECRET'),
+        'folder' => env('CLOUDINARY_FOLDER', 'checkfrota/comprovantes'),
+    ],
 
 ];

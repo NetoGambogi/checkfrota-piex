@@ -11,6 +11,18 @@ public partial class MovimentacaoFinanceiraFormViewModel : AdminSectionViewModel
 {
     private static readonly FormaPagamentoListItem NenhumaForma = new() { Id = 0, Nome = "Nenhuma" };
 
+    // Mesmo limite validado pela API (plano gratuito do Cloudinary).
+    private const long ComprovanteTamanhoMaximo = 10 * 1024 * 1024;
+    private static readonly string[] ComprovanteExtensoes = [".jpg", ".jpeg", ".png", ".pdf"];
+
+    private static readonly FilePickerFileType ComprovanteTiposArquivo = new(new Dictionary<DevicePlatform, IEnumerable<string>>
+    {
+        { DevicePlatform.Android, ["image/jpeg", "image/png", "application/pdf"] },
+        { DevicePlatform.iOS, ["public.jpeg", "public.png", "com.adobe.pdf"] },
+        { DevicePlatform.MacCatalyst, ["public.jpeg", "public.png", "com.adobe.pdf"] },
+        { DevicePlatform.WinUI, ComprovanteExtensoes },
+    });
+
     private readonly MovimentacaoFinanceiraService _movimentacaoService;
     private readonly CategoriaFinanceiraService _categoriaService;
     private readonly FormaPagamentoService _formaPagamentoService;
@@ -18,6 +30,11 @@ public partial class MovimentacaoFinanceiraFormViewModel : AdminSectionViewModel
     private int? _movimentacaoId;
     private int? _categoriaIdParaSelecionar;
     private int? _formaPagamentoIdParaSelecionar;
+
+    // Comprovante escolhido no dispositivo, enviado só depois que o lançamento é salvo.
+    private FileResult? _comprovantePendente;
+    private bool _possuiComprovanteSalvo;
+    private bool _removerComprovanteAoSalvar;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(PageTitle))]
@@ -76,6 +93,19 @@ public partial class MovimentacaoFinanceiraFormViewModel : AdminSectionViewModel
     public bool ShowDataPagamentoPicker => MarcarComoPago || CanMarcarComoPago;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasComprovante))]
+    [NotifyPropertyChangedFor(nameof(HasNoComprovante))]
+    private string? comprovanteNome;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanAbrirComprovante))]
+    private string? comprovanteUrl;
+
+    public bool HasComprovante => ComprovanteNome is not null;
+    public bool HasNoComprovante => !HasComprovante;
+    public bool CanAbrirComprovante => ComprovanteUrl is not null;
+
+    [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasParcelaLabel))]
     private string? parcelaLabel;
 
@@ -115,6 +145,9 @@ public partial class MovimentacaoFinanceiraFormViewModel : AdminSectionViewModel
             ParcelaLabel = item.NumeroParcela is int numero ? $"Parcela {numero}" : null;
             _categoriaIdParaSelecionar = item.Categoria?.Id;
             _formaPagamentoIdParaSelecionar = item.FormaPagamento?.Id;
+            _possuiComprovanteSalvo = item.Comprovante is not null;
+            ComprovanteNome = item.Comprovante?.Nome;
+            ComprovanteUrl = item.Comprovante?.Url;
             IsEditing = true;
         }
     }
@@ -220,6 +253,16 @@ public partial class MovimentacaoFinanceiraFormViewModel : AdminSectionViewModel
                 return;
             }
 
+            if (!await SincronizarComprovanteAsync(resultado.Id))
+            {
+                // O lançamento já existe na API: passa a editar ele para que tentar de novo não duplique.
+                _movimentacaoId = resultado.Id;
+                Status = resultado.Status;
+                IsEditing = true;
+                ErrorMessage = "Lançamento salvo, mas não foi possível atualizar o comprovante. Toque em Salvar para tentar novamente.";
+                return;
+            }
+
             await Shell.Current.GoToAsync("..");
         }
         catch (Exception ex)
@@ -231,6 +274,142 @@ public partial class MovimentacaoFinanceiraFormViewModel : AdminSectionViewModel
         {
             IsBusy = false;
         }
+    }
+
+    private async Task<bool> SincronizarComprovanteAsync(int movimentacaoId)
+    {
+        if (_comprovantePendente is FileResult arquivo)
+        {
+            await using var stream = await arquivo.OpenReadAsync();
+            var resultado = await _movimentacaoService.UploadComprovanteAsync(
+                movimentacaoId, stream, arquivo.FileName, ObterContentType(arquivo));
+
+            if (resultado is null) return false;
+
+            _comprovantePendente = null;
+            _possuiComprovanteSalvo = true;
+            ComprovanteUrl = resultado.Comprovante?.Url;
+            return true;
+        }
+
+        if (_removerComprovanteAoSalvar)
+        {
+            if (!await _movimentacaoService.DeleteComprovanteAsync(movimentacaoId)) return false;
+
+            _removerComprovanteAoSalvar = false;
+            _possuiComprovanteSalvo = false;
+        }
+
+        return true;
+    }
+
+    [RelayCommand]
+    private async Task AnexarComprovanteAsync()
+    {
+        if (IsBusy) return;
+
+        const string tirarFoto = "Tirar foto";
+        const string escolherArquivo = "Escolher arquivo (JPG, PNG ou PDF)";
+
+        var opcoes = MediaPicker.Default.IsCaptureSupported
+            ? new[] { tirarFoto, escolherArquivo }
+            : new[] { escolherArquivo };
+
+        var escolha = await Shell.Current.DisplayActionSheetAsync("Anexar comprovante", "Cancelar", null, opcoes);
+
+        try
+        {
+            var arquivo = escolha switch
+            {
+                tirarFoto => await MediaPicker.Default.CapturePhotoAsync(),
+                escolherArquivo => await FilePicker.Default.PickAsync(new PickOptions
+                {
+                    PickerTitle = "Selecione o comprovante",
+                    FileTypes = ComprovanteTiposArquivo,
+                }),
+                _ => null,
+            };
+
+            if (arquivo is null) return;
+
+            var erro = await ValidarComprovanteAsync(arquivo);
+            if (erro is not null)
+            {
+                ErrorMessage = erro;
+                return;
+            }
+
+            ErrorMessage = null;
+            _comprovantePendente = arquivo;
+            _removerComprovanteAoSalvar = false;
+            ComprovanteNome = arquivo.FileName;
+            ComprovanteUrl = null;
+        }
+        catch (PermissionException)
+        {
+            ErrorMessage = "Permita o acesso à câmera para fotografar o comprovante.";
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = "Não foi possível selecionar o comprovante.";
+            System.Diagnostics.Debug.WriteLine(ex);
+        }
+    }
+
+    [RelayCommand]
+    private void RemoverComprovante()
+    {
+        if (IsBusy) return;
+
+        _comprovantePendente = null;
+        _removerComprovanteAoSalvar = _possuiComprovanteSalvo;
+        ComprovanteNome = null;
+        ComprovanteUrl = null;
+    }
+
+    [RelayCommand]
+    private async Task AbrirComprovanteAsync()
+    {
+        if (ComprovanteUrl is null) return;
+
+        try
+        {
+            await Launcher.Default.OpenAsync(new Uri(ComprovanteUrl));
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = "Não foi possível abrir o comprovante.";
+            System.Diagnostics.Debug.WriteLine(ex);
+        }
+    }
+
+    private static async Task<string?> ValidarComprovanteAsync(FileResult arquivo)
+    {
+        var extensao = Path.GetExtension(arquivo.FileName).ToLowerInvariant();
+        if (!ComprovanteExtensoes.Contains(extensao))
+        {
+            return "O comprovante deve ser uma imagem (JPG, JPEG, PNG) ou um PDF.";
+        }
+
+        await using var stream = await arquivo.OpenReadAsync();
+        if (stream.CanSeek && stream.Length > ComprovanteTamanhoMaximo)
+        {
+            return "O comprovante deve ter no máximo 10 MB.";
+        }
+
+        return null;
+    }
+
+    private static string ObterContentType(FileResult arquivo)
+    {
+        if (!string.IsNullOrEmpty(arquivo.ContentType)) return arquivo.ContentType;
+
+        return Path.GetExtension(arquivo.FileName).ToLowerInvariant() switch
+        {
+            ".pdf" => "application/pdf",
+            ".png" => "image/png",
+            _ => "image/jpeg",
+        };
     }
 
     [RelayCommand]

@@ -1,4 +1,5 @@
 using checkfrota_front.Models;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 
 namespace checkfrota_front.Services;
@@ -107,6 +108,32 @@ public class MovimentacaoFinanceiraService
 
         var result = await response.Content.ReadFromJsonAsync<MovimentacaoFinanceiraResponse>();
         return result?.Movimentacao;
+    }
+
+    public async Task<MovimentacaoFinanceiraListItem?> UploadComprovanteAsync(int id, Stream arquivo, string nomeArquivo, string contentType)
+    {
+        var client = await _apiAuth.GetAuthenticatedClientAsync();
+
+        using var conteudoArquivo = new StreamContent(arquivo);
+        conteudoArquivo.Headers.ContentType = new MediaTypeHeaderValue(contentType);
+
+        using var form = new MultipartFormDataContent { { conteudoArquivo, "comprovante", nomeArquivo } };
+        using var request = new HttpRequestMessage(HttpMethod.Post, $"movimentacoes-financeiras/{id}/comprovante") { Content = form };
+        // Sem Accept: application/json o Laravel responde erros de validação com redirect em vez de 422.
+        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+        var response = await client.SendAsync(request);
+        if (!response.IsSuccessStatusCode) return null;
+
+        var result = await response.Content.ReadFromJsonAsync<MovimentacaoFinanceiraResponse>();
+        return result?.Movimentacao;
+    }
+
+    public async Task<bool> DeleteComprovanteAsync(int id)
+    {
+        var client = await _apiAuth.GetAuthenticatedClientAsync();
+        var response = await client.DeleteAsync($"movimentacoes-financeiras/{id}/comprovante");
+        return response.IsSuccessStatusCode;
     }
 
     public async Task<bool> DeleteAsync(int id)

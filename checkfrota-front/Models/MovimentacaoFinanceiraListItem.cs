@@ -15,6 +15,14 @@ namespace checkfrota_front.Models
         public string Nome { get; set; } = string.Empty;
     }
 
+    public class ComprovanteResumo
+    {
+        public string Url { get; set; } = string.Empty;
+        public string Nome { get; set; } = string.Empty;
+        public string? Mime { get; set; }
+        public long? Tamanho { get; set; }
+    }
+
     public class MovimentacaoFinanceiraListItem
     {
         public int Id { get; set; }
@@ -40,6 +48,8 @@ namespace checkfrota_front.Models
 
         [JsonPropertyName("forma_pagamento")]
         public FormaPagamentoResumo? FormaPagamento { get; set; }
+
+        public ComprovanteResumo? Comprovante { get; set; }
 
         [JsonPropertyName("criado_em")]
         public string? CriadoEm { get; set; }

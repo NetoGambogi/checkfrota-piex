@@ -20,5 +20,6 @@ public static class IconFont
     public const string Saida = "";
     public const string Pago = "";
     public const string Pendente = "";
+    public const string Anexo = "";
     public const string Saldo = "";
 }

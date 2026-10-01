@@ -359,9 +359,17 @@
                                         <Label Text="{Binding CategoriaNome}"
                                                TextColor="{StaticResource FinSubtitle}"
                                                FontSize="12" />
-                                        <Label Text="{Binding DataVencimentoFormatada}"
-                                               TextColor="{StaticResource FinSubtitle}"
-                                               FontSize="12" />
+                                        <HorizontalStackLayout Spacing="6">
+                                            <Label Text="{Binding DataVencimentoFormatada}"
+                                                   TextColor="{StaticResource FinSubtitle}"
+                                                   FontSize="12" />
+                                            <Label Text="{x:Static helpers:IconFont.Anexo}"
+                                                   FontFamily="FontAwesomeSolid"
+                                                   IsVisible="{Binding HasComprovante}"
+                                                   TextColor="{StaticResource FinSubtitle}"
+                                                   FontSize="11"
+                                                   VerticalOptions="Center" />
+                                        </HorizontalStackLayout>
                                     </VerticalStackLayout>
 
                                     <VerticalStackLayout Grid.Column="2" Spacing="6" HorizontalOptions="End" VerticalOptions="Center">

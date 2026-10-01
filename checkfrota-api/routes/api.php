@@ -56,6 +56,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/', [MovimentacaoFinanceiraController::class, 'store']);
         Route::put('/{movimentacaoFinanceira}', [MovimentacaoFinanceiraController::class, 'update']);
         Route::patch('/{movimentacaoFinanceira}/pagar', [MovimentacaoFinanceiraController::class, 'pagar']);
+        Route::post('/{movimentacaoFinanceira}/comprovante', [MovimentacaoFinanceiraController::class, 'uploadComprovante']);
+        Route::delete('/{movimentacaoFinanceira}/comprovante', [MovimentacaoFinanceiraController::class, 'destroyComprovante']);
         Route::delete('/{movimentacaoFinanceira}', [MovimentacaoFinanceiraController::class, 'destroy']);
         Route::patch('/{movimentacaoFinanceira}/restore', [MovimentacaoFinanceiraController::class, 'restore'])->withTrashed();
     });
