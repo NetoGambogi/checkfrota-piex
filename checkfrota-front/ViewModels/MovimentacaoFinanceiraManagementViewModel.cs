@@ -6,7 +6,10 @@ using System.Collections.ObjectModel;
 
 namespace checkfrota_front.ViewModels;
 
-public partial class MovimentacaoFinanceiraManagementViewModel : AdminSectionViewModelBase
+// Filtro inicial opcional ao abrir a lista (ex.: vindo do dashboard), passado na query "filtro".
+public record FiltroLancamentos(string Tipo, string Status, DateTime DataInicio, DateTime DataFim, string CampoData = "vencimento");
+
+public partial class MovimentacaoFinanceiraManagementViewModel : AdminSectionViewModelBase, IQueryAttributable
 {
     private readonly MovimentacaoFinanceiraService _movimentacaoService;
 
@@ -15,6 +18,10 @@ public partial class MovimentacaoFinanceiraManagementViewModel : AdminSectionVie
     // Mesmo motivo do CategoriaFinanceiraManagementViewModel: pull-to-refresh já seta
     // IsBusy/IsRefreshing antes do Command disparar, então a reentrância usa uma flag à parte.
     private bool _isLoadingMovimentacoes;
+
+    // Enquanto o filtro inicial é aplicado, cada propriedade alterada não dispara uma recarga;
+    // a lista é carregada uma vez só, no Appearing, já com todos os filtros.
+    private bool _aplicandoFiltroInicial;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowInitialLoading))]
@@ -113,6 +120,19 @@ public partial class MovimentacaoFinanceiraManagementViewModel : AdminSectionVie
         _movimentacaoService = movimentacaoService;
     }
 
+    public void ApplyQueryAttributes(IDictionary<string, object> query)
+    {
+        if (!query.TryGetValue("filtro", out var obj) || obj is not FiltroLancamentos filtro) return;
+
+        _aplicandoFiltroInicial = true;
+        SelectedTipo = filtro.Tipo;
+        SelectedStatus = filtro.Status;
+        CampoData = filtro.CampoData;
+        DataInicio = filtro.DataInicio;
+        DataFim = filtro.DataFim;
+        _aplicandoFiltroInicial = false;
+    }
+
     [RelayCommand]
     private async Task AppearingAsync()
     {
@@ -152,15 +172,21 @@ public partial class MovimentacaoFinanceiraManagementViewModel : AdminSectionVie
 
     partial void OnSearchTextChanged(string value) => ApplyFilter();
 
-    partial void OnSelectedTipoChanged(string value) => _ = LoadMovimentacoesAsync();
+    partial void OnSelectedTipoChanged(string value) => RecarregarPorFiltro();
 
-    partial void OnSelectedStatusChanged(string value) => _ = LoadMovimentacoesAsync();
+    partial void OnSelectedStatusChanged(string value) => RecarregarPorFiltro();
 
-    partial void OnDataInicioChanged(DateTime value) => _ = LoadMovimentacoesAsync();
+    partial void OnDataInicioChanged(DateTime value) => RecarregarPorFiltro();
 
-    partial void OnDataFimChanged(DateTime value) => _ = LoadMovimentacoesAsync();
+    partial void OnDataFimChanged(DateTime value) => RecarregarPorFiltro();
 
-    partial void OnCampoDataChanged(string value) => _ = LoadMovimentacoesAsync();
+    partial void OnCampoDataChanged(string value) => RecarregarPorFiltro();
+
+    private void RecarregarPorFiltro()
+    {
+        if (!_aplicandoFiltroInicial)
+            _ = LoadMovimentacoesAsync();
+    }
 
     private void ApplyFilter()
     {

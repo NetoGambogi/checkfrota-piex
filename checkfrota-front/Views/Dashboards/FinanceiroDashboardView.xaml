@@ -1,0 +1,433 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:checkfrota_front.ViewModels"
+             xmlns:charts="clr-namespace:checkfrota_front.Charts"
+             xmlns:helpers="clr-namespace:checkfrota_front.Helpers"
+             x:Class="checkfrota_front.Views.Dashboards.FinanceiroDashboardView"
+             x:DataType="viewmodels:FinanceiroDashboardViewModel">
+
+    <ContentView.Resources>
+        <Style x:Key="CardDashboard" TargetType="Border">
+            <Setter Property="BackgroundColor" Value="{DynamicResource CardBg}" />
+            <Setter Property="Stroke" Value="Transparent" />
+            <Setter Property="StrokeShape" Value="RoundRectangle 16" />
+            <Setter Property="Padding" Value="16" />
+        </Style>
+        <Style x:Key="TituloCard" TargetType="Label">
+            <Setter Property="TextColor" Value="{DynamicResource TextPrimary}" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="FontSize" Value="16" />
+        </Style>
+        <Style x:Key="SubtituloCard" TargetType="Label">
+            <Setter Property="TextColor" Value="{DynamicResource TextSecondary}" />
+            <Setter Property="FontSize" Value="12" />
+        </Style>
+        <Style x:Key="RotuloIndicador" TargetType="Label">
+            <Setter Property="TextColor" Value="{DynamicResource TextSecondary}" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="VerticalOptions" Value="Center" />
+        </Style>
+        <Style x:Key="ValorIndicador" TargetType="Label">
+            <Setter Property="TextColor" Value="{DynamicResource TextPrimary}" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="FontSize" Value="16" />
+        </Style>
+        <Style x:Key="ChipPeriodo" TargetType="Button">
+            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="HeightRequest" Value="38" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Padding" Value="0" />
+        </Style>
+    </ContentView.Resources>
+
+    <VerticalStackLayout Spacing="16">
+
+        <!-- Período do histórico e das categorias -->
+        <Grid ColumnDefinitions="*,*,*" ColumnSpacing="8">
+            <Button Grid.Column="0" Text="3 meses" Style="{StaticResource ChipPeriodo}"
+                    Command="{Binding SelecionarPeriodoCommand}" CommandParameter="3">
+                <Button.Triggers>
+                    <DataTrigger TargetType="Button" Binding="{Binding Is3Meses}" Value="True">
+                        <Setter Property="BackgroundColor" Value="{DynamicResource TextPrimary}" />
+                        <Setter Property="TextColor" Value="{DynamicResource PageBg}" />
+                        <Setter Property="BorderWidth" Value="0" />
+                    </DataTrigger>
+                    <DataTrigger TargetType="Button" Binding="{Binding Is3Meses}" Value="False">
+                        <Setter Property="BackgroundColor" Value="{DynamicResource PageBg}" />
+                        <Setter Property="TextColor" Value="{DynamicResource TextSecondary}" />
+                        <Setter Property="BorderColor" Value="{DynamicResource FieldBorder}" />
+                        <Setter Property="BorderWidth" Value="1" />
+                    </DataTrigger>
+                </Button.Triggers>
+            </Button>
+            <Button Grid.Column="1" Text="6 meses" Style="{StaticResource ChipPeriodo}"
+                    Command="{Binding SelecionarPeriodoCommand}" CommandParameter="6">
+                <Button.Triggers>
+                    <DataTrigger TargetType="Button" Binding="{Binding Is6Meses}" Value="True">
+                        <Setter Property="BackgroundColor" Value="{DynamicResource TextPrimary}" />
+                        <Setter Property="TextColor" Value="{DynamicResource PageBg}" />
+                        <Setter Property="BorderWidth" Value="0" />
+                    </DataTrigger>
+                    <DataTrigger TargetType="Button" Binding="{Binding Is6Meses}" Value="False">
+                        <Setter Property="BackgroundColor" Value="{DynamicResource PageBg}" />
+                        <Setter Property="TextColor" Value="{DynamicResource TextSecondary}" />
+                        <Setter Property="BorderColor" Value="{DynamicResource FieldBorder}" />
+                        <Setter Property="BorderWidth" Value="1" />
+                    </DataTrigger>
+                </Button.Triggers>
+            </Button>
+            <Button Grid.Column="2" Text="12 meses" Style="{StaticResource ChipPeriodo}"
+                    Command="{Binding SelecionarPeriodoCommand}" CommandParameter="12">
+                <Button.Triggers>
+                    <DataTrigger TargetType="Button" Binding="{Binding Is12Meses}" Value="True">
+                        <Setter Property="BackgroundColor" Value="{DynamicResource TextPrimary}" />
+                        <Setter Property="TextColor" Value="{DynamicResource PageBg}" />
+                        <Setter Property="BorderWidth" Value="0" />
+                    </DataTrigger>
+                    <DataTrigger TargetType="Button" Binding="{Binding Is12Meses}" Value="False">
+                        <Setter Property="BackgroundColor" Value="{DynamicResource PageBg}" />
+                        <Setter Property="TextColor" Value="{DynamicResource TextSecondary}" />
+                        <Setter Property="BorderColor" Value="{DynamicResource FieldBorder}" />
+                        <Setter Property="BorderWidth" Value="1" />
+                    </DataTrigger>
+                </Button.Triggers>
+            </Button>
+        </Grid>
+
+        <Label Text="{Binding ErrorMessage}"
+               IsVisible="{Binding HasError}"
+               TextColor="{DynamicResource Danger}"
+               FontSize="13" />
+
+        <ActivityIndicator IsRunning="{Binding IsLoading}"
+                           IsVisible="{Binding IsLoading}"
+                           Margin="0,40" />
+
+        <VerticalStackLayout Spacing="16" IsVisible="{Binding HasData}">
+
+            <!-- Número principal: saldo atual -->
+            <Border BackgroundColor="{DynamicResource HeaderBg}"
+                    Stroke="Transparent"
+                    StrokeShape="RoundRectangle 16"
+                    Padding="18">
+                <VerticalStackLayout Spacing="6">
+                    <HorizontalStackLayout Spacing="8">
+                        <Label Text="{x:Static helpers:IconFont.Saldo}"
+                               FontFamily="FontAwesomeSolid"
+                               TextColor="White"
+                               FontSize="14"
+                               VerticalOptions="Center" />
+                        <Label Text="Saldo atual" TextColor="#9CA3AF" FontSize="13" VerticalOptions="Center" />
+                    </HorizontalStackLayout>
+                    <Label Text="{Binding SaldoAtual}" TextColor="White" FontAttributes="Bold" FontSize="30" />
+                    <Label FontSize="12" TextColor="#9CA3AF">
+                        <Label.FormattedText>
+                            <FormattedString>
+                                <Span Text="Previsto com todos os pendentes: " />
+                                <Span Text="{Binding SaldoPrevisto}" />
+                            </FormattedString>
+                        </Label.FormattedText>
+                    </Label>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Alerta de contas vencidas (ícone + texto, nunca só cor) -->
+            <Border IsVisible="{Binding HasVencidos}"
+                    BackgroundColor="{DynamicResource DangerSoftBg}"
+                    Stroke="Transparent"
+                    StrokeShape="RoundRectangle 12"
+                    Padding="14,12">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding AbrirVencidosCommand}" />
+                </Border.GestureRecognizers>
+                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                    <Label Grid.Column="0"
+                           Text="{x:Static helpers:IconFont.Alerta}"
+                           FontFamily="FontAwesomeSolid"
+                           TextColor="{DynamicResource Danger}"
+                           FontSize="16"
+                           VerticalOptions="Center" />
+                    <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                        <Label Text="Atenção: contas vencidas" TextColor="{DynamicResource TextPrimary}" FontAttributes="Bold" FontSize="14" />
+                        <Label Text="{Binding VencidosTexto}" TextColor="{DynamicResource TextSecondary}" FontSize="12" />
+                    </VerticalStackLayout>
+                    <Label Grid.Column="2"
+                           Text="{x:Static helpers:IconFont.ChevronDireita}"
+                           FontFamily="FontAwesomeSolid"
+                           TextColor="{DynamicResource TextSecondary}"
+                           FontSize="13"
+                           VerticalOptions="Center" />
+                </Grid>
+            </Border>
+
+            <!-- Indicadores do mês e pendências -->
+            <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="12">
+                <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource CardDashboard}" Padding="14">
+                    <VerticalStackLayout Spacing="6">
+                        <HorizontalStackLayout Spacing="6">
+                            <Ellipse WidthRequest="8" HeightRequest="8" Fill="{DynamicResource ChartEntrada}" VerticalOptions="Center" />
+                            <Label Text="Entradas no mês" Style="{StaticResource RotuloIndicador}" />
+                        </HorizontalStackLayout>
+                        <Label Text="{Binding EntradasMes}" Style="{StaticResource ValorIndicador}" />
+                    </VerticalStackLayout>
+                </Border>
+                <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource CardDashboard}" Padding="14">
+                    <VerticalStackLayout Spacing="6">
+                        <HorizontalStackLayout Spacing="6">
+                            <Ellipse WidthRequest="8" HeightRequest="8" Fill="{DynamicResource ChartSaida}" VerticalOptions="Center" />
+                            <Label Text="Saídas no mês" Style="{StaticResource RotuloIndicador}" />
+                        </HorizontalStackLayout>
+                        <Label Text="{Binding SaidasMes}" Style="{StaticResource ValorIndicador}" />
+                    </VerticalStackLayout>
+                </Border>
+                <Border Grid.Row="1" Grid.Column="0" Style="{StaticResource CardDashboard}" Padding="14">
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="A receber (pendente)" Style="{StaticResource RotuloIndicador}" />
+                        <Label Text="{Binding AReceber}" Style="{StaticResource ValorIndicador}" />
+                    </VerticalStackLayout>
+                </Border>
+                <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource CardDashboard}" Padding="14">
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="A pagar (pendente)" Style="{StaticResource RotuloIndicador}" />
+                        <Label Text="{Binding APagar}" Style="{StaticResource ValorIndicador}" />
+                    </VerticalStackLayout>
+                </Border>
+            </Grid>
+
+            <!-- Entradas x saídas por mês -->
+            <Border Style="{StaticResource CardDashboard}">
+                <VerticalStackLayout Spacing="12">
+                    <VerticalStackLayout Spacing="2">
+                        <Label Text="Entradas × saídas" Style="{StaticResource TituloCard}" />
+                        <Label Text="{Binding HistoricoTitulo}" Style="{StaticResource SubtituloCard}" />
+                    </VerticalStackLayout>
+
+                    <!-- Leitura do mês selecionado (toque ou arraste no gráfico) -->
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="{Binding HistoricoMes}" TextColor="{DynamicResource TextPrimary}" FontAttributes="Bold" FontSize="14" />
+                        <Grid ColumnDefinitions="Auto,*,Auto,*" ColumnSpacing="6">
+                            <Ellipse Grid.Column="0" WidthRequest="8" HeightRequest="8" Fill="{DynamicResource ChartEntrada}" VerticalOptions="Center" />
+                            <Label Grid.Column="1" FontSize="13" TextColor="{DynamicResource TextSecondary}">
+                                <Label.FormattedText>
+                                    <FormattedString>
+                                        <Span Text="Entradas " />
+                                        <Span Text="{Binding HistoricoEntradas}" TextColor="{DynamicResource TextPrimary}" FontAttributes="Bold" />
+                                    </FormattedString>
+                                </Label.FormattedText>
+                            </Label>
+                            <Ellipse Grid.Column="2" WidthRequest="8" HeightRequest="8" Fill="{DynamicResource ChartSaida}" VerticalOptions="Center" />
+                            <Label Grid.Column="3" FontSize="13" TextColor="{DynamicResource TextSecondary}">
+                                <Label.FormattedText>
+                                    <FormattedString>
+                                        <Span Text="Saídas " />
+                                        <Span Text="{Binding HistoricoSaidas}" TextColor="{DynamicResource TextPrimary}" FontAttributes="Bold" />
+                                    </FormattedString>
+                                </Label.FormattedText>
+                            </Label>
+                        </Grid>
+                        <Label Text="{Binding HistoricoResultado}" TextColor="{DynamicResource TextSecondary}" FontSize="12" />
+                    </VerticalStackLayout>
+
+                    <charts:MonthlyBarChart Items="{Binding Historico}"
+                                            SelectedIndex="{Binding HistoricoSelecionado}"
+                                            HeightRequest="210" />
+
+                    <Label Text="Toque em um mês para ver os valores."
+                           TextColor="{DynamicResource TextSecondary}"
+                           FontSize="11"
+                           HorizontalOptions="Center" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Previsão de fluxo de caixa -->
+            <Border Style="{StaticResource CardDashboard}">
+                <VerticalStackLayout Spacing="12">
+                    <VerticalStackLayout Spacing="2">
+                        <Label Text="Previsão de fluxo de caixa" Style="{StaticResource TituloCard}" />
+                        <Label Text="{Binding PrevisaoSubtitulo}" Style="{StaticResource SubtituloCard}" />
+                    </VerticalStackLayout>
+
+                    <!-- Base da previsão: só o que já foi lançado, ou a tendência dos meses passados -->
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                        <Button Grid.Column="0" Text="Lançamentos" Style="{StaticResource ChipPeriodo}"
+                                Command="{Binding SelecionarModoPrevisaoCommand}" CommandParameter="lancamentos">
+                            <Button.Triggers>
+                                <DataTrigger TargetType="Button" Binding="{Binding IsPrevisaoLancamentos}" Value="True">
+                                    <Setter Property="BackgroundColor" Value="{DynamicResource TextPrimary}" />
+                                    <Setter Property="TextColor" Value="{DynamicResource PageBg}" />
+                                    <Setter Property="BorderWidth" Value="0" />
+                                </DataTrigger>
+                                <DataTrigger TargetType="Button" Binding="{Binding IsPrevisaoLancamentos}" Value="False">
+                                    <Setter Property="BackgroundColor" Value="{DynamicResource PageBg}" />
+                                    <Setter Property="TextColor" Value="{DynamicResource TextSecondary}" />
+                                    <Setter Property="BorderColor" Value="{DynamicResource FieldBorder}" />
+                                    <Setter Property="BorderWidth" Value="1" />
+                                </DataTrigger>
+                            </Button.Triggers>
+                        </Button>
+                        <Button Grid.Column="1" Text="Tendência histórica" Style="{StaticResource ChipPeriodo}"
+                                Command="{Binding SelecionarModoPrevisaoCommand}" CommandParameter="historico">
+                            <Button.Triggers>
+                                <DataTrigger TargetType="Button" Binding="{Binding IsPrevisaoHistorica}" Value="True">
+                                    <Setter Property="BackgroundColor" Value="{DynamicResource TextPrimary}" />
+                                    <Setter Property="TextColor" Value="{DynamicResource PageBg}" />
+                                    <Setter Property="BorderWidth" Value="0" />
+                                </DataTrigger>
+                                <DataTrigger TargetType="Button" Binding="{Binding IsPrevisaoHistorica}" Value="False">
+                                    <Setter Property="BackgroundColor" Value="{DynamicResource PageBg}" />
+                                    <Setter Property="TextColor" Value="{DynamicResource TextSecondary}" />
+                                    <Setter Property="BorderColor" Value="{DynamicResource FieldBorder}" />
+                                    <Setter Property="BorderWidth" Value="1" />
+                                </DataTrigger>
+                            </Button.Triggers>
+                        </Button>
+                    </Grid>
+
+                    <VerticalStackLayout Spacing="2">
+                        <Label Text="{Binding PrevisaoMes}" TextColor="{DynamicResource TextSecondary}" FontSize="12" />
+                        <Label Text="{Binding PrevisaoSaldo}" TextColor="{DynamicResource TextPrimary}" FontAttributes="Bold" FontSize="20" />
+                        <Label Text="{Binding PrevisaoDetalhe}" TextColor="{DynamicResource TextSecondary}" FontSize="12" />
+                    </VerticalStackLayout>
+
+                    <charts:LineChart Items="{Binding Previsao}"
+                                      SelectedIndex="{Binding PrevisaoSelecionada}"
+                                      HeightRequest="200" />
+
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10" IsVisible="{Binding HasAvisoSaldoNegativo}">
+                        <Label Grid.Column="0"
+                               Text="{x:Static helpers:IconFont.Alerta}"
+                               FontFamily="FontAwesomeSolid"
+                               TextColor="{DynamicResource Warning}"
+                               FontSize="14"
+                               VerticalOptions="Start"
+                               Margin="0,1,0,0" />
+                        <Label Grid.Column="1"
+                               Text="{Binding AvisoSaldoNegativo}"
+                               TextColor="{DynamicResource TextPrimary}"
+                               FontSize="13" />
+                    </Grid>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Receitas por categoria -->
+            <Border Style="{StaticResource CardDashboard}">
+                <VerticalStackLayout Spacing="14">
+                    <VerticalStackLayout Spacing="2">
+                        <Label Text="Receitas por categoria" Style="{StaticResource TituloCard}" />
+                        <Label Text="{Binding ReceitasTitulo}" Style="{StaticResource SubtituloCard}" />
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Spacing="2" IsVisible="{Binding HasReceitas}">
+                        <Label Text="Maior receita" TextColor="{DynamicResource TextSecondary}" FontSize="12" />
+                        <Label Text="{Binding MaiorReceita}" TextColor="{DynamicResource TextPrimary}" FontAttributes="Bold" FontSize="15" />
+                    </VerticalStackLayout>
+
+                    <charts:RankingBarChart Items="{Binding Receitas}"
+                                            BarColorKey="ChartEntrada"
+                                            IsVisible="{Binding HasReceitas}" />
+
+                    <Label Text="Nenhuma receita recebida no período."
+                           IsVisible="{Binding HasNoReceitas}"
+                           TextColor="{DynamicResource TextSecondary}"
+                           FontSize="13" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Despesas por categoria -->
+            <Border Style="{StaticResource CardDashboard}">
+                <VerticalStackLayout Spacing="14">
+                    <VerticalStackLayout Spacing="2">
+                        <Label Text="Despesas por categoria" Style="{StaticResource TituloCard}" />
+                        <Label Text="{Binding CategoriasTitulo}" Style="{StaticResource SubtituloCard}" />
+                    </VerticalStackLayout>
+
+                    <charts:RankingBarChart Items="{Binding Categorias}"
+                                            BarColorKey="ChartSaida"
+                                            IsVisible="{Binding HasCategorias}" />
+
+                    <Label Text="Nenhuma despesa paga no período."
+                           IsVisible="{Binding HasNoCategorias}"
+                           TextColor="{DynamicResource TextSecondary}"
+                           FontSize="13" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Próximos vencimentos -->
+            <Border Style="{StaticResource CardDashboard}">
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="Próximos vencimentos" Style="{StaticResource TituloCard}" />
+
+                    <VerticalStackLayout Spacing="12" BindableLayout.ItemsSource="{Binding ProximosVencimentos}">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="viewmodels:VencimentoItem">
+                                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                                    <Border Grid.Column="0"
+                                            WidthRequest="36"
+                                            HeightRequest="36"
+                                            StrokeShape="Ellipse"
+                                            Stroke="Transparent"
+                                            BackgroundColor="{DynamicResource PageBg}">
+                                        <Label Text="{Binding Icone}"
+                                               FontFamily="FontAwesomeSolid"
+                                               FontSize="13"
+                                               TextColor="{DynamicResource TextSecondary}"
+                                               HorizontalOptions="Center"
+                                               VerticalOptions="Center" />
+                                    </Border>
+                                    <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                                        <Label Text="{Binding Descricao}"
+                                               TextColor="{DynamicResource TextPrimary}"
+                                               FontSize="14"
+                                               LineBreakMode="TailTruncation" />
+                                        <HorizontalStackLayout Spacing="6">
+                                            <Label Text="{x:Static helpers:IconFont.Alerta}"
+                                                   IsVisible="{Binding Vencido}"
+                                                   FontFamily="FontAwesomeSolid"
+                                                   FontSize="11"
+                                                   TextColor="{DynamicResource Danger}"
+                                                   VerticalOptions="Center" />
+                                            <Label Text="{Binding DataTexto}" FontSize="12" VerticalOptions="Center">
+                                                <Label.Triggers>
+                                                    <DataTrigger TargetType="Label" Binding="{Binding Vencido}" Value="True">
+                                                        <Setter Property="TextColor" Value="{DynamicResource Danger}" />
+                                                    </DataTrigger>
+                                                    <DataTrigger TargetType="Label" Binding="{Binding Vencido}" Value="False">
+                                                        <Setter Property="TextColor" Value="{DynamicResource TextSecondary}" />
+                                                    </DataTrigger>
+                                                </Label.Triggers>
+                                            </Label>
+                                        </HorizontalStackLayout>
+                                    </VerticalStackLayout>
+                                    <Label Grid.Column="2"
+                                           Text="{Binding ValorTexto}"
+                                           TextColor="{DynamicResource TextPrimary}"
+                                           FontAttributes="Bold"
+                                           FontSize="14"
+                                           VerticalOptions="Center" />
+                                </Grid>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+
+                    <Label Text="Nenhum lançamento pendente."
+                           IsVisible="{Binding HasNoVencimentos}"
+                           TextColor="{DynamicResource TextSecondary}"
+                           FontSize="13" />
+
+                    <Button Text="Ver lançamentos pendentes"
+                            Command="{Binding AbrirPendentesCommand}"
+                            BackgroundColor="Transparent"
+                            TextColor="{DynamicResource Accent}"
+                            FontAttributes="Bold"
+                            BorderColor="{DynamicResource FieldBorder}"
+                            BorderWidth="1"
+                            CornerRadius="10"
+                            HeightRequest="44" />
+                </VerticalStackLayout>
+            </Border>
+
+        </VerticalStackLayout>
+    </VerticalStackLayout>
+
+</ContentView>

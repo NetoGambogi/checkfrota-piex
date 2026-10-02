@@ -14,6 +14,7 @@ namespace checkfrota_front
             Routing.RegisterRoute(nameof(FormaPagamentoFormPage), typeof(FormaPagamentoFormPage));
             Routing.RegisterRoute(nameof(MovimentacaoFinanceiraManagementPage), typeof(MovimentacaoFinanceiraManagementPage));
             Routing.RegisterRoute(nameof(MovimentacaoFinanceiraFormPage), typeof(MovimentacaoFinanceiraFormPage));
+            Routing.RegisterRoute(nameof(ComprovanteViewerPage), typeof(ComprovanteViewerPage));
             Routing.RegisterRoute(nameof(FinanciamentoManagementPage), typeof(FinanciamentoManagementPage));
             Routing.RegisterRoute(nameof(FinanciamentoFormPage), typeof(FinanciamentoFormPage));
             Routing.RegisterRoute(nameof(FinanciamentoDetalhePage), typeof(FinanciamentoDetalhePage));

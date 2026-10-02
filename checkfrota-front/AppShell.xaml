@@ -19,7 +19,7 @@
         Route="pendente" />
 
     <TabBar Route="admin">
-        <ShellContent Title="Dashboard" ContentTemplate="{DataTemplate views:AdminHomePage}">
+        <ShellContent Title="Dashboard" ContentTemplate="{DataTemplate views:DashboardPage}">
             <ShellContent.Icon>
                 <FontImageSource FontFamily="FontAwesomeSolid" Glyph="{x:Static helpers:IconFont.Dashboard}" Color="{AppThemeBinding Light=#0A1330, Dark=White}" Size="20" />
             </ShellContent.Icon>
@@ -52,6 +52,11 @@
         Route="frota" />
 
     <TabBar Route="financeiro">
+        <ShellContent Title="Dashboard" ContentTemplate="{DataTemplate views:DashboardPage}">
+            <ShellContent.Icon>
+                <FontImageSource FontFamily="FontAwesomeSolid" Glyph="{x:Static helpers:IconFont.Dashboard}" Color="{AppThemeBinding Light=#0A1330, Dark=White}" Size="20" />
+            </ShellContent.Icon>
+        </ShellContent>
         <ShellContent Title="Financeiro" ContentTemplate="{DataTemplate views:FinanceiroHomePage}">
             <ShellContent.Icon>
                 <FontImageSource FontFamily="FontAwesomeSolid" Glyph="{x:Static helpers:IconFont.Financeiro}" Color="{AppThemeBinding Light=#0A1330, Dark=White}" Size="20" />

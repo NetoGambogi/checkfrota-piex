@@ -195,7 +195,7 @@ class MovimentacaoFinanceiraController extends Controller
         $arquivo = $request->file('comprovante');
 
         try {
-            $enviado = $cloudinary->upload($arquivo);
+            $enviado = $cloudinary->upload($arquivo, $movimentacaoFinanceira->nomeComprovante($arquivo->getMimeType()));
         } catch (RequestException $exception) {
             report($exception);
             abort(502, 'Não foi possível enviar o comprovante. Tente novamente.');
@@ -207,9 +207,10 @@ class MovimentacaoFinanceiraController extends Controller
             'comprovante_public_id' => $enviado['public_id'],
             'comprovante_resource_type' => $enviado['resource_type'],
             'comprovante_url' => $enviado['secure_url'],
-            'comprovante_nome' => $arquivo->getClientOriginalName(),
+            'comprovante_nome' => $movimentacaoFinanceira->nomeComprovante($arquivo->getMimeType()),
             'comprovante_mime' => $arquivo->getMimeType(),
             'comprovante_tamanho' => $enviado['bytes'] ?? $arquivo->getSize(),
+            'comprovante_paginas' => $enviado['pages'] ?? 1,
         ]);
 
         return response()->json([
@@ -228,6 +229,7 @@ class MovimentacaoFinanceiraController extends Controller
             'comprovante_nome' => null,
             'comprovante_mime' => null,
             'comprovante_tamanho' => null,
+            'comprovante_paginas' => null,
         ]);
 
         return response()->json([

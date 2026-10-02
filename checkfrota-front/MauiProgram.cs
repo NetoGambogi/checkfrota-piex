@@ -38,8 +38,10 @@ namespace checkfrota_front
             builder.Services.AddTransient<PerfilViewModel>();
             builder.Services.AddTransient<Views.PerfilPage>();
 
-            builder.Services.AddTransient<AdminHomeViewModel>();
-            builder.Services.AddTransient<Views.AdminHomePage>();
+            builder.Services.AddTransient<DashboardService>();
+            builder.Services.AddTransient<FinanceiroDashboardViewModel>();
+            builder.Services.AddTransient<DashboardViewModel>();
+            builder.Services.AddTransient<Views.DashboardPage>();
 
             builder.Services.AddTransient<UserManagementService>();
             builder.Services.AddTransient<UserManagementViewModel>();
@@ -71,6 +73,8 @@ namespace checkfrota_front
             builder.Services.AddTransient<Views.MovimentacaoFinanceiraManagementPage>();
             builder.Services.AddTransient<MovimentacaoFinanceiraFormViewModel>();
             builder.Services.AddTransient<Views.MovimentacaoFinanceiraFormPage>();
+            builder.Services.AddTransient<ComprovanteViewerViewModel>();
+            builder.Services.AddTransient<Views.ComprovanteViewerPage>();
 
             builder.Services.AddTransient<FinanciamentoService>();
             builder.Services.AddTransient<FinanciamentoManagementViewModel>();

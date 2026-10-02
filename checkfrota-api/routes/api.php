@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoriaFinanceiraController;
+use App\Http\Controllers\DashboardFinanceiroController;
 use App\Http\Controllers\FinanciamentoController;
 use App\Http\Controllers\FormaPagamentoController;
 use App\Http\Controllers\MovimentacaoFinanceiraController;
@@ -60,6 +61,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/{movimentacaoFinanceira}/comprovante', [MovimentacaoFinanceiraController::class, 'destroyComprovante']);
         Route::delete('/{movimentacaoFinanceira}', [MovimentacaoFinanceiraController::class, 'destroy']);
         Route::patch('/{movimentacaoFinanceira}/restore', [MovimentacaoFinanceiraController::class, 'restore'])->withTrashed();
+    });
+
+    Route::middleware('role:admin,financeiro')->prefix('dashboards')->group(function () {
+        Route::get('/financeiro', DashboardFinanceiroController::class);
     });
 
     Route::middleware('role:admin,financeiro')->prefix('financiamentos')->group(function () {

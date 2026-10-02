@@ -22,4 +22,5 @@ public static class IconFont
     public const string Pendente = "";
     public const string Anexo = "";
     public const string Saldo = "";
+    public const string Alerta = "";
 }

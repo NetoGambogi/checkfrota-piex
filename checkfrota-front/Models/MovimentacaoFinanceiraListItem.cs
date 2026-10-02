@@ -21,6 +21,7 @@ namespace checkfrota_front.Models
         public string Nome { get; set; } = string.Empty;
         public string? Mime { get; set; }
         public long? Tamanho { get; set; }
+        public List<string> Paginas { get; set; } = [];
     }
 
     public class MovimentacaoFinanceiraListItem

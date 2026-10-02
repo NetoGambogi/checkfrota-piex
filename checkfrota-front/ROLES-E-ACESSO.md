@@ -8,7 +8,7 @@ declarado em [AppShell.xaml](AppShell.xaml):
 ```xml
 <ShellContent Title="Login" ContentTemplate="{DataTemplate views:LoginPage}" Route="login" />
 <ShellContent Title="Pendente" ContentTemplate="{DataTemplate views:PendingApprovalPage}" Route="pendente" />
-<ShellContent Title="Admin" ContentTemplate="{DataTemplate views:AdminHomePage}" Route="admin" />
+<TabBar Route="admin"> <!-- abas: Dashboard (DashboardPage), Financeiro, Frota, Usuários --> </TabBar>
 <ShellContent Title="Motorista" ContentTemplate="{DataTemplate views:MotoristaHomePage}" Route="motorista" />
 <ShellContent Title="Frota" ContentTemplate="{DataTemplate views:FrotaHomePage}" Route="frota" />
 <ShellContent Title="Financeiro" ContentTemplate="{DataTemplate views:FinanceiroHomePage}" Route="financeiro" />
@@ -42,7 +42,7 @@ O `//` no início significa "navegação absoluta pra esse item de topo do Shell
 troca a área inteira, não empilha página. **Toda role que a API pode devolver
 precisa ter um `case` aqui**, senão o login quebra com `InvalidOperationException`.
 
-Cada página tem seu próprio ViewModel (`AdminHomeViewModel`,
+Cada página tem seu próprio ViewModel (`DashboardViewModel`,
 `MotoristaHomeViewModel`), registrados como `Transient` no container de DI em
 [MauiProgram.cs](MauiProgram.cs) — página e ViewModel sempre andam juntos nesse
 registro.
@@ -50,10 +50,10 @@ registro.
 ## Como adicionar uma página nova dentro de uma role já existente
 
 Exemplo: uma tela de "Relatórios" que só o admin acessa, aberta a partir da
-`AdminHomePage`.
+`DashboardPage`.
 
 1. **ViewModel** — crie `ViewModels/RelatoriosViewModel.cs` seguindo o padrão de
-   `AdminHomeViewModel.cs` (injete `ApiAuthService` ou outro serviço que precisar).
+   `DashboardViewModel.cs` (injete `ApiAuthService` ou outro serviço que precisar).
 2. **Página** — crie `Views/RelatoriosPage.xaml` + `.xaml.cs`, também no mesmo
    padrão (`x:DataType` apontando pro ViewModel, construtor recebendo o ViewModel
    via DI e setando `BindingContext`).
@@ -73,7 +73,7 @@ Exemplo: uma tela de "Relatórios" que só o admin acessa, aberta a partir da
        Routing.RegisterRoute("relatorios", typeof(Views.RelatoriosPage));
    }
    ```
-5. **Navegar até ela** a partir de `AdminHomePage`/`AdminHomeViewModel`, com rota
+5. **Navegar até ela** a partir de `DashboardPage`/`DashboardViewModel`, com rota
    **relativa** (sem `//`), que empilha a página sobre a área atual:
    ```csharp
    await Shell.Current.GoToAsync("relatorios");
@@ -112,7 +112,7 @@ repositório do `checkfrota-api`. Do lado do front:
 Existem dois níveis de controle de acesso no front-end, dependendo do que você
 precisa:
 
-1. **Tela inteira exclusiva de uma role** → já é o caso de `AdminHomePage`,
+1. **Tela inteira exclusiva de uma role** → já é o caso de `DashboardPage` (aba do admin),
    `MotoristaHomePage`, `FrotaHomePage` e `FinanceiroHomePage`: cada uma é sua
    própria área (`ShellContent`), e só quem tem aquela role é roteado pra lá no
    login (veja o `switch` em `LoginViewModel.cs` acima). Ninguém "cai" numa área
@@ -133,7 +133,7 @@ Suponha uma página compartilhada (ex: um dashboard que `admin` e `financeiro`
 acessam) onde só o `financeiro` deve ver um botão "Exportar relatório
 financeiro". No ViewModel dessa página, exponha uma propriedade booleana
 calculada a partir da role, atualizada no `AppearingCommand` (o mesmo padrão já
-usado pra carregar `UserName` em `AdminHomeViewModel`/`MotoristaHomeViewModel`):
+usado pra carregar `UserName` em `MotoristaHomeViewModel`):
 
 ```csharp
 public partial class DashboardViewModel : ObservableObject
@@ -180,3 +180,17 @@ o mínimo pra validar manualmente:
 - login com um usuário de cada role e conferir que cai na tela certa;
 - se a role for nova, testar também o caso de uma role *desconhecida* vinda da
   API (deve mostrar a mensagem de erro do `LoginViewModel`, não travar o app).
+
+## Dashboards por role
+
+A aba **Dashboard** (`DashboardPage`) aparece para `admin` e `financeiro`. Quais
+dashboards cada role enxerga é definido no catálogo de
+[ViewModels/DashboardViewModel.cs](ViewModels/DashboardViewModel.cs):
+
+- `admin` vê todos e escolhe no seletor no topo da tela.
+- `financeiro` vê só o dashboard financeiro (o seletor fica oculto).
+
+Os dados vêm da API em `GET /api/dashboards/<nome>` (hoje só `financeiro`,
+liberado para `admin` e `financeiro`). Para adicionar um dashboard novo:
+inclua uma entrada no catálogo com as roles permitidas, crie a view em
+`Views/Dashboards/` e adicione o bloco correspondente na `DashboardPage`.

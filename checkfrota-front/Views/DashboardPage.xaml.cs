@@ -2,11 +2,11 @@ using checkfrota_front.ViewModels;
 
 namespace checkfrota_front.Views;
 
-public partial class AdminHomePage : ContentPage
+public partial class DashboardPage : ContentPage
 {
-    private readonly AdminHomeViewModel _viewModel;
+    private readonly DashboardViewModel _viewModel;
 
-    public AdminHomePage(AdminHomeViewModel viewModel)
+    public DashboardPage(DashboardViewModel viewModel)
     {
         InitializeComponent();
         BindingContext = _viewModel = viewModel;

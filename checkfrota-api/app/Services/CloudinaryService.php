@@ -21,18 +21,18 @@ class CloudinaryService
      * Envia o arquivo para o Cloudinary. O resource_type "auto" faz imagens e PDFs
      * caírem como "image" e qualquer outro formato como "raw".
      *
-     * @return array{public_id: string, resource_type: string, secure_url: string, bytes: int}
+     * @return array{public_id: string, resource_type: string, secure_url: string, bytes: int, pages?: int}
      *
      * @throws RequestException
      */
-    public function upload(UploadedFile $file): array
+    public function upload(UploadedFile $file, ?string $nome = null): array
     {
         $params = $this->signedParams([
             'folder' => config('services.cloudinary.folder'),
         ]);
 
         $response = Http::asMultipart()
-            ->attach('file', $file->getContent(), $file->getClientOriginalName())
+            ->attach('file', $file->getContent(), $nome ?? $file->getClientOriginalName())
             ->post($this->endpoint('auto', 'upload'), $params)
             ->throw();
 

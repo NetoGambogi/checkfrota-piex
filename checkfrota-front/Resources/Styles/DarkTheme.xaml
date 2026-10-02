@@ -34,4 +34,11 @@
     <Color x:Key="Warning">#FBBF24</Color>
     <Color x:Key="WarningBg">#3A2F12</Color>
 
+    <!-- Gráficos: séries categóricas (entradas/saídas) validadas para daltonismo; texto usa TextPrimary/TextSecondary -->
+    <Color x:Key="ChartEntrada">#3987E5</Color>
+    <Color x:Key="ChartSaida">#D95926</Color>
+    <Color x:Key="ChartSaldo">#6573F5</Color>
+    <Color x:Key="ChartGrid">#2C2C2A</Color>
+    <Color x:Key="ChartBaseline">#4A4A46</Color>
+
 </ResourceDictionary>

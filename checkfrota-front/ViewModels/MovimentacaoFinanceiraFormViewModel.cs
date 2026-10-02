@@ -1,5 +1,6 @@
 using checkfrota_front.Models;
 using checkfrota_front.Services;
+using checkfrota_front.Views;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
@@ -34,6 +35,7 @@ public partial class MovimentacaoFinanceiraFormViewModel : AdminSectionViewModel
     // Comprovante escolhido no dispositivo, enviado só depois que o lançamento é salvo.
     private FileResult? _comprovantePendente;
     private bool _possuiComprovanteSalvo;
+    private ComprovanteResumo? _comprovanteSalvo;
     private bool _removerComprovanteAoSalvar;
 
     [ObservableProperty]
@@ -146,6 +148,7 @@ public partial class MovimentacaoFinanceiraFormViewModel : AdminSectionViewModel
             _categoriaIdParaSelecionar = item.Categoria?.Id;
             _formaPagamentoIdParaSelecionar = item.FormaPagamento?.Id;
             _possuiComprovanteSalvo = item.Comprovante is not null;
+            _comprovanteSalvo = item.Comprovante;
             ComprovanteNome = item.Comprovante?.Nome;
             ComprovanteUrl = item.Comprovante?.Url;
             IsEditing = true;
@@ -288,6 +291,8 @@ public partial class MovimentacaoFinanceiraFormViewModel : AdminSectionViewModel
 
             _comprovantePendente = null;
             _possuiComprovanteSalvo = true;
+            _comprovanteSalvo = resultado.Comprovante;
+            ComprovanteNome = resultado.Comprovante?.Nome ?? ComprovanteNome;
             ComprovanteUrl = resultado.Comprovante?.Url;
             return true;
         }
@@ -298,6 +303,7 @@ public partial class MovimentacaoFinanceiraFormViewModel : AdminSectionViewModel
 
             _removerComprovanteAoSalvar = false;
             _possuiComprovanteSalvo = false;
+            _comprovanteSalvo = null;
         }
 
         return true;
@@ -370,11 +376,14 @@ public partial class MovimentacaoFinanceiraFormViewModel : AdminSectionViewModel
     [RelayCommand]
     private async Task AbrirComprovanteAsync()
     {
-        if (ComprovanteUrl is null) return;
+        if (ComprovanteUrl is null || _comprovanteSalvo is null) return;
 
         try
         {
-            await Launcher.Default.OpenAsync(new Uri(ComprovanteUrl));
+            await Shell.Current.GoToAsync(nameof(ComprovanteViewerPage), new Dictionary<string, object>
+            {
+                ["comprovante"] = _comprovanteSalvo,
+            });
         }
         catch (Exception ex)
         {

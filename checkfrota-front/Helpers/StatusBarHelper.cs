@@ -28,8 +28,8 @@ public static class StatusBarHelper
 #pragma warning restore CA1422
         }
 
-        var controller = WindowCompat.GetInsetsController(window, window.DecorView);
-        controller.AppearanceLightStatusBars = IsLight(background);
+        if (WindowCompat.GetInsetsController(window, window.DecorView) is { } controller)
+            controller.AppearanceLightStatusBars = IsLight(background);
 #endif
     }
 

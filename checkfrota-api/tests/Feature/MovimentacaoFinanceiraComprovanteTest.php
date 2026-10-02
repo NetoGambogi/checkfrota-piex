@@ -15,15 +15,16 @@ beforeEach(function () {
     ]);
 });
 
-function fakeCloudinaryUpload(string $publicId = 'checkfrota/comprovantes/abc123', string $resourceType = 'image'): void
+function fakeCloudinaryUpload(string $publicId = 'checkfrota/comprovantes/abc123', string $resourceType = 'image', ?int $pages = null): void
 {
     Http::fake([
-        'api.cloudinary.com/v1_1/demo-cloud/auto/upload' => Http::response([
+        'api.cloudinary.com/v1_1/demo-cloud/auto/upload' => Http::response(array_filter([
             'public_id' => $publicId,
             'resource_type' => $resourceType,
             'secure_url' => "https://res.cloudinary.com/demo-cloud/{$resourceType}/upload/v1/{$publicId}",
             'bytes' => 2048,
-        ]),
+            'pages' => $pages,
+        ])),
         'api.cloudinary.com/v1_1/demo-cloud/*/destroy' => Http::response(['result' => 'ok']),
     ]);
 }
@@ -31,7 +32,7 @@ function fakeCloudinaryUpload(string $publicId = 'checkfrota/comprovantes/abc123
 test('financeiro can attach a pdf comprovante to a movimentacao', function () {
     fakeCloudinaryUpload();
     $financeiro = User::factory()->financeiro()->create();
-    $movimentacao = MovimentacaoFinanceira::factory()->create();
+    $movimentacao = MovimentacaoFinanceira::factory()->create(['tipo' => 'saida']);
 
     $response = $this->actingAs($financeiro, 'sanctum')->postJson(
         "/api/movimentacoes-financeiras/{$movimentacao->id}/comprovante",
@@ -40,18 +41,19 @@ test('financeiro can attach a pdf comprovante to a movimentacao', function () {
 
     $response->assertOk()
         ->assertJsonPath('movimentacao.comprovante.url', 'https://res.cloudinary.com/demo-cloud/image/upload/v1/checkfrota/comprovantes/abc123')
-        ->assertJsonPath('movimentacao.comprovante.nome', 'recibo.pdf')
+        ->assertJsonPath('movimentacao.comprovante.nome', sprintf('lancamento-despesa-%06d.pdf', $movimentacao->id))
         ->assertJsonPath('movimentacao.comprovante.mime', 'application/pdf');
 
     expect($movimentacao->fresh())
         ->comprovante_public_id->toBe('checkfrota/comprovantes/abc123')
         ->comprovante_resource_type->toBe('image');
 
-    Http::assertSent(function (Request $request) {
+    Http::assertSent(function (Request $request) use ($movimentacao) {
         $campos = collect($request->data())->pluck('contents', 'name');
         $expectedSignature = sha1('folder=checkfrota/comprovantes&timestamp='.$campos['timestamp'].'segredo');
 
         return $request->url() === 'https://api.cloudinary.com/v1_1/demo-cloud/auto/upload'
+            && collect($request->data())->firstWhere('name', 'file')['filename'] === sprintf('lancamento-despesa-%06d.pdf', $movimentacao->id)
             && $campos['api_key'] === '123456'
             && $campos['signature'] === $expectedSignature;
     });
@@ -60,12 +62,46 @@ test('financeiro can attach a pdf comprovante to a movimentacao', function () {
 test('admin can attach an image comprovante to a movimentacao', function () {
     fakeCloudinaryUpload();
     $admin = User::factory()->admin()->create();
-    $movimentacao = MovimentacaoFinanceira::factory()->create();
+    $movimentacao = MovimentacaoFinanceira::factory()->create(['tipo' => 'entrada']);
 
     $this->actingAs($admin, 'sanctum')->postJson(
         "/api/movimentacoes-financeiras/{$movimentacao->id}/comprovante",
         ['comprovante' => UploadedFile::fake()->image('foto.png')],
-    )->assertOk()->assertJsonPath('movimentacao.comprovante.nome', 'foto.png');
+    )->assertOk()
+        ->assertJsonPath('movimentacao.comprovante.nome', sprintf('lancamento-receita-%06d.png', $movimentacao->id))
+        ->assertJsonPath('movimentacao.comprovante.paginas', ['https://res.cloudinary.com/demo-cloud/image/upload/w_1600,c_limit/checkfrota/comprovantes/abc123']);
+});
+
+test('pdf comprovante exposes each page as an image url', function () {
+    fakeCloudinaryUpload(pages: 2);
+    $financeiro = User::factory()->financeiro()->create();
+    $movimentacao = MovimentacaoFinanceira::factory()->create();
+
+    $this->actingAs($financeiro, 'sanctum')->postJson(
+        "/api/movimentacoes-financeiras/{$movimentacao->id}/comprovante",
+        ['comprovante' => UploadedFile::fake()->create('recibo.pdf', 200, 'application/pdf')],
+    )->assertOk()->assertJsonPath('movimentacao.comprovante.paginas', [
+        'https://res.cloudinary.com/demo-cloud/image/upload/pg_1,w_1600,c_limit/checkfrota/comprovantes/abc123',
+        'https://res.cloudinary.com/demo-cloud/image/upload/pg_2,w_1600,c_limit/checkfrota/comprovantes/abc123',
+    ]);
+
+    expect($movimentacao->fresh()->comprovante_paginas)->toBe(2);
+});
+
+test('comprovante name follows the current tipo of the movimentacao', function () {
+    $admin = User::factory()->admin()->create();
+    $movimentacao = MovimentacaoFinanceira::factory()->create([
+        'tipo' => 'entrada',
+        'comprovante_public_id' => 'checkfrota/comprovantes/abc123',
+        'comprovante_resource_type' => 'image',
+        'comprovante_url' => 'https://res.cloudinary.com/demo-cloud/image/upload/v1/checkfrota/comprovantes/abc123.jpg',
+        'comprovante_nome' => 'IMG-20261001-WA0076.jpeg',
+        'comprovante_mime' => 'image/jpeg',
+    ]);
+
+    $this->actingAs($admin, 'sanctum')->getJson('/api/movimentacoes-financeiras')
+        ->assertOk()
+        ->assertJsonPath('movimentacoes.0.comprovante.nome', sprintf('lancamento-receita-%06d.jpg', $movimentacao->id));
 });
 
 test('replacing a comprovante removes the previous file from cloudinary', function () {
