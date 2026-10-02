@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- Paleta do tema claro. Mesmas chaves de DarkTheme.xaml; o App troca o dicionário conforme o tema
+     do sistema, então as telas devem referenciar estas cores com {DynamicResource ...}. -->
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="checkfrota_front.Resources.Styles.LightTheme">
+
+    <Color x:Key="PageBg">#FFFFFF</Color>
+    <Color x:Key="CardBg">#F1F2F4</Color>
+    <Color x:Key="FieldBg">#F8F9FB</Color>
+    <Color x:Key="FieldBorder">#E2E4E9</Color>
+    <Color x:Key="Divider">#E5E7EB</Color>
+    <Color x:Key="HeaderBg">#0A1330</Color>
+    <Color x:Key="TabBarBg">#FFFFFF</Color>
+
+    <Color x:Key="TextPrimary">#1F2430</Color>
+    <Color x:Key="TextSecondary">#6B7280</Color>
+    <Color x:Key="TextPlaceholder">#9CA3AF</Color>
+
+    <Color x:Key="Accent">#3D4FE0</Color>
+    <Color x:Key="AccentSoftBg">#E3E7FD</Color>
+    <Color x:Key="TabSelected">#0A1330</Color>
+    <Color x:Key="TabUnselected">#9CA3AF</Color>
+
+    <Color x:Key="Danger">#DC2626</Color>
+    <Color x:Key="DangerSolid">#DC2626</Color>
+    <Color x:Key="DangerSoftBg">#FBE3E3</Color>
+    <Color x:Key="DangerSoftFg">#D9534F</Color>
+
+    <Color x:Key="Success">#16A34A</Color>
+    <Color x:Key="SuccessBg">#DCFCE7</Color>
+    <Color x:Key="SuccessSolid">#16A34A</Color>
+
+    <Color x:Key="Warning">#B45309</Color>
+    <Color x:Key="WarningBg">#FEF3C7</Color>
+
+</ResourceDictionary>

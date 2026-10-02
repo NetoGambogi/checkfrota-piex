@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:viewmodels="clr-namespace:checkfrota_front.ViewModels"
@@ -7,19 +7,8 @@
              x:DataType="viewmodels:CategoriaFinanceiraFormViewModel"
              Shell.NavBarIsVisible="False"
              Shell.PresentationMode="Modal"
-             BackgroundColor="White"
+             BackgroundColor="{DynamicResource PageBg}"
              Title="Categoria financeira">
-
-    <ContentPage.Resources>
-        <ResourceDictionary>
-            <Color x:Key="FormTitle">#1F2430</Color>
-            <Color x:Key="FormSubtitle">#6B7280</Color>
-            <Color x:Key="FormFieldBg">#F8F9FB</Color>
-            <Color x:Key="FormFieldBorder">#E2E4E9</Color>
-            <Color x:Key="FormPrimary">#3D4FE0</Color>
-            <Color x:Key="FormDanger">#DC2626</Color>
-        </ResourceDictionary>
-    </ContentPage.Resources>
 
     <Grid RowDefinitions="Auto,*">
 
@@ -33,11 +22,11 @@
             <VerticalStackLayout Padding="20,20,20,32" Spacing="18">
 
                 <Label Text="{Binding ErrorMessage}"
-                       TextColor="{StaticResource FormDanger}"
+                       TextColor="{DynamicResource Danger}"
                        FontSize="13" />
 
                 <VerticalStackLayout Spacing="6">
-                    <Label Text="Tipo" TextColor="{StaticResource FormSubtitle}" FontSize="12" />
+                    <Label Text="Tipo" TextColor="{DynamicResource TextSecondary}" FontSize="12" />
                     <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
                         <Button Grid.Column="0"
                                 Text="Despesa"
@@ -46,13 +35,13 @@
                                 Command="{Binding SelectDespesaCommand}">
                             <Button.Triggers>
                                 <DataTrigger TargetType="Button" Binding="{Binding Tipo}" Value="despesa">
-                                    <Setter Property="BackgroundColor" Value="{StaticResource FormPrimary}" />
+                                    <Setter Property="BackgroundColor" Value="{DynamicResource Accent}" />
                                     <Setter Property="TextColor" Value="White" />
                                 </DataTrigger>
                                 <DataTrigger TargetType="Button" Binding="{Binding Tipo}" Value="receita">
-                                    <Setter Property="BackgroundColor" Value="White" />
-                                    <Setter Property="TextColor" Value="{StaticResource FormTitle}" />
-                                    <Setter Property="BorderColor" Value="{StaticResource FormFieldBorder}" />
+                                    <Setter Property="BackgroundColor" Value="{DynamicResource PageBg}" />
+                                    <Setter Property="TextColor" Value="{DynamicResource TextPrimary}" />
+                                    <Setter Property="BorderColor" Value="{DynamicResource FieldBorder}" />
                                     <Setter Property="BorderWidth" Value="1" />
                                 </DataTrigger>
                             </Button.Triggers>
@@ -64,13 +53,13 @@
                                 Command="{Binding SelectReceitaCommand}">
                             <Button.Triggers>
                                 <DataTrigger TargetType="Button" Binding="{Binding Tipo}" Value="receita">
-                                    <Setter Property="BackgroundColor" Value="{StaticResource FormPrimary}" />
+                                    <Setter Property="BackgroundColor" Value="{DynamicResource Accent}" />
                                     <Setter Property="TextColor" Value="White" />
                                 </DataTrigger>
                                 <DataTrigger TargetType="Button" Binding="{Binding Tipo}" Value="despesa">
-                                    <Setter Property="BackgroundColor" Value="White" />
-                                    <Setter Property="TextColor" Value="{StaticResource FormTitle}" />
-                                    <Setter Property="BorderColor" Value="{StaticResource FormFieldBorder}" />
+                                    <Setter Property="BackgroundColor" Value="{DynamicResource PageBg}" />
+                                    <Setter Property="TextColor" Value="{DynamicResource TextPrimary}" />
+                                    <Setter Property="BorderColor" Value="{DynamicResource FieldBorder}" />
                                     <Setter Property="BorderWidth" Value="1" />
                                 </DataTrigger>
                             </Button.Triggers>
@@ -79,9 +68,9 @@
                 </VerticalStackLayout>
 
                 <VerticalStackLayout Spacing="6">
-                    <Label Text="Nome" TextColor="{StaticResource FormSubtitle}" FontSize="12" />
-                    <Border BackgroundColor="{StaticResource FormFieldBg}"
-                            Stroke="{StaticResource FormFieldBorder}"
+                    <Label Text="Nome" TextColor="{DynamicResource TextSecondary}" FontSize="12" />
+                    <Border BackgroundColor="{DynamicResource FieldBg}"
+                            Stroke="{DynamicResource FieldBorder}"
                             StrokeThickness="1"
                             StrokeShape="RoundRectangle 10"
                             HeightRequest="48"
@@ -94,9 +83,9 @@
                 </VerticalStackLayout>
 
                 <VerticalStackLayout Spacing="6">
-                    <Label Text="Descrição" TextColor="{StaticResource FormSubtitle}" FontSize="12" />
-                    <Border BackgroundColor="{StaticResource FormFieldBg}"
-                            Stroke="{StaticResource FormFieldBorder}"
+                    <Label Text="Descrição" TextColor="{DynamicResource TextSecondary}" FontSize="12" />
+                    <Border BackgroundColor="{DynamicResource FieldBg}"
+                            Stroke="{DynamicResource FieldBorder}"
                             StrokeThickness="1"
                             StrokeShape="RoundRectangle 10"
                             HeightRequest="48"
@@ -109,9 +98,9 @@
                 </VerticalStackLayout>
 
                 <VerticalStackLayout Spacing="6">
-                    <Label Text="Ícone" TextColor="{StaticResource FormSubtitle}" FontSize="12" />
-                    <Border BackgroundColor="{StaticResource FormFieldBg}"
-                            Stroke="{StaticResource FormFieldBorder}"
+                    <Label Text="Ícone" TextColor="{DynamicResource TextSecondary}" FontSize="12" />
+                    <Border BackgroundColor="{DynamicResource FieldBg}"
+                            Stroke="{DynamicResource FieldBorder}"
                             StrokeThickness="1"
                             StrokeShape="RoundRectangle 10"
                             HeightRequest="48"
@@ -119,7 +108,7 @@
                         <Picker ItemsSource="{Binding Icones}"
                                 ItemDisplayBinding="{Binding Label}"
                                 SelectedItem="{Binding SelectedIcone}"
-                                TextColor="{StaticResource FormTitle}"
+                                TextColor="{DynamicResource TextPrimary}"
                                 BackgroundColor="Transparent"
                                 VerticalOptions="Center" />
                     </Border>
@@ -128,7 +117,7 @@
                 <Button Text="Salvar"
                         Command="{Binding SaveCommand}"
                         IsEnabled="{Binding IsNotBusy}"
-                        BackgroundColor="{StaticResource FormPrimary}"
+                        BackgroundColor="{DynamicResource Accent}"
                         TextColor="White"
                         FontAttributes="Bold"
                         CornerRadius="10"
@@ -140,9 +129,9 @@
                         IsVisible="{Binding IsEditing}"
                         IsEnabled="{Binding IsNotBusy}"
                         BackgroundColor="Transparent"
-                        TextColor="{StaticResource FormDanger}"
+                        TextColor="{DynamicResource Danger}"
                         FontAttributes="Bold"
-                        BorderColor="{StaticResource FormDanger}"
+                        BorderColor="{DynamicResource Danger}"
                         BorderWidth="1"
                         CornerRadius="10"
                         HeightRequest="50" />

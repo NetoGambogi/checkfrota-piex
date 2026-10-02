@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:viewmodels="clr-namespace:checkfrota_front.ViewModels"
@@ -7,19 +7,8 @@
              x:DataType="viewmodels:FormaPagamentoFormViewModel"
              Shell.NavBarIsVisible="False"
              Shell.PresentationMode="Modal"
-             BackgroundColor="White"
+             BackgroundColor="{DynamicResource PageBg}"
              Title="Forma de pagamento">
-
-    <ContentPage.Resources>
-        <ResourceDictionary>
-            <Color x:Key="FormTitle">#1F2430</Color>
-            <Color x:Key="FormSubtitle">#6B7280</Color>
-            <Color x:Key="FormFieldBg">#F8F9FB</Color>
-            <Color x:Key="FormFieldBorder">#E2E4E9</Color>
-            <Color x:Key="FormPrimary">#3D4FE0</Color>
-            <Color x:Key="FormDanger">#DC2626</Color>
-        </ResourceDictionary>
-    </ContentPage.Resources>
 
     <Grid RowDefinitions="Auto,*">
 
@@ -33,13 +22,13 @@
             <VerticalStackLayout Padding="20,20,20,32" Spacing="18">
 
                 <Label Text="{Binding ErrorMessage}"
-                       TextColor="{StaticResource FormDanger}"
+                       TextColor="{DynamicResource Danger}"
                        FontSize="13" />
 
                 <VerticalStackLayout Spacing="6">
-                    <Label Text="Nome" TextColor="{StaticResource FormSubtitle}" FontSize="12" />
-                    <Border BackgroundColor="{StaticResource FormFieldBg}"
-                            Stroke="{StaticResource FormFieldBorder}"
+                    <Label Text="Nome" TextColor="{DynamicResource TextSecondary}" FontSize="12" />
+                    <Border BackgroundColor="{DynamicResource FieldBg}"
+                            Stroke="{DynamicResource FieldBorder}"
                             StrokeThickness="1"
                             StrokeShape="RoundRectangle 10"
                             HeightRequest="48"
@@ -54,7 +43,7 @@
                 <Button Text="Salvar"
                         Command="{Binding SaveCommand}"
                         IsEnabled="{Binding IsNotBusy}"
-                        BackgroundColor="{StaticResource FormPrimary}"
+                        BackgroundColor="{DynamicResource Accent}"
                         TextColor="White"
                         FontAttributes="Bold"
                         CornerRadius="10"
@@ -66,9 +55,9 @@
                         IsVisible="{Binding IsEditing}"
                         IsEnabled="{Binding IsNotBusy}"
                         BackgroundColor="Transparent"
-                        TextColor="{StaticResource FormDanger}"
+                        TextColor="{DynamicResource Danger}"
                         FontAttributes="Bold"
-                        BorderColor="{StaticResource FormDanger}"
+                        BorderColor="{DynamicResource Danger}"
                         BorderWidth="1"
                         CornerRadius="10"
                         HeightRequest="50" />

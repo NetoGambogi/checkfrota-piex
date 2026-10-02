@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:viewmodels="clr-namespace:checkfrota_front.ViewModels"
@@ -7,19 +7,8 @@
              x:Class="checkfrota_front.Views.FinanciamentoManagementPage"
              x:DataType="viewmodels:FinanciamentoManagementViewModel"
              Shell.NavBarIsVisible="False"
-             BackgroundColor="White"
+             BackgroundColor="{DynamicResource PageBg}"
              Title="Financiamentos">
-
-    <ContentPage.Resources>
-        <ResourceDictionary>
-            <Color x:Key="FinTitle">#1F2430</Color>
-            <Color x:Key="FinSubtitle">#6B7280</Color>
-            <Color x:Key="FinCardBg">#F1F2F4</Color>
-            <Color x:Key="FinIconBg">#E3E7FD</Color>
-            <Color x:Key="FinPrimary">#3D4FE0</Color>
-            <Color x:Key="FinDanger">#DC2626</Color>
-        </ResourceDictionary>
-    </ContentPage.Resources>
 
     <Grid RowDefinitions="Auto,Auto,*">
 
@@ -29,16 +18,16 @@
                              HasAvatar="{Binding HasAvatar}"
                              ShowBackButton="True" />
 
-        <VerticalStackLayout Grid.Row="1" Padding="20,16,20,12" Spacing="8" BackgroundColor="White">
+        <VerticalStackLayout Grid.Row="1" Padding="20,16,20,12" Spacing="8" BackgroundColor="{DynamicResource PageBg}">
             <Label Text="Financiamentos"
-                   TextColor="{StaticResource FinTitle}"
+                   TextColor="{DynamicResource TextPrimary}"
                    FontAttributes="Bold"
                    FontSize="20" />
             <Label Text="Compras parceladas, como veículos financiados"
-                   TextColor="{StaticResource FinSubtitle}"
+                   TextColor="{DynamicResource TextSecondary}"
                    FontSize="13" />
             <Label Text="{Binding ErrorMessage}"
-                   TextColor="{StaticResource FinDanger}"
+                   TextColor="{DynamicResource Danger}"
                    FontSize="13" />
         </VerticalStackLayout>
 
@@ -46,13 +35,13 @@
 
             <Label Text="Carregando financiamentos…"
                    IsVisible="{Binding ShowInitialLoading}"
-                   TextColor="{StaticResource FinSubtitle}"
+                   TextColor="{DynamicResource TextSecondary}"
                    HorizontalOptions="Center"
                    VerticalOptions="Center" />
 
             <Label Text="Nenhum financiamento cadastrado."
                    IsVisible="{Binding ShowEmptyState}"
-                   TextColor="{StaticResource FinSubtitle}"
+                   TextColor="{DynamicResource TextSecondary}"
                    HorizontalOptions="Center"
                    VerticalOptions="Center" />
 
@@ -61,7 +50,7 @@
 
                     <CollectionView.ItemTemplate>
                         <DataTemplate x:DataType="viewmodels:FinanciamentoRowViewModel">
-                            <Border BackgroundColor="{StaticResource FinCardBg}"
+                            <Border BackgroundColor="{DynamicResource CardBg}"
                                     Stroke="Transparent"
                                     StrokeShape="RoundRectangle 16"
                                     Padding="16"
@@ -80,10 +69,10 @@
                                             StrokeShape="Ellipse"
                                             Stroke="Transparent"
                                             Padding="0"
-                                            BackgroundColor="{StaticResource FinIconBg}">
+                                            BackgroundColor="{DynamicResource AccentSoftBg}">
                                         <Label Text="{x:Static helpers:IconFont.Financiamento}"
                                                FontFamily="FontAwesomeSolid"
-                                               TextColor="{StaticResource FinPrimary}"
+                                               TextColor="{DynamicResource Accent}"
                                                FontSize="16"
                                                HorizontalOptions="Center"
                                                VerticalOptions="Center" />
@@ -91,26 +80,26 @@
 
                                     <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
                                         <Label Text="{Binding Descricao}"
-                                               TextColor="{StaticResource FinTitle}"
+                                               TextColor="{DynamicResource TextPrimary}"
                                                FontAttributes="Bold"
                                                FontSize="16"
                                                LineBreakMode="TailTruncation" />
                                         <Label Text="{Binding CategoriaNome}"
-                                               TextColor="{StaticResource FinSubtitle}"
+                                               TextColor="{DynamicResource TextSecondary}"
                                                FontSize="13" />
                                         <Label Text="{Binding ProgressoLabel}"
-                                               TextColor="{StaticResource FinSubtitle}"
+                                               TextColor="{DynamicResource TextSecondary}"
                                                FontSize="12" />
                                     </VerticalStackLayout>
 
                                     <VerticalStackLayout Grid.Column="2" Spacing="2" HorizontalOptions="End" VerticalOptions="Center">
                                         <Label Text="{Binding ValorTotalFormatado}"
-                                               TextColor="{StaticResource FinTitle}"
+                                               TextColor="{DynamicResource TextPrimary}"
                                                FontAttributes="Bold"
                                                FontSize="14"
                                                HorizontalOptions="End" />
                                         <Label Text="{Binding ValorParcelaFormatado}"
-                                               TextColor="{StaticResource FinSubtitle}"
+                                               TextColor="{DynamicResource TextSecondary}"
                                                FontSize="12"
                                                HorizontalOptions="End" />
                                     </VerticalStackLayout>
@@ -128,7 +117,7 @@
                     StrokeShape="Ellipse"
                     Stroke="Transparent"
                     Padding="0"
-                    BackgroundColor="{StaticResource FinPrimary}"
+                    BackgroundColor="{DynamicResource Accent}"
                     HorizontalOptions="End"
                     VerticalOptions="End"
                     Margin="0,0,20,20">

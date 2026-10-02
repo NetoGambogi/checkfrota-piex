@@ -2,11 +2,14 @@
 <Application xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:local="clr-namespace:checkfrota_front"
+             xmlns:styles="clr-namespace:checkfrota_front.Resources.Styles"
              x:Class="checkfrota_front.App">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Resources/Styles/Colors.xaml" />
+                <!-- Paleta clara/escura: substituída em tempo de execução por App.ApplyTheme -->
+                <styles:LightTheme />
                 <ResourceDictionary Source="Resources/Styles/Styles.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>

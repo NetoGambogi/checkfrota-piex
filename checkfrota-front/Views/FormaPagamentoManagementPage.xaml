@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:viewmodels="clr-namespace:checkfrota_front.ViewModels"
@@ -6,20 +6,8 @@
              x:Class="checkfrota_front.Views.FormaPagamentoManagementPage"
              x:DataType="viewmodels:FormaPagamentoManagementViewModel"
              Shell.NavBarIsVisible="False"
-             BackgroundColor="White"
+             BackgroundColor="{DynamicResource PageBg}"
              Title="Formas de pagamento">
-
-    <ContentPage.Resources>
-        <ResourceDictionary>
-            <Color x:Key="FinTitle">#1F2430</Color>
-            <Color x:Key="FinSubtitle">#6B7280</Color>
-            <Color x:Key="FinCardBg">#F1F2F4</Color>
-            <Color x:Key="FinIconFg">#D9534F</Color>
-            <Color x:Key="FinPrimary">#3D4FE0</Color>
-            <Color x:Key="FinFieldBg">#F8F9FB</Color>
-            <Color x:Key="FinFieldBorder">#E2E4E9</Color>
-        </ResourceDictionary>
-    </ContentPage.Resources>
 
     <Grid RowDefinitions="Auto,Auto,*">
 
@@ -29,15 +17,15 @@
                              HasAvatar="{Binding HasAvatar}"
                              ShowBackButton="True" />
 
-        <VerticalStackLayout Grid.Row="1" Padding="20,16,20,12" Spacing="12" BackgroundColor="White">
+        <VerticalStackLayout Grid.Row="1" Padding="20,16,20,12" Spacing="12" BackgroundColor="{DynamicResource PageBg}">
 
             <Label Text="Formas de Pagamento"
-                   TextColor="{StaticResource FinTitle}"
+                   TextColor="{DynamicResource TextPrimary}"
                    FontAttributes="Bold"
                    FontSize="20" />
 
-            <Border BackgroundColor="{StaticResource FinFieldBg}"
-                    Stroke="{StaticResource FinFieldBorder}"
+            <Border BackgroundColor="{DynamicResource FieldBg}"
+                    Stroke="{DynamicResource FieldBorder}"
                     StrokeThickness="1"
                     StrokeShape="RoundRectangle 10"
                     HeightRequest="46"
@@ -49,7 +37,7 @@
             </Border>
 
             <Label Text="{Binding ErrorMessage}"
-                   TextColor="{StaticResource FinIconFg}"
+                   TextColor="{DynamicResource DangerSoftFg}"
                    FontSize="13" />
 
         </VerticalStackLayout>
@@ -58,13 +46,13 @@
 
             <Label Text="Carregando formas de pagamento…"
                    IsVisible="{Binding ShowInitialLoading}"
-                   TextColor="{StaticResource FinSubtitle}"
+                   TextColor="{DynamicResource TextSecondary}"
                    HorizontalOptions="Center"
                    VerticalOptions="Center" />
 
             <Label Text="Nenhuma forma de pagamento encontrada."
                    IsVisible="{Binding ShowEmptyState}"
-                   TextColor="{StaticResource FinSubtitle}"
+                   TextColor="{DynamicResource TextSecondary}"
                    HorizontalOptions="Center"
                    VerticalOptions="Center" />
 
@@ -73,7 +61,7 @@
 
                     <CollectionView.ItemTemplate>
                         <DataTemplate x:DataType="viewmodels:FormaPagamentoRowViewModel">
-                            <Border BackgroundColor="{StaticResource FinCardBg}"
+                            <Border BackgroundColor="{DynamicResource CardBg}"
                                     Stroke="Transparent"
                                     StrokeShape="RoundRectangle 16"
                                     Padding="16"
@@ -85,7 +73,7 @@
                                 </Border.GestureRecognizers>
 
                                 <Label Text="{Binding Nome}"
-                                       TextColor="{StaticResource FinTitle}"
+                                       TextColor="{DynamicResource TextPrimary}"
                                        FontAttributes="Bold"
                                        FontSize="16"
                                        VerticalOptions="Center" />
@@ -101,7 +89,7 @@
                     StrokeShape="Ellipse"
                     Stroke="Transparent"
                     Padding="0"
-                    BackgroundColor="{StaticResource FinPrimary}"
+                    BackgroundColor="{DynamicResource Accent}"
                     HorizontalOptions="End"
                     VerticalOptions="End"
                     Margin="0,0,20,20">

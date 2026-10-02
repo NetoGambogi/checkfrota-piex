@@ -5,7 +5,7 @@
              x:Class="checkfrota_front.Views.Shared.AdminTopBar"
              x:Name="Root">
 
-    <Grid BackgroundColor="#0A1330" HeightRequest="64" Padding="20,0" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+    <Grid BackgroundColor="{DynamicResource HeaderBg}" HeightRequest="64" Padding="20,0" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
 
         <Label Grid.Column="0"
                Text="{x:Static helpers:IconFont.Back}"

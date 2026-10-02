@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:viewmodels="clr-namespace:checkfrota_front.ViewModels"
@@ -6,26 +6,8 @@
              x:Class="checkfrota_front.Views.FinanciamentoDetalhePage"
              x:DataType="viewmodels:FinanciamentoDetalheViewModel"
              Shell.NavBarIsVisible="False"
-             BackgroundColor="White"
+             BackgroundColor="{DynamicResource PageBg}"
              Title="Financiamento">
-
-    <ContentPage.Resources>
-        <ResourceDictionary>
-            <Color x:Key="FinTitle">#1F2430</Color>
-            <Color x:Key="FinSubtitle">#6B7280</Color>
-            <Color x:Key="FinCardBg">#F1F2F4</Color>
-            <Color x:Key="FinPrimary">#3D4FE0</Color>
-            <Color x:Key="FinDanger">#DC2626</Color>
-            <Color x:Key="FinEntradaBg">#DCFCE7</Color>
-            <Color x:Key="FinEntradaFg">#16A34A</Color>
-            <Color x:Key="FinSaidaBg">#FBE3E3</Color>
-            <Color x:Key="FinSaidaFg">#D9534F</Color>
-            <Color x:Key="FinStatusPagoBg">#DCFCE7</Color>
-            <Color x:Key="FinStatusPagoFg">#16A34A</Color>
-            <Color x:Key="FinStatusPendenteBg">#FEF3C7</Color>
-            <Color x:Key="FinStatusPendenteFg">#B45309</Color>
-        </ResourceDictionary>
-    </ContentPage.Resources>
 
     <Grid RowDefinitions="Auto,Auto,*">
 
@@ -35,23 +17,23 @@
                              HasAvatar="{Binding HasAvatar}"
                              ShowBackButton="True" />
 
-        <VerticalStackLayout Grid.Row="1" Padding="20,16,20,12" Spacing="6" BackgroundColor="White">
+        <VerticalStackLayout Grid.Row="1" Padding="20,16,20,12" Spacing="6" BackgroundColor="{DynamicResource PageBg}">
             <Label Text="{Binding Descricao}"
-                   TextColor="{StaticResource FinTitle}"
+                   TextColor="{DynamicResource TextPrimary}"
                    FontAttributes="Bold"
                    FontSize="20" />
             <Label Text="{Binding CategoriaNome}"
-                   TextColor="{StaticResource FinSubtitle}"
+                   TextColor="{DynamicResource TextSecondary}"
                    FontSize="13" />
             <Label Text="{Binding ValorTotalFormatado}"
-                   TextColor="{StaticResource FinTitle}"
+                   TextColor="{DynamicResource TextPrimary}"
                    FontAttributes="Bold"
                    FontSize="16" />
             <Label Text="{Binding ProgressoLabel}"
-                   TextColor="{StaticResource FinSubtitle}"
+                   TextColor="{DynamicResource TextSecondary}"
                    FontSize="13" />
             <Label Text="{Binding ErrorMessage}"
-                   TextColor="{StaticResource FinDanger}"
+                   TextColor="{DynamicResource Danger}"
                    FontSize="13" />
         </VerticalStackLayout>
 
@@ -59,7 +41,7 @@
 
             <Label Text="Carregando parcelas…"
                    IsVisible="{Binding ShowInitialLoading}"
-                   TextColor="{StaticResource FinSubtitle}"
+                   TextColor="{DynamicResource TextSecondary}"
                    HorizontalOptions="Center"
                    VerticalOptions="Center" />
 
@@ -67,7 +49,7 @@
 
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="viewmodels:MovimentacaoFinanceiraRowViewModel">
-                        <Border BackgroundColor="{StaticResource FinCardBg}"
+                        <Border BackgroundColor="{DynamicResource CardBg}"
                                 Stroke="Transparent"
                                 StrokeShape="RoundRectangle 16"
                                 Padding="16"
@@ -86,10 +68,10 @@
                                         StrokeShape="Ellipse"
                                         Stroke="Transparent"
                                         Padding="0"
-                                        BackgroundColor="{StaticResource FinSaidaBg}">
+                                        BackgroundColor="{DynamicResource DangerSoftBg}">
                                     <Label Text="{Binding IconGlyph}"
                                            FontFamily="FontAwesomeSolid"
-                                           TextColor="{StaticResource FinSaidaFg}"
+                                           TextColor="{DynamicResource DangerSoftFg}"
                                            FontSize="15"
                                            HorizontalOptions="Center"
                                            VerticalOptions="Center" />
@@ -97,17 +79,17 @@
 
                                 <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
                                     <Label Text="{Binding ParcelaLabel}"
-                                           TextColor="{StaticResource FinTitle}"
+                                           TextColor="{DynamicResource TextPrimary}"
                                            FontAttributes="Bold"
                                            FontSize="14" />
                                     <Label Text="{Binding DataVencimentoFormatada}"
-                                           TextColor="{StaticResource FinSubtitle}"
+                                           TextColor="{DynamicResource TextSecondary}"
                                            FontSize="12" />
                                 </VerticalStackLayout>
 
                                 <VerticalStackLayout Grid.Column="2" Spacing="6" HorizontalOptions="End" VerticalOptions="Center">
                                     <Label Text="{Binding ValorFormatado}"
-                                           TextColor="{StaticResource FinTitle}"
+                                           TextColor="{DynamicResource TextPrimary}"
                                            FontAttributes="Bold"
                                            FontSize="14"
                                            HorizontalOptions="End" />
@@ -115,19 +97,19 @@
                                     <Border StrokeShape="RoundRectangle 8" Stroke="Transparent" Padding="8,3" HorizontalOptions="End">
                                         <Border.Triggers>
                                             <DataTrigger TargetType="Border" Binding="{Binding IsPago}" Value="True">
-                                                <Setter Property="BackgroundColor" Value="{StaticResource FinStatusPagoBg}" />
+                                                <Setter Property="BackgroundColor" Value="{DynamicResource SuccessBg}" />
                                             </DataTrigger>
                                             <DataTrigger TargetType="Border" Binding="{Binding IsPago}" Value="False">
-                                                <Setter Property="BackgroundColor" Value="{StaticResource FinStatusPendenteBg}" />
+                                                <Setter Property="BackgroundColor" Value="{DynamicResource WarningBg}" />
                                             </DataTrigger>
                                         </Border.Triggers>
                                         <Label Text="{Binding StatusLabel}" FontSize="11" FontAttributes="Bold">
                                             <Label.Triggers>
                                                 <DataTrigger TargetType="Label" Binding="{Binding IsPago}" Value="True">
-                                                    <Setter Property="TextColor" Value="{StaticResource FinStatusPagoFg}" />
+                                                    <Setter Property="TextColor" Value="{DynamicResource Success}" />
                                                 </DataTrigger>
                                                 <DataTrigger TargetType="Label" Binding="{Binding IsPago}" Value="False">
-                                                    <Setter Property="TextColor" Value="{StaticResource FinStatusPendenteFg}" />
+                                                    <Setter Property="TextColor" Value="{DynamicResource Warning}" />
                                                 </DataTrigger>
                                             </Label.Triggers>
                                         </Label>

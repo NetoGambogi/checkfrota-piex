@@ -5,6 +5,7 @@
              x:Class="checkfrota_front.Views.LoginPage"
              x:DataType="viewmodels:LoginViewModel"
              Shell.NavBarIsVisible="False"
+             BackgroundColor="#03060F"
              Title="Login">
 
     <ContentPage.Resources>

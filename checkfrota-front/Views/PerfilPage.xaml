@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:viewmodels="clr-namespace:checkfrota_front.ViewModels"
@@ -7,19 +7,8 @@
              x:DataType="viewmodels:PerfilViewModel"
              Shell.NavBarIsVisible="False"
              Shell.PresentationMode="Modal"
-             BackgroundColor="White"
+             BackgroundColor="{DynamicResource PageBg}"
              Title="Perfil">
-
-    <ContentPage.Resources>
-        <ResourceDictionary>
-            <Color x:Key="PerfilHeaderBg">#0A1330</Color>
-            <Color x:Key="PerfilTitle">#1F2430</Color>
-            <Color x:Key="PerfilSubtitle">#6B7280</Color>
-            <Color x:Key="PerfilCardBg">#F1F2F4</Color>
-            <Color x:Key="PerfilDanger">#DC2626</Color>
-            <Color x:Key="PerfilDivider">#E5E7EB</Color>
-        </ResourceDictionary>
-    </ContentPage.Resources>
 
     <Grid RowDefinitions="Auto,*">
 
@@ -41,7 +30,7 @@
                             Stroke="Transparent"
                             Padding="0">
                         <Grid>
-                            <BoxView Color="{StaticResource PerfilHeaderBg}" />
+                            <BoxView Color="{DynamicResource HeaderBg}" />
                             <Label Text="{Binding Initials}"
                                    IsVisible="{Binding NoAvatar}"
                                    TextColor="White"
@@ -57,18 +46,18 @@
 
                     <VerticalStackLayout Spacing="4" HorizontalOptions="Center">
                         <Label Text="{Binding UserName}"
-                               TextColor="{StaticResource PerfilTitle}"
+                               TextColor="{DynamicResource TextPrimary}"
                                FontAttributes="Bold"
                                FontSize="20"
                                HorizontalOptions="Center" />
 
-                        <Border BackgroundColor="{StaticResource PerfilCardBg}"
+                        <Border BackgroundColor="{DynamicResource CardBg}"
                                 Stroke="Transparent"
                                 StrokeShape="RoundRectangle 20"
                                 Padding="12,4"
                                 HorizontalOptions="Center">
                             <Label Text="{Binding RoleDisplay}"
-                                   TextColor="{StaticResource PerfilSubtitle}"
+                                   TextColor="{DynamicResource TextSecondary}"
                                    FontAttributes="Bold"
                                    FontSize="12" />
                         </Border>
@@ -76,11 +65,11 @@
 
                 </VerticalStackLayout>
 
-                <BoxView HeightRequest="1" Color="{StaticResource PerfilDivider}" />
+                <BoxView HeightRequest="1" Color="{DynamicResource Divider}" />
 
                 <Button Text="Sair"
                         Command="{Binding LogoutCommand}"
-                        BackgroundColor="{StaticResource PerfilDanger}"
+                        BackgroundColor="{DynamicResource DangerSolid}"
                         TextColor="White"
                         FontAttributes="Bold"
                         CornerRadius="10"
@@ -90,7 +79,7 @@
 
             <Label Grid.Row="1"
                    Text="{Binding AppVersion}"
-                   TextColor="{StaticResource PerfilSubtitle}"
+                   TextColor="{DynamicResource TextSecondary}"
                    FontSize="12"
                    HorizontalOptions="Center"
                    Margin="0,16,0,0" />

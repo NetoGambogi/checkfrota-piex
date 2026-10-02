@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:viewmodels="clr-namespace:checkfrota_front.ViewModels"
@@ -6,21 +6,8 @@
              x:Class="checkfrota_front.Views.CategoriaFinanceiraManagementPage"
              x:DataType="viewmodels:CategoriaFinanceiraManagementViewModel"
              Shell.NavBarIsVisible="False"
-             BackgroundColor="White"
+             BackgroundColor="{DynamicResource PageBg}"
              Title="Categorias financeiras">
-
-    <ContentPage.Resources>
-        <ResourceDictionary>
-            <Color x:Key="FinTitle">#1F2430</Color>
-            <Color x:Key="FinSubtitle">#6B7280</Color>
-            <Color x:Key="FinCardBg">#F1F2F4</Color>
-            <Color x:Key="FinIconBg">#FBE3E3</Color>
-            <Color x:Key="FinIconFg">#D9534F</Color>
-            <Color x:Key="FinPrimary">#3D4FE0</Color>
-            <Color x:Key="FinFieldBg">#F8F9FB</Color>
-            <Color x:Key="FinFieldBorder">#E2E4E9</Color>
-        </ResourceDictionary>
-    </ContentPage.Resources>
 
     <Grid RowDefinitions="Auto,Auto,*">
 
@@ -30,15 +17,15 @@
                              HasAvatar="{Binding HasAvatar}"
                              ShowBackButton="True" />
 
-        <VerticalStackLayout Grid.Row="1" Padding="20,16,20,12" Spacing="12" BackgroundColor="White">
+        <VerticalStackLayout Grid.Row="1" Padding="20,16,20,12" Spacing="12" BackgroundColor="{DynamicResource PageBg}">
 
             <Label Text="Categoria Financeiras"
-                   TextColor="{StaticResource FinTitle}"
+                   TextColor="{DynamicResource TextPrimary}"
                    FontAttributes="Bold"
                    FontSize="20" />
 
-            <Border BackgroundColor="{StaticResource FinFieldBg}"
-                    Stroke="{StaticResource FinFieldBorder}"
+            <Border BackgroundColor="{DynamicResource FieldBg}"
+                    Stroke="{DynamicResource FieldBorder}"
                     StrokeThickness="1"
                     StrokeShape="RoundRectangle 10"
                     HeightRequest="46"
@@ -50,7 +37,7 @@
             </Border>
 
             <Label Text="{Binding ErrorMessage}"
-                   TextColor="{StaticResource FinIconFg}"
+                   TextColor="{DynamicResource DangerSoftFg}"
                    FontSize="13" />
 
             <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
@@ -61,14 +48,14 @@
                         Command="{Binding SelectDespesaCommand}">
                     <Button.Triggers>
                         <DataTrigger TargetType="Button" Binding="{Binding IsDespesaSelected}" Value="True">
-                            <Setter Property="BackgroundColor" Value="{StaticResource FinPrimary}" />
+                            <Setter Property="BackgroundColor" Value="{DynamicResource Accent}" />
                             <Setter Property="TextColor" Value="White" />
                             <Setter Property="BorderWidth" Value="0" />
                         </DataTrigger>
                         <DataTrigger TargetType="Button" Binding="{Binding IsDespesaSelected}" Value="False">
-                            <Setter Property="BackgroundColor" Value="White" />
-                            <Setter Property="TextColor" Value="{StaticResource FinTitle}" />
-                            <Setter Property="BorderColor" Value="{StaticResource FinFieldBorder}" />
+                            <Setter Property="BackgroundColor" Value="{DynamicResource PageBg}" />
+                            <Setter Property="TextColor" Value="{DynamicResource TextPrimary}" />
+                            <Setter Property="BorderColor" Value="{DynamicResource FieldBorder}" />
                             <Setter Property="BorderWidth" Value="1" />
                         </DataTrigger>
                     </Button.Triggers>
@@ -80,14 +67,14 @@
                         Command="{Binding SelectReceitaCommand}">
                     <Button.Triggers>
                         <DataTrigger TargetType="Button" Binding="{Binding IsReceitaSelected}" Value="True">
-                            <Setter Property="BackgroundColor" Value="{StaticResource FinPrimary}" />
+                            <Setter Property="BackgroundColor" Value="{DynamicResource Accent}" />
                             <Setter Property="TextColor" Value="White" />
                             <Setter Property="BorderWidth" Value="0" />
                         </DataTrigger>
                         <DataTrigger TargetType="Button" Binding="{Binding IsReceitaSelected}" Value="False">
-                            <Setter Property="BackgroundColor" Value="White" />
-                            <Setter Property="TextColor" Value="{StaticResource FinTitle}" />
-                            <Setter Property="BorderColor" Value="{StaticResource FinFieldBorder}" />
+                            <Setter Property="BackgroundColor" Value="{DynamicResource PageBg}" />
+                            <Setter Property="TextColor" Value="{DynamicResource TextPrimary}" />
+                            <Setter Property="BorderColor" Value="{DynamicResource FieldBorder}" />
                             <Setter Property="BorderWidth" Value="1" />
                         </DataTrigger>
                     </Button.Triggers>
@@ -100,13 +87,13 @@
 
             <Label Text="Carregando categorias…"
                    IsVisible="{Binding ShowInitialLoading}"
-                   TextColor="{StaticResource FinSubtitle}"
+                   TextColor="{DynamicResource TextSecondary}"
                    HorizontalOptions="Center"
                    VerticalOptions="Center" />
 
             <Label Text="Nenhuma categoria encontrada."
                    IsVisible="{Binding ShowEmptyState}"
-                   TextColor="{StaticResource FinSubtitle}"
+                   TextColor="{DynamicResource TextSecondary}"
                    HorizontalOptions="Center"
                    VerticalOptions="Center" />
 
@@ -115,7 +102,7 @@
 
                     <CollectionView.ItemTemplate>
                         <DataTemplate x:DataType="viewmodels:CategoriaFinanceiraRowViewModel">
-                            <Border BackgroundColor="{StaticResource FinCardBg}"
+                            <Border BackgroundColor="{DynamicResource CardBg}"
                                     Stroke="Transparent"
                                     StrokeShape="RoundRectangle 16"
                                     Padding="16"
@@ -134,10 +121,10 @@
                                             StrokeShape="Ellipse"
                                             Stroke="Transparent"
                                             Padding="0"
-                                            BackgroundColor="{StaticResource FinIconBg}">
+                                            BackgroundColor="{DynamicResource DangerSoftBg}">
                                         <Label Text="{Binding IconGlyph}"
                                                FontFamily="FontAwesomeSolid"
-                                               TextColor="{StaticResource FinIconFg}"
+                                               TextColor="{DynamicResource DangerSoftFg}"
                                                FontSize="18"
                                                HorizontalOptions="Center"
                                                VerticalOptions="Center" />
@@ -145,11 +132,11 @@
 
                                     <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
                                         <Label Text="{Binding Nome}"
-                                               TextColor="{StaticResource FinTitle}"
+                                               TextColor="{DynamicResource TextPrimary}"
                                                FontAttributes="Bold"
                                                FontSize="16" />
                                         <Label Text="{Binding Descricao}"
-                                               TextColor="{StaticResource FinSubtitle}"
+                                               TextColor="{DynamicResource TextSecondary}"
                                                FontSize="13"
                                                LineBreakMode="TailTruncation" />
                                     </VerticalStackLayout>
@@ -167,7 +154,7 @@
                     StrokeShape="Ellipse"
                     Stroke="Transparent"
                     Padding="0"
-                    BackgroundColor="{StaticResource FinPrimary}"
+                    BackgroundColor="{DynamicResource Accent}"
                     HorizontalOptions="End"
                     VerticalOptions="End"
                     Margin="0,0,20,20">

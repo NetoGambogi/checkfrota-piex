@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+﻿<?xml version="1.0" encoding="UTF-8" ?>
 <Shell
     x:Class="checkfrota_front.AppShell"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
@@ -6,9 +6,7 @@
     xmlns:views="clr-namespace:checkfrota_front.Views"
     xmlns:helpers="clr-namespace:checkfrota_front.Helpers"
     Title="checkfrota_front"
-    FlyoutBehavior="Disabled"
-    TabBarForegroundColor="#0A1330"
-    TabBarUnselectedColor="#9CA3AF">
+    FlyoutBehavior="Disabled">
 
     <ShellContent
         Title="Login"
@@ -23,22 +21,22 @@
     <TabBar Route="admin">
         <ShellContent Title="Dashboard" ContentTemplate="{DataTemplate views:AdminHomePage}">
             <ShellContent.Icon>
-                <FontImageSource FontFamily="FontAwesomeSolid" Glyph="{x:Static helpers:IconFont.Dashboard}" Color="#0A1330" Size="20" />
+                <FontImageSource FontFamily="FontAwesomeSolid" Glyph="{x:Static helpers:IconFont.Dashboard}" Color="{AppThemeBinding Light=#0A1330, Dark=White}" Size="20" />
             </ShellContent.Icon>
         </ShellContent>
         <ShellContent Title="Financeiro" ContentTemplate="{DataTemplate views:FinanceiroHomePage}">
             <ShellContent.Icon>
-                <FontImageSource FontFamily="FontAwesomeSolid" Glyph="{x:Static helpers:IconFont.Financeiro}" Color="#0A1330" Size="20" />
+                <FontImageSource FontFamily="FontAwesomeSolid" Glyph="{x:Static helpers:IconFont.Financeiro}" Color="{AppThemeBinding Light=#0A1330, Dark=White}" Size="20" />
             </ShellContent.Icon>
         </ShellContent>
         <ShellContent Title="Frota" ContentTemplate="{DataTemplate views:FrotaHomePage}">
             <ShellContent.Icon>
-                <FontImageSource FontFamily="FontAwesomeSolid" Glyph="{x:Static helpers:IconFont.Frota}" Color="#0A1330" Size="20" />
+                <FontImageSource FontFamily="FontAwesomeSolid" Glyph="{x:Static helpers:IconFont.Frota}" Color="{AppThemeBinding Light=#0A1330, Dark=White}" Size="20" />
             </ShellContent.Icon>
         </ShellContent>
         <ShellContent Title="Usuários" ContentTemplate="{DataTemplate views:UserManagementPage}">
             <ShellContent.Icon>
-                <FontImageSource FontFamily="FontAwesomeSolid" Glyph="{x:Static helpers:IconFont.Usuarios}" Color="#0A1330" Size="20" />
+                <FontImageSource FontFamily="FontAwesomeSolid" Glyph="{x:Static helpers:IconFont.Usuarios}" Color="{AppThemeBinding Light=#0A1330, Dark=White}" Size="20" />
             </ShellContent.Icon>
         </ShellContent>
     </TabBar>
@@ -56,7 +54,7 @@
     <TabBar Route="financeiro">
         <ShellContent Title="Financeiro" ContentTemplate="{DataTemplate views:FinanceiroHomePage}">
             <ShellContent.Icon>
-                <FontImageSource FontFamily="FontAwesomeSolid" Glyph="{x:Static helpers:IconFont.Financeiro}" Color="#0A1330" Size="20" />
+                <FontImageSource FontFamily="FontAwesomeSolid" Glyph="{x:Static helpers:IconFont.Financeiro}" Color="{AppThemeBinding Light=#0A1330, Dark=White}" Size="20" />
             </ShellContent.Icon>
         </ShellContent>
     </TabBar>
