@@ -1,32 +1,36 @@
 using checkfrota_front.Services;
-using CommunityToolkit.Mvvm.ComponentModel;
+using checkfrota_front.Views;
 using CommunityToolkit.Mvvm.Input;
 
 namespace checkfrota_front.ViewModels;
 
 public partial class FrotaHomeViewModel : AdminSectionViewModelBase
 {
-    private readonly ApiAuthService _apiAuth;
-
-    [ObservableProperty]
-    private string? userName;
-
     public FrotaHomeViewModel(ApiAuthService apiAuth) : base(apiAuth)
     {
-        _apiAuth = apiAuth;
     }
 
     [RelayCommand]
     private async Task AppearingAsync()
     {
-        UserName = await SecureStorage.GetAsync("user_name");
         await LoadAvatarAsync();
     }
 
     [RelayCommand]
-    private async Task LogoutAsync()
+    private async Task AbrirVeiculosAsync()
     {
-        await _apiAuth.LogoutAsync();
-        await Shell.Current.GoToAsync("//login");
+        await Shell.Current.GoToAsync(nameof(VeiculoManagementPage));
+    }
+
+    [RelayCommand]
+    private async Task AbrirManutencoesAsync()
+    {
+        await Shell.Current.GoToAsync(nameof(ManutencaoManagementPage));
+    }
+
+    [RelayCommand]
+    private async Task AbrirRotasAsync()
+    {
+        await Shell.Current.GoToAsync(nameof(RotaManagementPage));
     }
 }

@@ -5,8 +5,11 @@ use App\Http\Controllers\CategoriaFinanceiraController;
 use App\Http\Controllers\DashboardFinanceiroController;
 use App\Http\Controllers\FinanciamentoController;
 use App\Http\Controllers\FormaPagamentoController;
+use App\Http\Controllers\ManutencaoController;
 use App\Http\Controllers\MovimentacaoFinanceiraController;
+use App\Http\Controllers\RotaController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\VeiculoController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/auth/google', [AuthController::class, 'loginWithGoogle']);
@@ -27,8 +30,34 @@ Route::middleware('auth:sanctum')->group(function () {
         // rotas só de motorista — registro de rota, contagem de estoque
     });
 
-    Route::middleware('role:frota')->group(function () {
-        // rotas só de frota — gestão de veículos, manutenção, etc.
+    Route::middleware('role:admin,frota')->prefix('veiculos')->group(function () {
+        Route::get('/', [VeiculoController::class, 'index']);
+        Route::post('/', [VeiculoController::class, 'store']);
+        Route::put('/{veiculo}', [VeiculoController::class, 'update']);
+        Route::delete('/{veiculo}', [VeiculoController::class, 'destroy']);
+        Route::patch('/{veiculo}/restore', [VeiculoController::class, 'restore'])->withTrashed();
+    });
+
+    Route::middleware('role:admin,frota')->prefix('manutencoes')->group(function () {
+        Route::get('/', [ManutencaoController::class, 'index']);
+        Route::post('/', [ManutencaoController::class, 'store']);
+        Route::put('/{manutencao}', [ManutencaoController::class, 'update']);
+        Route::delete('/{manutencao}', [ManutencaoController::class, 'destroy']);
+        Route::patch('/{manutencao}/restore', [ManutencaoController::class, 'restore'])->withTrashed();
+    });
+
+    Route::middleware('role:admin,frota')->prefix('rotas')->group(function () {
+        Route::get('/', [RotaController::class, 'index']);
+        Route::post('/', [RotaController::class, 'store']);
+        Route::put('/{rota}', [RotaController::class, 'update']);
+        Route::delete('/{rota}', [RotaController::class, 'destroy']);
+        Route::patch('/{rota}/restore', [RotaController::class, 'restore'])->withTrashed();
+    });
+
+    // Leitura liberada também para frota, que escolhe categoria e forma de pagamento ao lançar manutenções.
+    Route::middleware('role:admin,financeiro,frota')->group(function () {
+        Route::get('/categorias-financeiras', [CategoriaFinanceiraController::class, 'index']);
+        Route::get('/formas-pagamento', [FormaPagamentoController::class, 'index']);
     });
 
     Route::middleware('role:financeiro')->group(function () {
@@ -36,7 +65,6 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::middleware('role:admin,financeiro')->prefix('categorias-financeiras')->group(function () {
-        Route::get('/', [CategoriaFinanceiraController::class, 'index']);
         Route::post('/', [CategoriaFinanceiraController::class, 'store']);
         Route::put('/{categoriaFinanceira}', [CategoriaFinanceiraController::class, 'update']);
         Route::delete('/{categoriaFinanceira}', [CategoriaFinanceiraController::class, 'destroy']);
@@ -44,7 +72,6 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::middleware('role:admin,financeiro')->prefix('formas-pagamento')->group(function () {
-        Route::get('/', [FormaPagamentoController::class, 'index']);
         Route::post('/', [FormaPagamentoController::class, 'store']);
         Route::put('/{formaPagamento}', [FormaPagamentoController::class, 'update']);
         Route::delete('/{formaPagamento}', [FormaPagamentoController::class, 'destroy']);

@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:checkfrota_front.ViewModels"
+             xmlns:shared="clr-namespace:checkfrota_front.Views.Shared"
+             x:Class="checkfrota_front.Views.ManutencaoFormPage"
+             x:DataType="viewmodels:ManutencaoFormViewModel"
+             Shell.NavBarIsVisible="False"
+             Shell.PresentationMode="Modal"
+             BackgroundColor="{DynamicResource PageBg}"
+             Title="Manutenção">
+
+    <Grid RowDefinitions="Auto,*">
+
+        <shared:AdminTopBar Grid.Row="0"
+                             Title="{Binding PageTitle}"
+                             AvatarUrl="{Binding AvatarUrl}"
+                             HasAvatar="{Binding HasAvatar}"
+                             ShowBackButton="True" />
+
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Padding="20,20,20,32" Spacing="18">
+
+                <Label Text="O valor da manutenção é lançado automaticamente como despesa no financeiro."
+                       IsVisible="{Binding IsCreating}"
+                       TextColor="{DynamicResource TextSecondary}"
+                       FontSize="13" />
+
+                <Label Text="{Binding StatusFinanceiroLabel}"
+                       IsVisible="{Binding IsEditing}"
+                       TextColor="{DynamicResource TextSecondary}"
+                       FontSize="13" />
+
+                <Label Text="{Binding ErrorMessage}"
+                       TextColor="{DynamicResource Danger}"
+                       FontSize="13" />
+
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Veículo" TextColor="{DynamicResource TextSecondary}" FontSize="12" />
+                    <Border BackgroundColor="{DynamicResource FieldBg}"
+                            Stroke="{DynamicResource FieldBorder}"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 10"
+                            HeightRequest="48"
+                            Padding="12,0">
+                        <Picker ItemsSource="{Binding Veiculos}"
+                                ItemDisplayBinding="{Binding Rotulo}"
+                                SelectedItem="{Binding SelectedVeiculo}"
+                                Title="Selecione o veículo"
+                                TextColor="{DynamicResource TextPrimary}"
+                                BackgroundColor="Transparent"
+                                VerticalOptions="Center" />
+                    </Border>
+                </VerticalStackLayout>
+
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Tipo" TextColor="{DynamicResource TextSecondary}" FontSize="12" />
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                        <Button Grid.Column="0"
+                                Text="Preventiva"
+                                CornerRadius="10"
+                                HeightRequest="46"
+                                Command="{Binding SelectPreventivaCommand}">
+                            <Button.Triggers>
+                                <DataTrigger TargetType="Button" Binding="{Binding Tipo}" Value="preventiva">
+                                    <Setter Property="BackgroundColor" Value="{DynamicResource Accent}" />
+                                    <Setter Property="TextColor" Value="White" />
+                                </DataTrigger>
+                                <DataTrigger TargetType="Button" Binding="{Binding Tipo}" Value="corretiva">
+                                    <Setter Property="BackgroundColor" Value="{DynamicResource PageBg}" />
+                                    <Setter Property="TextColor" Value="{DynamicResource TextPrimary}" />
+                                    <Setter Property="BorderColor" Value="{DynamicResource FieldBorder}" />
+                                    <Setter Property="BorderWidth" Value="1" />
+                                </DataTrigger>
+                            </Button.Triggers>
+                        </Button>
+                        <Button Grid.Column="1"
+                                Text="Corretiva"
+                                CornerRadius="10"
+                                HeightRequest="46"
+                                Command="{Binding SelectCorretivaCommand}">
+                            <Button.Triggers>
+                                <DataTrigger TargetType="Button" Binding="{Binding Tipo}" Value="corretiva">
+                                    <Setter Property="BackgroundColor" Value="{DynamicResource Accent}" />
+                                    <Setter Property="TextColor" Value="White" />
+                                </DataTrigger>
+                                <DataTrigger TargetType="Button" Binding="{Binding Tipo}" Value="preventiva">
+                                    <Setter Property="BackgroundColor" Value="{DynamicResource PageBg}" />
+                                    <Setter Property="TextColor" Value="{DynamicResource TextPrimary}" />
+                                    <Setter Property="BorderColor" Value="{DynamicResource FieldBorder}" />
+                                    <Setter Property="BorderWidth" Value="1" />
+                                </DataTrigger>
+                            </Button.Triggers>
+                        </Button>
+                    </Grid>
+                </VerticalStackLayout>
+
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Serviço realizado" TextColor="{DynamicResource TextSecondary}" FontSize="12" />
+                    <Border BackgroundColor="{DynamicResource FieldBg}"
+                            Stroke="{DynamicResource FieldBorder}"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 10"
+                            HeightRequest="48"
+                            Padding="12,0">
+                        <Entry Text="{Binding Descricao}"
+                               Placeholder="Ex: Troca de óleo e filtros"
+                               BackgroundColor="Transparent"
+                               VerticalOptions="Center" />
+                    </Border>
+                </VerticalStackLayout>
+
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                    <VerticalStackLayout Grid.Column="0" Spacing="6">
+                        <Label Text="Data" TextColor="{DynamicResource TextSecondary}" FontSize="12" />
+                        <Border BackgroundColor="{DynamicResource FieldBg}"
+                                Stroke="{DynamicResource FieldBorder}"
+                                StrokeThickness="1"
+                                StrokeShape="RoundRectangle 10"
+                                HeightRequest="48"
+                                Padding="12,0">
+                            <DatePicker Date="{Binding Data}"
+                                        Format="dd/MM/yyyy"
+                                        TextColor="{DynamicResource TextPrimary}"
+                                        BackgroundColor="Transparent"
+                                        VerticalOptions="Center" />
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Grid.Column="1" Spacing="6">
+                        <Label Text="Km no hodômetro" TextColor="{DynamicResource TextSecondary}" FontSize="12" />
+                        <Border BackgroundColor="{DynamicResource FieldBg}"
+                                Stroke="{DynamicResource FieldBorder}"
+                                StrokeThickness="1"
+                                StrokeShape="RoundRectangle 10"
+                                HeightRequest="48"
+                                Padding="12,0">
+                            <Entry Text="{Binding Km}"
+                                   Placeholder="Opcional"
+                                   Keyboard="Numeric"
+                                   BackgroundColor="Transparent"
+                                   VerticalOptions="Center" />
+                        </Border>
+                    </VerticalStackLayout>
+                </Grid>
+
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Oficina / fornecedor (opcional)" TextColor="{DynamicResource TextSecondary}" FontSize="12" />
+                    <Border BackgroundColor="{DynamicResource FieldBg}"
+                            Stroke="{DynamicResource FieldBorder}"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 10"
+                            HeightRequest="48"
+                            Padding="12,0">
+                        <Entry Text="{Binding Oficina}"
+                               Placeholder="Ex: Auto Center Silva"
+                               BackgroundColor="Transparent"
+                               VerticalOptions="Center" />
+                    </Border>
+                </VerticalStackLayout>
+
+                <Label Text="Financeiro"
+                       TextColor="{DynamicResource TextPrimary}"
+                       FontAttributes="Bold"
+                       FontSize="16"
+                       Margin="0,6,0,0" />
+
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Valor (R$)" TextColor="{DynamicResource TextSecondary}" FontSize="12" />
+                    <Border BackgroundColor="{DynamicResource FieldBg}"
+                            Stroke="{DynamicResource FieldBorder}"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 10"
+                            HeightRequest="48"
+                            Padding="12,0">
+                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="6">
+                            <Label Grid.Column="0"
+                                   Text="R$"
+                                   TextColor="{DynamicResource TextSecondary}"
+                                   VerticalOptions="Center" />
+                            <Entry Grid.Column="1"
+                                   Text="{Binding Valor}"
+                                   Placeholder="0,00"
+                                   Keyboard="Default"
+                                   BackgroundColor="Transparent"
+                                   VerticalOptions="Center" />
+                        </Grid>
+                    </Border>
+                </VerticalStackLayout>
+
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Categoria da despesa" TextColor="{DynamicResource TextSecondary}" FontSize="12" />
+                    <Border BackgroundColor="{DynamicResource FieldBg}"
+                            Stroke="{DynamicResource FieldBorder}"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 10"
+                            HeightRequest="48"
+                            Padding="12,0">
+                        <Picker ItemsSource="{Binding Categorias}"
+                                ItemDisplayBinding="{Binding Nome}"
+                                SelectedItem="{Binding SelectedCategoria}"
+                                TextColor="{DynamicResource TextPrimary}"
+                                BackgroundColor="Transparent"
+                                VerticalOptions="Center" />
+                    </Border>
+                </VerticalStackLayout>
+
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Forma de pagamento" TextColor="{DynamicResource TextSecondary}" FontSize="12" />
+                    <Border BackgroundColor="{DynamicResource FieldBg}"
+                            Stroke="{DynamicResource FieldBorder}"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 10"
+                            HeightRequest="48"
+                            Padding="12,0">
+                        <Picker ItemsSource="{Binding FormasPagamento}"
+                                ItemDisplayBinding="{Binding Nome}"
+                                SelectedItem="{Binding SelectedFormaPagamento}"
+                                TextColor="{DynamicResource TextPrimary}"
+                                BackgroundColor="Transparent"
+                                VerticalOptions="Center" />
+                    </Border>
+                </VerticalStackLayout>
+
+                <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding IsCreating}">
+                    <Label Grid.Column="0" Text="Já foi paga"
+                           TextColor="{DynamicResource TextPrimary}"
+                           FontSize="14"
+                           VerticalOptions="Center" />
+                    <Switch Grid.Column="1" IsToggled="{Binding MarcarComoPago}" />
+                </Grid>
+
+                <VerticalStackLayout Spacing="6" IsVisible="{Binding ShowDataVencimento}">
+                    <Label Text="Vencimento da despesa" TextColor="{DynamicResource TextSecondary}" FontSize="12" />
+                    <Border BackgroundColor="{DynamicResource FieldBg}"
+                            Stroke="{DynamicResource FieldBorder}"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 10"
+                            HeightRequest="48"
+                            Padding="12,0">
+                        <DatePicker Date="{Binding DataVencimento}"
+                                    Format="dd/MM/yyyy"
+                                    TextColor="{DynamicResource TextPrimary}"
+                                    BackgroundColor="Transparent"
+                                    VerticalOptions="Center" />
+                    </Border>
+                </VerticalStackLayout>
+
+                <Button Text="Salvar manutenção"
+                        Command="{Binding SaveCommand}"
+                        IsEnabled="{Binding IsNotBusy}"
+                        BackgroundColor="{DynamicResource Accent}"
+                        TextColor="White"
+                        FontAttributes="Bold"
+                        CornerRadius="10"
+                        HeightRequest="50"
+                        Margin="0,10,0,0" />
+
+                <Button Text="Excluir manutenção"
+                        Command="{Binding DeleteCommand}"
+                        IsVisible="{Binding IsEditing}"
+                        IsEnabled="{Binding IsNotBusy}"
+                        BackgroundColor="Transparent"
+                        TextColor="{DynamicResource Danger}"
+                        FontAttributes="Bold"
+                        BorderColor="{DynamicResource Danger}"
+                        BorderWidth="1"
+                        CornerRadius="10"
+                        HeightRequest="50" />
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+    </Grid>
+
+</ContentPage>

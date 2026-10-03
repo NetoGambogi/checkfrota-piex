@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:checkfrota_front.ViewModels"
+             xmlns:shared="clr-namespace:checkfrota_front.Views.Shared"
+             x:Class="checkfrota_front.Views.RotaFormPage"
+             x:DataType="viewmodels:RotaFormViewModel"
+             Shell.NavBarIsVisible="False"
+             Shell.PresentationMode="Modal"
+             BackgroundColor="{DynamicResource PageBg}"
+             Title="Rota">
+
+    <Grid RowDefinitions="Auto,*">
+
+        <shared:AdminTopBar Grid.Row="0"
+                             Title="{Binding PageTitle}"
+                             AvatarUrl="{Binding AvatarUrl}"
+                             HasAvatar="{Binding HasAvatar}"
+                             ShowBackButton="True" />
+
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Padding="20,20,20,32" Spacing="18">
+
+                <Label Text="{Binding ErrorMessage}"
+                       TextColor="{DynamicResource Danger}"
+                       FontSize="13" />
+
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Origem" TextColor="{DynamicResource TextSecondary}" FontSize="12" />
+                    <Border BackgroundColor="{DynamicResource FieldBg}"
+                            Stroke="{DynamicResource FieldBorder}"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 10"
+                            HeightRequest="48"
+                            Padding="12,0">
+                        <Entry Text="{Binding Origem}"
+                               Placeholder="Ex: Campinas/SP"
+                               BackgroundColor="Transparent"
+                               VerticalOptions="Center" />
+                    </Border>
+                </VerticalStackLayout>
+
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Destino" TextColor="{DynamicResource TextSecondary}" FontSize="12" />
+                    <Border BackgroundColor="{DynamicResource FieldBg}"
+                            Stroke="{DynamicResource FieldBorder}"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 10"
+                            HeightRequest="48"
+                            Padding="12,0">
+                        <Entry Text="{Binding Destino}"
+                               Placeholder="Ex: Curitiba/PR"
+                               BackgroundColor="Transparent"
+                               VerticalOptions="Center" />
+                    </Border>
+                </VerticalStackLayout>
+
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Distância aproximada (km)" TextColor="{DynamicResource TextSecondary}" FontSize="12" />
+                    <Border BackgroundColor="{DynamicResource FieldBg}"
+                            Stroke="{DynamicResource FieldBorder}"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 10"
+                            HeightRequest="48"
+                            Padding="12,0">
+                        <Entry Text="{Binding KmAproximado}"
+                               Placeholder="Ex: 410"
+                               Keyboard="Numeric"
+                               BackgroundColor="Transparent"
+                               VerticalOptions="Center" />
+                    </Border>
+                </VerticalStackLayout>
+
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Nome da rota (opcional)" TextColor="{DynamicResource TextSecondary}" FontSize="12" />
+                    <Border BackgroundColor="{DynamicResource FieldBg}"
+                            Stroke="{DynamicResource FieldBorder}"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 10"
+                            HeightRequest="48"
+                            Padding="12,0">
+                        <Entry Text="{Binding Nome}"
+                               Placeholder="Se vazio, usa &quot;Origem x Destino&quot;"
+                               BackgroundColor="Transparent"
+                               VerticalOptions="Center" />
+                    </Border>
+                </VerticalStackLayout>
+
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Observações (opcional)" TextColor="{DynamicResource TextSecondary}" FontSize="12" />
+                    <Border BackgroundColor="{DynamicResource FieldBg}"
+                            Stroke="{DynamicResource FieldBorder}"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 10"
+                            HeightRequest="48"
+                            Padding="12,0">
+                        <Entry Text="{Binding Observacoes}"
+                               Placeholder="Ex: Via BR-116, pedágios no trajeto"
+                               BackgroundColor="Transparent"
+                               VerticalOptions="Center" />
+                    </Border>
+                </VerticalStackLayout>
+
+                <Button Text="Salvar"
+                        Command="{Binding SaveCommand}"
+                        IsEnabled="{Binding IsNotBusy}"
+                        BackgroundColor="{DynamicResource Accent}"
+                        TextColor="White"
+                        FontAttributes="Bold"
+                        CornerRadius="10"
+                        HeightRequest="50"
+                        Margin="0,10,0,0" />
+
+                <Button Text="Excluir rota"
+                        Command="{Binding DeleteCommand}"
+                        IsVisible="{Binding IsEditing}"
+                        IsEnabled="{Binding IsNotBusy}"
+                        BackgroundColor="Transparent"
+                        TextColor="{DynamicResource Danger}"
+                        FontAttributes="Bold"
+                        BorderColor="{DynamicResource Danger}"
+                        BorderWidth="1"
+                        CornerRadius="10"
+                        HeightRequest="50" />
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+    </Grid>
+
+</ContentPage>

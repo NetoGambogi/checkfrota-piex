@@ -3,9 +3,11 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:viewmodels="clr-namespace:checkfrota_front.ViewModels"
              xmlns:shared="clr-namespace:checkfrota_front.Views.Shared"
+             xmlns:helpers="clr-namespace:checkfrota_front.Helpers"
              x:Class="checkfrota_front.Views.FrotaHomePage"
              x:DataType="viewmodels:FrotaHomeViewModel"
              Shell.NavBarIsVisible="False"
+             BackgroundColor="{DynamicResource PageBg}"
              Title="Frota">
 
     <Grid RowDefinitions="Auto,*">
@@ -15,17 +17,154 @@
                              AvatarUrl="{Binding AvatarUrl}"
                              HasAvatar="{Binding HasAvatar}" />
 
-        <VerticalStackLayout Grid.Row="1" Padding="30" Spacing="25" VerticalOptions="Center">
+        <ScrollView Grid.Row="1">
+        <VerticalStackLayout Padding="20,20,20,20" Spacing="14">
 
-            <Label Text="{Binding UserName, StringFormat='Bem-vindo, {0}'}"
-                   FontSize="24"
-                   HorizontalOptions="Center" />
+            <Label Text="Cadastros"
+                   TextColor="{DynamicResource TextPrimary}"
+                   FontAttributes="Bold"
+                   FontSize="20" />
 
-            <Button Text="Sair"
-                    Command="{Binding LogoutCommand}"
-                    HorizontalOptions="Fill" />
+            <Border BackgroundColor="{DynamicResource CardBg}"
+                    Stroke="Transparent"
+                    StrokeShape="RoundRectangle 16"
+                    Padding="16">
+
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding AbrirVeiculosCommand}" />
+                </Border.GestureRecognizers>
+
+                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+
+                    <Border Grid.Column="0"
+                            WidthRequest="46"
+                            HeightRequest="46"
+                            StrokeShape="Ellipse"
+                            Stroke="Transparent"
+                            Padding="0"
+                            BackgroundColor="{DynamicResource AccentSoftBg}">
+                        <Label Text="{x:Static helpers:IconFont.Frota}"
+                               FontFamily="FontAwesomeSolid"
+                               TextColor="{DynamicResource Accent}"
+                               FontSize="18"
+                               HorizontalOptions="Center"
+                               VerticalOptions="Center" />
+                    </Border>
+
+                    <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                        <Label Text="Veículos"
+                               TextColor="{DynamicResource TextPrimary}"
+                               FontAttributes="Bold"
+                               FontSize="16" />
+                        <Label Text="Placa, modelo e quilometragem"
+                               TextColor="{DynamicResource TextSecondary}"
+                               FontSize="13" />
+                    </VerticalStackLayout>
+
+                    <Label Grid.Column="2"
+                           Text="{x:Static helpers:IconFont.ChevronDireita}"
+                           FontFamily="FontAwesomeSolid"
+                           TextColor="{DynamicResource TextSecondary}"
+                           FontSize="14"
+                           VerticalOptions="Center" />
+
+                </Grid>
+            </Border>
+
+            <Border BackgroundColor="{DynamicResource CardBg}"
+                    Stroke="Transparent"
+                    StrokeShape="RoundRectangle 16"
+                    Padding="16">
+
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding AbrirManutencoesCommand}" />
+                </Border.GestureRecognizers>
+
+                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+
+                    <Border Grid.Column="0"
+                            WidthRequest="46"
+                            HeightRequest="46"
+                            StrokeShape="Ellipse"
+                            Stroke="Transparent"
+                            Padding="0"
+                            BackgroundColor="{DynamicResource AccentSoftBg}">
+                        <Label Text="{x:Static helpers:IconFont.Manutencao}"
+                               FontFamily="FontAwesomeSolid"
+                               TextColor="{DynamicResource Accent}"
+                               FontSize="18"
+                               HorizontalOptions="Center"
+                               VerticalOptions="Center" />
+                    </Border>
+
+                    <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                        <Label Text="Manutenções"
+                               TextColor="{DynamicResource TextPrimary}"
+                               FontAttributes="Bold"
+                               FontSize="16" />
+                        <Label Text="Preventivas e corretivas, lançadas no financeiro"
+                               TextColor="{DynamicResource TextSecondary}"
+                               FontSize="13" />
+                    </VerticalStackLayout>
+
+                    <Label Grid.Column="2"
+                           Text="{x:Static helpers:IconFont.ChevronDireita}"
+                           FontFamily="FontAwesomeSolid"
+                           TextColor="{DynamicResource TextSecondary}"
+                           FontSize="14"
+                           VerticalOptions="Center" />
+
+                </Grid>
+            </Border>
+
+            <Border BackgroundColor="{DynamicResource CardBg}"
+                    Stroke="Transparent"
+                    StrokeShape="RoundRectangle 16"
+                    Padding="16">
+
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding AbrirRotasCommand}" />
+                </Border.GestureRecognizers>
+
+                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+
+                    <Border Grid.Column="0"
+                            WidthRequest="46"
+                            HeightRequest="46"
+                            StrokeShape="Ellipse"
+                            Stroke="Transparent"
+                            Padding="0"
+                            BackgroundColor="{DynamicResource AccentSoftBg}">
+                        <Label Text="{x:Static helpers:IconFont.Rota}"
+                               FontFamily="FontAwesomeSolid"
+                               TextColor="{DynamicResource Accent}"
+                               FontSize="18"
+                               HorizontalOptions="Center"
+                               VerticalOptions="Center" />
+                    </Border>
+
+                    <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                        <Label Text="Rotas de viagem"
+                               TextColor="{DynamicResource TextPrimary}"
+                               FontAttributes="Bold"
+                               FontSize="16" />
+                        <Label Text="Origem, destino e km aproximado"
+                               TextColor="{DynamicResource TextSecondary}"
+                               FontSize="13" />
+                    </VerticalStackLayout>
+
+                    <Label Grid.Column="2"
+                           Text="{x:Static helpers:IconFont.ChevronDireita}"
+                           FontFamily="FontAwesomeSolid"
+                           TextColor="{DynamicResource TextSecondary}"
+                           FontSize="14"
+                           VerticalOptions="Center" />
+
+                </Grid>
+            </Border>
 
         </VerticalStackLayout>
+        </ScrollView>
 
     </Grid>
 
