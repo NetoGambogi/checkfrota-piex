@@ -2,21 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\CategoriaFinanceira;
+use App\Http\Controllers\Concerns\ValidaLancamentoFinanceiro;
 use App\Models\Manutencao;
-use App\Models\MovimentacaoFinanceira;
 use App\Models\Veiculo;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\ValidationException;
 
 class ManutencaoController extends Controller
 {
-    private const TIPOS = ['preventiva', 'corretiva'];
+    use ValidaLancamentoFinanceiro;
 
-    private const PAGAMENTO_STATUSES = ['pendente', 'pago'];
+    private const TIPOS = ['preventiva', 'corretiva'];
 
     private const SITUACOES = ['ativos', 'inativos', 'todos'];
 
@@ -72,41 +71,17 @@ class ManutencaoController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
-        $validated = $request->validate([
-            ...$this->rules(),
-            'status' => ['nullable', 'string', Rule::in(self::PAGAMENTO_STATUSES)],
-        ]);
+        $validated = $request->validate($this->rules());
+        $this->validarLancamentoFinanceiro($validated, 'despesa', 'manutenções');
 
-        $this->assertCategoriaDespesa($validated['categoria_financeira_id']);
-
-        $status = $validated['status'] ?? 'pendente';
-
-        if ($status === 'pago' && empty($validated['forma_pagamento_id'])) {
-            throw ValidationException::withMessages([
-                'forma_pagamento_id' => 'Forma de pagamento é obrigatória para manutenções já pagas.',
-            ]);
-        }
-
-        $manutencao = DB::transaction(function () use ($validated, $status, $request) {
+        $manutencao = DB::transaction(function () use ($validated, $request) {
             $manutencao = Manutencao::create([
-                ...collect($validated)->only(self::CAMPOS_MANUTENCAO)->all(),
+                ...Arr::only($validated, self::CAMPOS_MANUTENCAO),
                 'user_id' => $request->user()->id,
             ]);
 
-            $movimentacao = MovimentacaoFinanceira::create([
-                'tipo' => 'saida',
-                'descricao' => $manutencao->descricaoFinanceira(),
-                'valor' => $manutencao->valor,
-                'data_vencimento' => $validated['data_vencimento'] ?? $validated['data'],
-                'data_pagamento' => $status === 'pago' ? $validated['data'] : null,
-                'status' => $status,
-                'categoria_financeira_id' => $validated['categoria_financeira_id'],
-                'forma_pagamento_id' => $validated['forma_pagamento_id'] ?? null,
-                'user_id' => $request->user()->id,
-            ]);
-
-            $manutencao->movimentacaoFinanceira()->associate($movimentacao)->save();
-            $this->atualizarKmDoVeiculo($manutencao);
+            $manutencao->lancarMovimentacaoFinanceira($this->dadosFinanceiros($validated, $validated['data']));
+            Veiculo::registrarLeituraKm($manutencao->veiculo_id, $manutencao->km);
 
             return $manutencao;
         });
@@ -117,28 +92,20 @@ class ManutencaoController extends Controller
     }
 
     /**
-     * Atualiza a manutenção e mantém a despesa vinculada em sincronia (descrição, valor,
-     * categoria, forma de pagamento e vencimento). O pagamento em si é feito pelo financeiro.
+     * Atualiza a manutenção e mantém a despesa vinculada em sincronia. O status do pagamento não
+     * muda aqui: o pagamento é registrado pelo financeiro.
      */
     public function update(Request $request, Manutencao $manutencao): JsonResponse
     {
-        $validated = $request->validate($this->rules());
-
-        $this->assertCategoriaDespesa($validated['categoria_financeira_id']);
+        $validated = Arr::except($request->validate($this->rules()), 'status');
+        $this->validarLancamentoFinanceiro($validated, 'despesa', 'manutenções');
 
         DB::transaction(function () use ($validated, $manutencao) {
-            $manutencao->update(collect($validated)->only(self::CAMPOS_MANUTENCAO)->all());
+            $manutencao->update(Arr::only($validated, self::CAMPOS_MANUTENCAO));
             $manutencao->load('veiculo');
 
-            $manutencao->movimentacaoFinanceira?->update([
-                'descricao' => $manutencao->descricaoFinanceira(),
-                'valor' => $manutencao->valor,
-                'data_vencimento' => $validated['data_vencimento'] ?? $validated['data'],
-                'categoria_financeira_id' => $validated['categoria_financeira_id'],
-                'forma_pagamento_id' => $validated['forma_pagamento_id'] ?? null,
-            ]);
-
-            $this->atualizarKmDoVeiculo($manutencao);
+            $manutencao->sincronizarMovimentacaoFinanceira($this->dadosFinanceiros($validated, $validated['data']));
+            Veiculo::registrarLeituraKm($manutencao->veiculo_id, $manutencao->km);
         });
 
         return response()->json([
@@ -147,16 +114,12 @@ class ManutencaoController extends Controller
     }
 
     /**
-     * Exclui a manutenção e a despesa vinculada, se ainda estiver pendente. Despesas já pagas
-     * continuam no financeiro, pois o dinheiro já saiu do caixa.
+     * Exclui a manutenção e a despesa vinculada, se ainda estiver pendente.
      */
     public function destroy(Manutencao $manutencao): JsonResponse
     {
         DB::transaction(function () use ($manutencao) {
-            if ($manutencao->movimentacaoFinanceira?->status === 'pendente') {
-                $manutencao->movimentacaoFinanceira->delete();
-            }
-
+            $manutencao->excluirMovimentacaoPendente();
             $manutencao->delete();
         });
 
@@ -167,10 +130,7 @@ class ManutencaoController extends Controller
     {
         DB::transaction(function () use ($manutencao) {
             $manutencao->restore();
-
-            if ($manutencao->movimentacaoFinanceira?->trashed()) {
-                $manutencao->movimentacaoFinanceira->restore();
-            }
+            $manutencao->restaurarMovimentacaoFinanceira();
         });
 
         return response()->json([
@@ -191,33 +151,7 @@ class ManutencaoController extends Controller
             'km' => ['nullable', 'integer', 'min:0'],
             'oficina' => ['nullable', 'string', 'max:255'],
             'valor' => ['required', 'numeric', 'min:0.01'],
-            'categoria_financeira_id' => ['required', 'integer', Rule::exists('categorias_financeiras', 'id')->whereNull('deleted_at')],
-            'forma_pagamento_id' => ['nullable', 'integer', Rule::exists('formas_pagamento', 'id')->whereNull('deleted_at')],
-            'data_vencimento' => ['nullable', 'date'],
+            ...$this->regrasFinanceiras(),
         ];
-    }
-
-    private function assertCategoriaDespesa(int $categoriaId): void
-    {
-        $categoria = CategoriaFinanceira::findOrFail($categoriaId);
-
-        if ($categoria->tipo !== 'despesa') {
-            throw ValidationException::withMessages([
-                'categoria_financeira_id' => "Categoria \"{$categoria->nome}\" não é uma despesa; manutenções só podem usar categorias de despesa.",
-            ]);
-        }
-    }
-
-    /**
-     * O km informado na manutenção é uma leitura do hodômetro: se for maior que o km atual do
-     * veículo, passa a ser o novo km atual.
-     */
-    private function atualizarKmDoVeiculo(Manutencao $manutencao): void
-    {
-        if ($manutencao->km !== null) {
-            Veiculo::whereKey($manutencao->veiculo_id)
-                ->where('km_atual', '<', $manutencao->km)
-                ->update(['km_atual' => $manutencao->km]);
-        }
     }
 }

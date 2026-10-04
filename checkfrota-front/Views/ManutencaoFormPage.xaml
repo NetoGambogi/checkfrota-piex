@@ -188,63 +188,7 @@
                     </Border>
                 </VerticalStackLayout>
 
-                <VerticalStackLayout Spacing="6">
-                    <Label Text="Categoria da despesa" TextColor="{DynamicResource TextSecondary}" FontSize="12" />
-                    <Border BackgroundColor="{DynamicResource FieldBg}"
-                            Stroke="{DynamicResource FieldBorder}"
-                            StrokeThickness="1"
-                            StrokeShape="RoundRectangle 10"
-                            HeightRequest="48"
-                            Padding="12,0">
-                        <Picker ItemsSource="{Binding Categorias}"
-                                ItemDisplayBinding="{Binding Nome}"
-                                SelectedItem="{Binding SelectedCategoria}"
-                                TextColor="{DynamicResource TextPrimary}"
-                                BackgroundColor="Transparent"
-                                VerticalOptions="Center" />
-                    </Border>
-                </VerticalStackLayout>
-
-                <VerticalStackLayout Spacing="6">
-                    <Label Text="Forma de pagamento" TextColor="{DynamicResource TextSecondary}" FontSize="12" />
-                    <Border BackgroundColor="{DynamicResource FieldBg}"
-                            Stroke="{DynamicResource FieldBorder}"
-                            StrokeThickness="1"
-                            StrokeShape="RoundRectangle 10"
-                            HeightRequest="48"
-                            Padding="12,0">
-                        <Picker ItemsSource="{Binding FormasPagamento}"
-                                ItemDisplayBinding="{Binding Nome}"
-                                SelectedItem="{Binding SelectedFormaPagamento}"
-                                TextColor="{DynamicResource TextPrimary}"
-                                BackgroundColor="Transparent"
-                                VerticalOptions="Center" />
-                    </Border>
-                </VerticalStackLayout>
-
-                <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding IsCreating}">
-                    <Label Grid.Column="0" Text="Já foi paga"
-                           TextColor="{DynamicResource TextPrimary}"
-                           FontSize="14"
-                           VerticalOptions="Center" />
-                    <Switch Grid.Column="1" IsToggled="{Binding MarcarComoPago}" />
-                </Grid>
-
-                <VerticalStackLayout Spacing="6" IsVisible="{Binding ShowDataVencimento}">
-                    <Label Text="Vencimento da despesa" TextColor="{DynamicResource TextSecondary}" FontSize="12" />
-                    <Border BackgroundColor="{DynamicResource FieldBg}"
-                            Stroke="{DynamicResource FieldBorder}"
-                            StrokeThickness="1"
-                            StrokeShape="RoundRectangle 10"
-                            HeightRequest="48"
-                            Padding="12,0">
-                        <DatePicker Date="{Binding DataVencimento}"
-                                    Format="dd/MM/yyyy"
-                                    TextColor="{DynamicResource TextPrimary}"
-                                    BackgroundColor="Transparent"
-                                    VerticalOptions="Center" />
-                    </Border>
-                </VerticalStackLayout>
+                <shared:LancamentoFinanceiroFields BindingContext="{Binding Financeiro}" />
 
                 <Button Text="Salvar manutenção"
                         Command="{Binding SaveCommand}"

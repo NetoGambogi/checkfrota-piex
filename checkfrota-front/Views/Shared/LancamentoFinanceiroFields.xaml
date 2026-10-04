@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:checkfrota_front.ViewModels"
+             x:Class="checkfrota_front.Views.Shared.LancamentoFinanceiroFields"
+             x:DataType="viewmodels:LancamentoFinanceiroSection">
+
+    <VerticalStackLayout Spacing="18">
+
+        <VerticalStackLayout Spacing="6">
+            <Label Text="{Binding TituloCategoria}" TextColor="{DynamicResource TextSecondary}" FontSize="12" />
+            <Border BackgroundColor="{DynamicResource FieldBg}"
+                    Stroke="{DynamicResource FieldBorder}"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 10"
+                    HeightRequest="48"
+                    Padding="12,0">
+                <Picker ItemsSource="{Binding Categorias}"
+                        ItemDisplayBinding="{Binding Nome}"
+                        SelectedItem="{Binding SelectedCategoria}"
+                        TextColor="{DynamicResource TextPrimary}"
+                        BackgroundColor="Transparent"
+                        VerticalOptions="Center" />
+            </Border>
+        </VerticalStackLayout>
+
+        <VerticalStackLayout Spacing="6">
+            <Label Text="Forma de pagamento" TextColor="{DynamicResource TextSecondary}" FontSize="12" />
+            <Border BackgroundColor="{DynamicResource FieldBg}"
+                    Stroke="{DynamicResource FieldBorder}"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 10"
+                    HeightRequest="48"
+                    Padding="12,0">
+                <Picker ItemsSource="{Binding FormasPagamento}"
+                        ItemDisplayBinding="{Binding Nome}"
+                        SelectedItem="{Binding SelectedFormaPagamento}"
+                        TextColor="{DynamicResource TextPrimary}"
+                        BackgroundColor="Transparent"
+                        VerticalOptions="Center" />
+            </Border>
+        </VerticalStackLayout>
+
+        <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding PermiteMarcarComoPago}">
+            <Label Grid.Column="0" Text="{Binding TextoMarcarComoPago}"
+                   TextColor="{DynamicResource TextPrimary}"
+                   FontSize="14"
+                   VerticalOptions="Center" />
+            <Switch Grid.Column="1" IsToggled="{Binding MarcarComoPago}" />
+        </Grid>
+
+        <VerticalStackLayout Spacing="6" IsVisible="{Binding ShowDataVencimento}">
+            <Label Text="{Binding TextoDataVencimento}" TextColor="{DynamicResource TextSecondary}" FontSize="12" />
+            <Border BackgroundColor="{DynamicResource FieldBg}"
+                    Stroke="{DynamicResource FieldBorder}"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 10"
+                    HeightRequest="48"
+                    Padding="12,0">
+                <DatePicker Date="{Binding DataVencimento}"
+                            Format="dd/MM/yyyy"
+                            TextColor="{DynamicResource TextPrimary}"
+                            BackgroundColor="Transparent"
+                            VerticalOptions="Center" />
+            </Border>
+        </VerticalStackLayout>
+
+    </VerticalStackLayout>
+
+</ContentView>

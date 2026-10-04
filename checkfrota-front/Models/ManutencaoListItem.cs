@@ -10,26 +10,6 @@ namespace checkfrota_front.Models
         public string Modelo { get; set; } = string.Empty;
     }
 
-    /// <summary>Despesa gerada no financeiro para a manutenção.</summary>
-    public class ManutencaoFinanceiro
-    {
-        [JsonPropertyName("movimentacao_id")]
-        public int MovimentacaoId { get; set; }
-
-        public string Status { get; set; } = "pendente";
-
-        [JsonPropertyName("data_vencimento")]
-        public string? DataVencimento { get; set; }
-
-        [JsonPropertyName("data_pagamento")]
-        public string? DataPagamento { get; set; }
-
-        public CategoriaResumo? Categoria { get; set; }
-
-        [JsonPropertyName("forma_pagamento")]
-        public FormaPagamentoResumo? FormaPagamento { get; set; }
-    }
-
     public class ManutencaoListItem
     {
         public int Id { get; set; }
@@ -40,7 +20,7 @@ namespace checkfrota_front.Models
         public string? Oficina { get; set; }
         public decimal Valor { get; set; }
         public VeiculoResumo? Veiculo { get; set; }
-        public ManutencaoFinanceiro? Financeiro { get; set; }
+        public MovimentacaoVinculada? Financeiro { get; set; }
 
         [JsonPropertyName("criado_em")]
         public string? CriadoEm { get; set; }

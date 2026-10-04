@@ -34,6 +34,29 @@ class Veiculo extends Model
         return $this->hasMany(Manutencao::class);
     }
 
+    public function abastecimentos(): HasMany
+    {
+        return $this->hasMany(Abastecimento::class);
+    }
+
+    public function viagens(): HasMany
+    {
+        return $this->hasMany(Viagem::class);
+    }
+
+    /**
+     * Registra uma leitura do hodômetro (manutenção, abastecimento, chegada de viagem): se for
+     * maior que o km atual, passa a ser o novo km atual. Leituras antigas não reduzem o km.
+     */
+    public static function registrarLeituraKm(int $veiculoId, ?int $km): void
+    {
+        if ($km !== null) {
+            static::whereKey($veiculoId)
+                ->where('km_atual', '<', $km)
+                ->update(['km_atual' => $km]);
+        }
+    }
+
     /**
      * Placa sempre gravada em maiúsculas e sem hífen/espaços (ex: "abc-1d23" → "ABC1D23"),
      * para que a busca e a regra de unicidade não dependam de como foi digitada.

@@ -33,4 +33,16 @@ public partial class FrotaHomeViewModel : AdminSectionViewModelBase
     {
         await Shell.Current.GoToAsync(nameof(RotaManagementPage));
     }
+
+    [RelayCommand]
+    private async Task AbrirViagensAsync()
+    {
+        await Shell.Current.GoToAsync(nameof(ViagemManagementPage));
+    }
+
+    [RelayCommand]
+    private async Task AbrirAbastecimentosAsync()
+    {
+        await Shell.Current.GoToAsync(nameof(AbastecimentoManagementPage));
+    }
 }

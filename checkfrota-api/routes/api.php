@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AbastecimentoController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoriaFinanceiraController;
 use App\Http\Controllers\DashboardFinanceiroController;
@@ -10,6 +11,7 @@ use App\Http\Controllers\MovimentacaoFinanceiraController;
 use App\Http\Controllers\RotaController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VeiculoController;
+use App\Http\Controllers\ViagemController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/auth/google', [AuthController::class, 'loginWithGoogle']);
@@ -52,6 +54,23 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/{rota}', [RotaController::class, 'update']);
         Route::delete('/{rota}', [RotaController::class, 'destroy']);
         Route::patch('/{rota}/restore', [RotaController::class, 'restore'])->withTrashed();
+    });
+
+    Route::middleware('role:admin,frota')->prefix('viagens')->group(function () {
+        Route::get('/', [ViagemController::class, 'index']);
+        Route::post('/', [ViagemController::class, 'store']);
+        Route::put('/{viagem}', [ViagemController::class, 'update']);
+        Route::delete('/{viagem}', [ViagemController::class, 'destroy']);
+        Route::patch('/{viagem}/restore', [ViagemController::class, 'restore'])->withTrashed();
+    });
+
+    Route::middleware('role:admin,frota')->prefix('abastecimentos')->group(function () {
+        Route::get('/', [AbastecimentoController::class, 'index']);
+        Route::get('/consumo', [AbastecimentoController::class, 'consumo']);
+        Route::post('/', [AbastecimentoController::class, 'store']);
+        Route::put('/{abastecimento}', [AbastecimentoController::class, 'update']);
+        Route::delete('/{abastecimento}', [AbastecimentoController::class, 'destroy']);
+        Route::patch('/{abastecimento}/restore', [AbastecimentoController::class, 'restore'])->withTrashed();
     });
 
     // Leitura liberada também para frota, que escolhe categoria e forma de pagamento ao lançar manutenções.

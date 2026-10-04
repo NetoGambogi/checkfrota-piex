@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:checkfrota_front.ViewModels"
+             xmlns:shared="clr-namespace:checkfrota_front.Views.Shared"
+             xmlns:helpers="clr-namespace:checkfrota_front.Helpers"
+             x:Class="checkfrota_front.Views.AbastecimentoManagementPage"
+             x:DataType="viewmodels:AbastecimentoManagementViewModel"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="{DynamicResource PageBg}"
+             Title="Abastecimentos">
+
+    <Grid RowDefinitions="Auto,*">
+
+        <shared:AdminTopBar Grid.Row="0"
+                             Title="Frota"
+                             AvatarUrl="{Binding AvatarUrl}"
+                             HasAvatar="{Binding HasAvatar}"
+                             ShowBackButton="True" />
+
+        <Grid Grid.Row="1">
+
+            <RefreshView Command="{Binding LoadAbastecimentosCommand}" IsRefreshing="{Binding IsBusy}">
+                <CollectionView x:Name="AbastecimentosCollectionView" ItemsSource="{Binding Abastecimentos}" Margin="20,0,20,16">
+
+                    <CollectionView.Header>
+                        <VerticalStackLayout Padding="0,16,0,4" Spacing="12">
+
+                            <Label Text="Abastecimentos"
+                                   TextColor="{DynamicResource TextPrimary}"
+                                   FontAttributes="Bold"
+                                   FontSize="20" />
+
+                            <Border BackgroundColor="{DynamicResource FieldBg}"
+                                    Stroke="{DynamicResource FieldBorder}"
+                                    StrokeThickness="1"
+                                    StrokeShape="RoundRectangle 10"
+                                    HeightRequest="48"
+                                    Padding="12,0">
+                                <Picker ItemsSource="{Binding FiltrosVeiculo}"
+                                        ItemDisplayBinding="{Binding Label}"
+                                        SelectedItem="{Binding SelectedFiltroVeiculo}"
+                                        TextColor="{DynamicResource TextPrimary}"
+                                        BackgroundColor="Transparent"
+                                        VerticalOptions="Center" />
+                            </Border>
+
+                            <Label Text="{Binding ErrorMessage}"
+                                   TextColor="{DynamicResource Danger}"
+                                   FontSize="13" />
+
+                            <Border BackgroundColor="{DynamicResource HeaderBg}"
+                                    Stroke="Transparent"
+                                    StrokeShape="RoundRectangle 16"
+                                    Padding="18">
+                                <VerticalStackLayout Spacing="12">
+
+                                    <HorizontalStackLayout Spacing="8">
+                                        <Label Text="{x:Static helpers:IconFont.CategoriaCombustivel}"
+                                               FontFamily="FontAwesomeSolid"
+                                               TextColor="White"
+                                               FontSize="14"
+                                               VerticalOptions="Center" />
+                                        <Label Text="Média de consumo"
+                                               TextColor="#9CA3AF"
+                                               FontSize="13"
+                                               VerticalOptions="Center" />
+                                    </HorizontalStackLayout>
+
+                                    <Label Text="{Binding MediaLabel}"
+                                           TextColor="White"
+                                           FontAttributes="Bold"
+                                           FontSize="28" />
+
+                                    <Label Text="{Binding SemMediaLabel}"
+                                           TextColor="#9CA3AF"
+                                           FontSize="12" />
+
+                                    <Grid ColumnDefinitions="*,*,*" ColumnSpacing="8">
+                                        <VerticalStackLayout Grid.Column="0" Spacing="2">
+                                            <Label Text="Preço médio" TextColor="#9CA3AF" FontSize="11" />
+                                            <Label Text="{Binding PrecoMedioLitroLabel}" TextColor="White" FontAttributes="Bold" FontSize="13" />
+                                        </VerticalStackLayout>
+                                        <VerticalStackLayout Grid.Column="1" Spacing="2">
+                                            <Label Text="Custo por km" TextColor="#9CA3AF" FontSize="11" />
+                                            <Label Text="{Binding CustoPorKmLabel}" TextColor="White" FontAttributes="Bold" FontSize="13" />
+                                        </VerticalStackLayout>
+                                        <VerticalStackLayout Grid.Column="2" Spacing="2">
+                                            <Label Text="Por abastecimento" TextColor="#9CA3AF" FontSize="11" />
+                                            <Label Text="{Binding CustoMedioAbastecimentoLabel}" TextColor="White" FontAttributes="Bold" FontSize="13" />
+                                        </VerticalStackLayout>
+                                    </Grid>
+
+                                    <Label Text="{Binding TotaisLabel}"
+                                           TextColor="#9CA3AF"
+                                           FontSize="12" />
+
+                                </VerticalStackLayout>
+                            </Border>
+
+                            <Border BackgroundColor="{DynamicResource CardBg}"
+                                    Stroke="Transparent"
+                                    StrokeShape="RoundRectangle 16"
+                                    Padding="16"
+                                    IsVisible="{Binding ShowMediasPorVeiculo}">
+                                <VerticalStackLayout Spacing="10">
+                                    <Label Text="Média por veículo"
+                                           TextColor="{DynamicResource TextPrimary}"
+                                           FontAttributes="Bold"
+                                           FontSize="15" />
+                                    <VerticalStackLayout Spacing="8" BindableLayout.ItemsSource="{Binding MediasPorVeiculo}">
+                                        <BindableLayout.ItemTemplate>
+                                            <DataTemplate x:DataType="viewmodels:ConsumoVeiculoRowViewModel">
+                                                <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="12">
+                                                    <Label Grid.Column="0" Text="{Binding Placa}"
+                                                           TextColor="{DynamicResource TextPrimary}"
+                                                           FontSize="14" />
+                                                    <Label Grid.Column="1" Text="{Binding MediaLabel}"
+                                                           TextColor="{DynamicResource TextPrimary}"
+                                                           FontAttributes="Bold"
+                                                           FontSize="14" />
+                                                    <Label Grid.Column="2" Text="{Binding CustoLabel}"
+                                                           TextColor="{DynamicResource TextSecondary}"
+                                                           FontSize="13"
+                                                           VerticalOptions="Center" />
+                                                </Grid>
+                                            </DataTemplate>
+                                        </BindableLayout.ItemTemplate>
+                                    </VerticalStackLayout>
+                                </VerticalStackLayout>
+                            </Border>
+
+                            <Label Text="Carregando abastecimentos…"
+                                   IsVisible="{Binding ShowInitialLoading}"
+                                   TextColor="{DynamicResource TextSecondary}"
+                                   HorizontalOptions="Center"
+                                   Margin="0,16,0,0" />
+
+                            <Label Text="Nenhum abastecimento registrado."
+                                   IsVisible="{Binding ShowEmptyState}"
+                                   TextColor="{DynamicResource TextSecondary}"
+                                   HorizontalOptions="Center"
+                                   Margin="0,16,0,0" />
+
+                        </VerticalStackLayout>
+                    </CollectionView.Header>
+
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="viewmodels:AbastecimentoRowViewModel">
+                            <Border BackgroundColor="{DynamicResource CardBg}"
+                                    Stroke="Transparent"
+                                    StrokeShape="RoundRectangle 16"
+                                    Padding="16"
+                                    Margin="0,8,0,0">
+
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding Path=BindingContext.EditAbastecimentoCommand, Source={x:Reference AbastecimentosCollectionView}}"
+                                                           CommandParameter="{Binding .}" />
+                                </Border.GestureRecognizers>
+
+                                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+
+                                    <Border Grid.Column="0"
+                                            WidthRequest="46"
+                                            HeightRequest="46"
+                                            StrokeShape="Ellipse"
+                                            Stroke="Transparent"
+                                            Padding="0"
+                                            BackgroundColor="{DynamicResource AccentSoftBg}">
+                                        <Label Text="{x:Static helpers:IconFont.CategoriaCombustivel}"
+                                               FontFamily="FontAwesomeSolid"
+                                               TextColor="{DynamicResource Accent}"
+                                               FontSize="16"
+                                               HorizontalOptions="Center"
+                                               VerticalOptions="Center" />
+                                    </Border>
+
+                                    <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                                        <Label Text="{Binding Titulo}"
+                                               TextColor="{DynamicResource TextPrimary}"
+                                               FontAttributes="Bold"
+                                               FontSize="16" />
+                                        <Label Text="{Binding DetalheLabel}"
+                                               TextColor="{DynamicResource TextSecondary}"
+                                               FontSize="13"
+                                               LineBreakMode="TailTruncation" />
+                                        <Label Text="{Binding KmLabel}"
+                                               TextColor="{DynamicResource TextSecondary}"
+                                               FontSize="12" />
+                                    </VerticalStackLayout>
+
+                                    <VerticalStackLayout Grid.Column="2" Spacing="4" HorizontalOptions="End" VerticalOptions="Center">
+                                        <Label Text="{Binding ValorFormatado}"
+                                               TextColor="{DynamicResource DangerSoftFg}"
+                                               FontAttributes="Bold"
+                                               FontSize="14"
+                                               HorizontalOptions="End" />
+
+                                        <Border StrokeShape="RoundRectangle 8" Stroke="Transparent" Padding="8,3" HorizontalOptions="End"
+                                                BackgroundColor="{DynamicResource SuccessBg}"
+                                                IsVisible="{Binding HasMedia}">
+                                            <Label Text="{Binding MediaLabel}" FontSize="11" FontAttributes="Bold" TextColor="{DynamicResource Success}" />
+                                        </Border>
+
+                                        <Border StrokeShape="RoundRectangle 8" Stroke="Transparent" Padding="8,3" HorizontalOptions="End"
+                                                BackgroundColor="{DynamicResource WarningBg}"
+                                                IsVisible="{Binding IsParcial}">
+                                            <Label Text="Parcial" FontSize="11" FontAttributes="Bold" TextColor="{DynamicResource Warning}" />
+                                        </Border>
+                                    </VerticalStackLayout>
+
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+
+                </CollectionView>
+            </RefreshView>
+
+            <Border HeightRequest="56"
+                    WidthRequest="56"
+                    StrokeShape="Ellipse"
+                    Stroke="Transparent"
+                    Padding="0"
+                    BackgroundColor="{DynamicResource Accent}"
+                    HorizontalOptions="End"
+                    VerticalOptions="End"
+                    Margin="0,0,20,20">
+
+                <Border.Shadow>
+                    <Shadow Brush="Black" Opacity="0.25" Radius="10" Offset="0,4" />
+                </Border.Shadow>
+
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding AddAbastecimentoCommand}" />
+                </Border.GestureRecognizers>
+
+                <Label Text="+"
+                       TextColor="White"
+                       FontAttributes="Bold"
+                       FontSize="30"
+                       HorizontalOptions="Center"
+                       VerticalOptions="Center"
+                       Margin="0,-4,0,0" />
+            </Border>
+
+        </Grid>
+
+    </Grid>
+
+</ContentPage>

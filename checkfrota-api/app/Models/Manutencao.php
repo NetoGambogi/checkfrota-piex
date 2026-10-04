@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\PossuiMovimentacaoFinanceira;
 use Database\Factories\ManutencaoFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -13,7 +14,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Manutencao extends Model
 {
     /** @use HasFactory<ManutencaoFactory> */
-    use HasFactory, SoftDeletes;
+    use HasFactory, PossuiMovimentacaoFinanceira, SoftDeletes;
 
     /**
      * Laravel pluraliza "Manutencao" seguindo regras do inglês; força o nome real da tabela.
@@ -40,26 +41,24 @@ class Manutencao extends Model
         return $this->belongsTo(Veiculo::class)->withTrashed();
     }
 
-    /**
-     * Despesa lançada no financeiro para esta manutenção. Inclui lançamentos excluídos, já que
-     * excluir a manutenção também exclui a despesa pendente e a restauração precisa encontrá-la.
-     */
-    public function movimentacaoFinanceira(): BelongsTo
-    {
-        return $this->belongsTo(MovimentacaoFinanceira::class)->withTrashed();
-    }
-
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    /**
-     * Descrição usada no lançamento financeiro, ex.: "Manutenção ABC1D23 - Troca de óleo".
-     */
     public function descricaoFinanceira(): string
     {
         return "Manutenção {$this->veiculo->placa} - {$this->descricao}";
+    }
+
+    public function tipoMovimentacao(): string
+    {
+        return 'saida';
+    }
+
+    public function valorFinanceiro(): float
+    {
+        return (float) $this->valor;
     }
 
     /**
@@ -69,8 +68,6 @@ class Manutencao extends Model
      */
     public function toApiPayload(): array
     {
-        $movimentacao = $this->relationLoaded('movimentacaoFinanceira') ? $this->movimentacaoFinanceira : null;
-
         return [
             'id' => $this->id,
             'tipo' => $this->tipo,
@@ -82,16 +79,7 @@ class Manutencao extends Model
             'veiculo' => $this->relationLoaded('veiculo') && $this->veiculo
                 ? $this->veiculo->only('id', 'placa', 'marca', 'modelo')
                 : null,
-            'financeiro' => $movimentacao
-                ? [
-                    'movimentacao_id' => $movimentacao->id,
-                    'status' => $movimentacao->status,
-                    'data_vencimento' => $movimentacao->data_vencimento?->toDateString(),
-                    'data_pagamento' => $movimentacao->data_pagamento?->toDateString(),
-                    'categoria' => $movimentacao->categoriaFinanceira?->only('id', 'nome', 'icone'),
-                    'forma_pagamento' => $movimentacao->formaPagamento?->only('id', 'nome'),
-                ]
-                : null,
+            'financeiro' => $this->financeiroPayload(),
             'criado_em' => $this->created_at?->toIso8601String(),
             'ativo' => $this->deleted_at === null,
         ];

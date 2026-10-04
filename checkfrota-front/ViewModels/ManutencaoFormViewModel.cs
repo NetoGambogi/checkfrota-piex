@@ -1,3 +1,4 @@
+using checkfrota_front.Helpers;
 using checkfrota_front.Models;
 using checkfrota_front.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -9,15 +10,13 @@ namespace checkfrota_front.ViewModels;
 
 public partial class ManutencaoFormViewModel : AdminSectionViewModelBase, IQueryAttributable
 {
-    private static readonly FormaPagamentoListItem NenhumaForma = new() { Id = 0, Nome = "Nenhuma" };
-
     private readonly ManutencaoService _manutencaoService;
     private readonly VeiculoService _veiculoService;
-    private readonly CategoriaFinanceiraService _categoriaService;
-    private readonly FormaPagamentoService _formaPagamentoService;
 
     private ManutencaoListItem? _original;
     private bool _opcoesCarregadas;
+
+    public LancamentoFinanceiroSection Financeiro { get; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(PageTitle))]
@@ -53,28 +52,6 @@ public partial class ManutencaoFormViewModel : AdminSectionViewModelBase, IQuery
     private string valor = string.Empty;
 
     [ObservableProperty]
-    private ObservableCollection<CategoriaFinanceiraListItem> categorias = new();
-
-    [ObservableProperty]
-    private CategoriaFinanceiraListItem? selectedCategoria;
-
-    [ObservableProperty]
-    private List<FormaPagamentoListItem> formasPagamento = new();
-
-    [ObservableProperty]
-    private FormaPagamentoListItem selectedFormaPagamento = NenhumaForma;
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(ShowDataVencimento))]
-    private bool marcarComoPago;
-
-    [ObservableProperty]
-    private DateTime dataVencimento = DateTime.Today;
-
-    /// <summary>Manutenção já paga é lançada com pagamento na própria data; não há vencimento a escolher.</summary>
-    public bool ShowDataVencimento => !MarcarComoPago;
-
-    [ObservableProperty]
     private string? statusFinanceiroLabel;
 
     [ObservableProperty]
@@ -89,14 +66,12 @@ public partial class ManutencaoFormViewModel : AdminSectionViewModelBase, IQuery
     public ManutencaoFormViewModel(
         ManutencaoService manutencaoService,
         VeiculoService veiculoService,
-        CategoriaFinanceiraService categoriaService,
-        FormaPagamentoService formaPagamentoService,
+        LancamentoFinanceiroSection financeiro,
         ApiAuthService apiAuth) : base(apiAuth)
     {
         _manutencaoService = manutencaoService;
         _veiculoService = veiculoService;
-        _categoriaService = categoriaService;
-        _formaPagamentoService = formaPagamentoService;
+        Financeiro = financeiro;
     }
 
     public void ApplyQueryAttributes(IDictionary<string, object> query)
@@ -110,9 +85,8 @@ public partial class ManutencaoFormViewModel : AdminSectionViewModelBase, IQuery
             Km = item.Km?.ToString() ?? string.Empty;
             Oficina = item.Oficina;
             Valor = item.Valor.ToString("0.00", CultureInfo.GetCultureInfo("pt-BR"));
-            if (DateTime.TryParse(item.Financeiro?.DataVencimento, out var vencimento)) DataVencimento = vencimento;
 
-            StatusFinanceiroLabel = item.Financeiro?.Status == "pago"
+            StatusFinanceiroLabel = item.Financeiro?.IsPago == true
                 ? "Despesa já paga no financeiro. Alterações de valor também atualizam o lançamento."
                 : "Despesa pendente no financeiro. O pagamento é registrado pelo financeiro.";
 
@@ -131,33 +105,12 @@ public partial class ManutencaoFormViewModel : AdminSectionViewModelBase, IQuery
         {
             var veiculosAtivos = await _veiculoService.GetVeiculosAsync();
             Veiculos = new ObservableCollection<VeiculoListItem>(veiculosAtivos);
+            SelectedVeiculo = _original is not null
+                ? Veiculos.FirstOrDefault(v => v.Id == _original.Veiculo?.Id)
+                : Veiculos.Count == 1 ? Veiculos[0] : null;
 
-            var categoriasDespesa = await _categoriaService.GetCategoriasAsync("despesa");
-            Categorias = new ObservableCollection<CategoriaFinanceiraListItem>(categoriasDespesa);
-
-            var formas = await _formaPagamentoService.GetFormasAsync();
-            var options = new List<FormaPagamentoListItem> { NenhumaForma };
-            options.AddRange(formas);
-            FormasPagamento = options;
-
-            if (_original is not null)
-            {
-                SelectedVeiculo = Veiculos.FirstOrDefault(v => v.Id == _original.Veiculo?.Id);
-                SelectedCategoria = Categorias.FirstOrDefault(c => c.Id == _original.Financeiro?.Categoria?.Id);
-                SelectedFormaPagamento = FormasPagamento.FirstOrDefault(f => f.Id == _original.Financeiro?.FormaPagamento?.Id) ?? NenhumaForma;
-            }
-            else
-            {
-                SelectedVeiculo = Veiculos.Count == 1 ? Veiculos[0] : null;
-                // Sugere a categoria de manutenção, se existir uma cadastrada com esse ícone.
-                SelectedCategoria = Categorias.FirstOrDefault(c => c.Icone == "manutencao") ?? Categorias.FirstOrDefault();
-                SelectedFormaPagamento = NenhumaForma;
-            }
-
-            if (Categorias.Count == 0)
-            {
-                ErrorMessage = "Nenhuma categoria de despesa cadastrada. Peça ao financeiro para cadastrar uma (ex: Manutenção).";
-            }
+            await Financeiro.LoadAsync("despesa", "manutencao", _original?.Financeiro);
+            ErrorMessage = Financeiro.Categorias.Count == 0 ? Financeiro.Validar() : null;
 
             _opcoesCarregadas = true;
         }
@@ -191,34 +144,21 @@ public partial class ManutencaoFormViewModel : AdminSectionViewModelBase, IQuery
             return;
         }
 
-        if (!TryParseValor(out var valorDecimal))
+        if (!FormParsing.TryParseValor(Valor, out var valorDecimal))
         {
             ErrorMessage = "Informe um valor válido.";
             return;
         }
 
-        int? kmInt = null;
-        if (!string.IsNullOrWhiteSpace(Km))
+        if (!FormParsing.TryParseKmOpcional(Km, out var kmInt))
         {
-            if (!int.TryParse(Km.Replace(".", ""), out var kmValor) || kmValor < 0)
-            {
-                ErrorMessage = "Informe uma quilometragem válida.";
-                return;
-            }
-            kmInt = kmValor;
-        }
-
-        if (SelectedCategoria is null)
-        {
-            ErrorMessage = "Selecione a categoria da despesa.";
+            ErrorMessage = "Informe uma quilometragem válida.";
             return;
         }
 
-        var formaPagamentoId = SelectedFormaPagamento.Id > 0 ? SelectedFormaPagamento.Id : (int?)null;
-
-        if (IsCreating && MarcarComoPago && formaPagamentoId is null)
+        if (Financeiro.Validar() is string erroFinanceiro)
         {
-            ErrorMessage = "Informe a forma de pagamento para manutenções já pagas.";
+            ErrorMessage = erroFinanceiro;
             return;
         }
 
@@ -236,10 +176,7 @@ public partial class ManutencaoFormViewModel : AdminSectionViewModelBase, IQuery
                 kmInt,
                 string.IsNullOrWhiteSpace(Oficina) ? null : Oficina.Trim(),
                 valorDecimal,
-                SelectedCategoria.Id,
-                formaPagamentoId,
-                MarcarComoPago ? Data : DataVencimento,
-                MarcarComoPago ? "pago" : "pendente");
+                Financeiro.ToDados(Data));
 
             if (!resultado.Sucesso)
             {
@@ -265,7 +202,7 @@ public partial class ManutencaoFormViewModel : AdminSectionViewModelBase, IQuery
     {
         if (IsBusy || _original is null) return;
 
-        var mensagem = _original.Financeiro?.Status == "pago"
+        var mensagem = _original.Financeiro?.IsPago == true
             ? "A despesa já foi paga e continuará no financeiro."
             : "A despesa pendente lançada no financeiro também será excluída.";
 
@@ -298,11 +235,5 @@ public partial class ManutencaoFormViewModel : AdminSectionViewModelBase, IQuery
         {
             IsBusy = false;
         }
-    }
-
-    private bool TryParseValor(out decimal valorDecimal)
-    {
-        var texto = Valor.Trim().Replace(",", ".");
-        return decimal.TryParse(texto, NumberStyles.Number, CultureInfo.InvariantCulture, out valorDecimal) && valorDecimal > 0;
     }
 }

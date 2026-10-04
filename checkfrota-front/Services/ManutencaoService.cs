@@ -21,8 +21,7 @@ public class ManutencaoService
     }
 
     /// <summary>
-    /// Cria (id nulo) ou atualiza a manutenção. Na criação a API lança a despesa no financeiro;
-    /// <paramref name="status"/> só é considerado na criação — o pagamento depois é feito pelo financeiro.
+    /// Cria (id nulo) ou atualiza a manutenção. Na criação a API lança a despesa no financeiro.
     /// </summary>
     public async Task<ApiSaveResult<ManutencaoListItem>> SaveAsync(
         int? id,
@@ -33,10 +32,7 @@ public class ManutencaoService
         int? km,
         string? oficina,
         decimal valor,
-        int categoriaFinanceiraId,
-        int? formaPagamentoId,
-        DateTime dataVencimento,
-        string status)
+        LancamentoFinanceiroDados financeiro)
     {
         var client = await _apiAuth.GetAuthenticatedClientAsync();
         var payload = new
@@ -48,10 +44,10 @@ public class ManutencaoService
             km,
             oficina,
             valor,
-            categoria_financeira_id = categoriaFinanceiraId,
-            forma_pagamento_id = formaPagamentoId,
-            data_vencimento = dataVencimento.ToString("yyyy-MM-dd"),
-            status,
+            categoria_financeira_id = financeiro.CategoriaFinanceiraId,
+            forma_pagamento_id = financeiro.FormaPagamentoId,
+            data_vencimento = financeiro.DataVencimento.ToString("yyyy-MM-dd"),
+            status = financeiro.Status,
         };
 
         var response = id is int manutencaoId
