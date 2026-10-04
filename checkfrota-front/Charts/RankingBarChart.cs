@@ -49,7 +49,7 @@ public class RankingBarChart : ChartViewBase
         {
             var topo = area.Top + i * AlturaDaLinha;
             var percentual = total > 0 ? itens[i].Valor / total : 0;
-            var valor = $"{ChartFormat.Moeda(itens[i].Valor)} · {percentual.ToString("P0", ChartFormat.PtBr)}";
+            var valor = itens[i].Texto ?? $"{ChartFormat.Moeda(itens[i].Valor)} · {percentual.ToString("P0", ChartFormat.PtBr)}";
 
             DesenharTexto(canvas, valor, area.Left, topo, area.Width, 20, corSecundaria, 12, HorizontalAlignment.Right);
             DesenharTexto(canvas, Abreviar(itens[i].Rotulo, 22), area.Left, topo, area.Width * 0.55f, 20, corTexto, 13);

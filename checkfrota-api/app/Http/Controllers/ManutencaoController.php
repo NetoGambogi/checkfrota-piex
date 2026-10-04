@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\FiltraPorPeriodo;
 use App\Http\Controllers\Concerns\ValidaLancamentoFinanceiro;
 use App\Models\Manutencao;
 use App\Models\Veiculo;
@@ -13,7 +14,7 @@ use Illuminate\Validation\Rule;
 
 class ManutencaoController extends Controller
 {
-    use ValidaLancamentoFinanceiro;
+    use FiltraPorPeriodo, ValidaLancamentoFinanceiro;
 
     private const TIPOS = ['preventiva', 'corretiva'];
 
@@ -25,6 +26,8 @@ class ManutencaoController extends Controller
 
     public function index(Request $request): JsonResponse
     {
+        $this->validarPeriodo($request);
+
         $situacao = in_array($request->string('situacao')->toString(), self::SITUACOES, true)
             ? $request->string('situacao')->toString()
             : 'ativos';

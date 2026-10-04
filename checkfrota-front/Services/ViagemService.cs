@@ -12,10 +12,11 @@ public class ViagemService
         _apiAuth = apiAuth;
     }
 
-    public async Task<List<ViagemListItem>> GetViagensAsync()
+    /// <summary>Viagens com saída dentro do período.</summary>
+    public async Task<List<ViagemListItem>> GetViagensAsync(DateTime dataInicio, DateTime dataFim)
     {
         var client = await _apiAuth.GetAuthenticatedClientAsync();
-        var response = await client.GetFromJsonAsync<ViagemListResponse>("viagens");
+        var response = await client.GetFromJsonAsync<ViagemListResponse>($"viagens?{ConsultaPeriodo.Montar(dataInicio, dataFim)}");
         return response?.Viagens ?? new List<ViagemListItem>();
     }
 

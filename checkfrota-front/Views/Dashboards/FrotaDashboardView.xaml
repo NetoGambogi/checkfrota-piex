@@ -1,0 +1,356 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:checkfrota_front.ViewModels"
+             xmlns:charts="clr-namespace:checkfrota_front.Charts"
+             xmlns:helpers="clr-namespace:checkfrota_front.Helpers"
+             x:Class="checkfrota_front.Views.Dashboards.FrotaDashboardView"
+             x:DataType="viewmodels:FrotaDashboardViewModel">
+
+    <ContentView.Resources>
+        <Style x:Key="CardDashboard" TargetType="Border">
+            <Setter Property="BackgroundColor" Value="{DynamicResource CardBg}" />
+            <Setter Property="Stroke" Value="Transparent" />
+            <Setter Property="StrokeShape" Value="RoundRectangle 16" />
+            <Setter Property="Padding" Value="16" />
+        </Style>
+        <Style x:Key="TituloCard" TargetType="Label">
+            <Setter Property="TextColor" Value="{DynamicResource TextPrimary}" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="FontSize" Value="16" />
+        </Style>
+        <Style x:Key="SubtituloCard" TargetType="Label">
+            <Setter Property="TextColor" Value="{DynamicResource TextSecondary}" />
+            <Setter Property="FontSize" Value="12" />
+        </Style>
+        <Style x:Key="RotuloIndicador" TargetType="Label">
+            <Setter Property="TextColor" Value="{DynamicResource TextSecondary}" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="VerticalOptions" Value="Center" />
+        </Style>
+        <Style x:Key="ValorIndicador" TargetType="Label">
+            <Setter Property="TextColor" Value="{DynamicResource TextPrimary}" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="FontSize" Value="16" />
+        </Style>
+        <Style x:Key="ChipPeriodo" TargetType="Button">
+            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="HeightRequest" Value="38" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Padding" Value="0" />
+        </Style>
+    </ContentView.Resources>
+
+    <VerticalStackLayout Spacing="16">
+
+        <!-- Período -->
+        <Grid ColumnDefinitions="*,*,*" ColumnSpacing="8">
+            <Button Grid.Column="0" Text="3 meses" Style="{StaticResource ChipPeriodo}"
+                    Command="{Binding SelecionarPeriodoCommand}" CommandParameter="3">
+                <Button.Triggers>
+                    <DataTrigger TargetType="Button" Binding="{Binding Is3Meses}" Value="True">
+                        <Setter Property="BackgroundColor" Value="{DynamicResource TextPrimary}" />
+                        <Setter Property="TextColor" Value="{DynamicResource PageBg}" />
+                        <Setter Property="BorderWidth" Value="0" />
+                    </DataTrigger>
+                    <DataTrigger TargetType="Button" Binding="{Binding Is3Meses}" Value="False">
+                        <Setter Property="BackgroundColor" Value="{DynamicResource PageBg}" />
+                        <Setter Property="TextColor" Value="{DynamicResource TextSecondary}" />
+                        <Setter Property="BorderColor" Value="{DynamicResource FieldBorder}" />
+                        <Setter Property="BorderWidth" Value="1" />
+                    </DataTrigger>
+                </Button.Triggers>
+            </Button>
+            <Button Grid.Column="1" Text="6 meses" Style="{StaticResource ChipPeriodo}"
+                    Command="{Binding SelecionarPeriodoCommand}" CommandParameter="6">
+                <Button.Triggers>
+                    <DataTrigger TargetType="Button" Binding="{Binding Is6Meses}" Value="True">
+                        <Setter Property="BackgroundColor" Value="{DynamicResource TextPrimary}" />
+                        <Setter Property="TextColor" Value="{DynamicResource PageBg}" />
+                        <Setter Property="BorderWidth" Value="0" />
+                    </DataTrigger>
+                    <DataTrigger TargetType="Button" Binding="{Binding Is6Meses}" Value="False">
+                        <Setter Property="BackgroundColor" Value="{DynamicResource PageBg}" />
+                        <Setter Property="TextColor" Value="{DynamicResource TextSecondary}" />
+                        <Setter Property="BorderColor" Value="{DynamicResource FieldBorder}" />
+                        <Setter Property="BorderWidth" Value="1" />
+                    </DataTrigger>
+                </Button.Triggers>
+            </Button>
+            <Button Grid.Column="2" Text="12 meses" Style="{StaticResource ChipPeriodo}"
+                    Command="{Binding SelecionarPeriodoCommand}" CommandParameter="12">
+                <Button.Triggers>
+                    <DataTrigger TargetType="Button" Binding="{Binding Is12Meses}" Value="True">
+                        <Setter Property="BackgroundColor" Value="{DynamicResource TextPrimary}" />
+                        <Setter Property="TextColor" Value="{DynamicResource PageBg}" />
+                        <Setter Property="BorderWidth" Value="0" />
+                    </DataTrigger>
+                    <DataTrigger TargetType="Button" Binding="{Binding Is12Meses}" Value="False">
+                        <Setter Property="BackgroundColor" Value="{DynamicResource PageBg}" />
+                        <Setter Property="TextColor" Value="{DynamicResource TextSecondary}" />
+                        <Setter Property="BorderColor" Value="{DynamicResource FieldBorder}" />
+                        <Setter Property="BorderWidth" Value="1" />
+                    </DataTrigger>
+                </Button.Triggers>
+            </Button>
+        </Grid>
+
+        <Label Text="{Binding ErrorMessage}"
+               IsVisible="{Binding HasError}"
+               TextColor="{DynamicResource Danger}"
+               FontSize="13" />
+
+        <ActivityIndicator IsRunning="{Binding IsLoading}"
+                           IsVisible="{Binding IsLoading}"
+                           Margin="0,40" />
+
+        <VerticalStackLayout Spacing="16" IsVisible="{Binding HasData}">
+
+            <!-- Número principal: média de consumo da frota -->
+            <Border BackgroundColor="{DynamicResource HeaderBg}"
+                    Stroke="Transparent"
+                    StrokeShape="RoundRectangle 16"
+                    Padding="18">
+                <VerticalStackLayout Spacing="6">
+                    <HorizontalStackLayout Spacing="8">
+                        <Label Text="{x:Static helpers:IconFont.CategoriaCombustivel}"
+                               FontFamily="FontAwesomeSolid"
+                               TextColor="White"
+                               FontSize="14"
+                               VerticalOptions="Center" />
+                        <Label Text="Média de consumo da frota" TextColor="#9CA3AF" FontSize="13" VerticalOptions="Center" />
+                    </HorizontalStackLayout>
+                    <Label Text="{Binding MediaGeral}" TextColor="White" FontAttributes="Bold" FontSize="30" />
+                    <Label FontSize="12" TextColor="#9CA3AF">
+                        <Label.FormattedText>
+                            <FormattedString>
+                                <Span Text="{Binding KmRodados}" />
+                                <Span Text=" rodados · custo de " />
+                                <Span Text="{Binding CustoPorKm}" />
+                            </FormattedString>
+                        </Label.FormattedText>
+                    </Label>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Indicadores do período -->
+            <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="12">
+                <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource CardDashboard}" Padding="14">
+                    <VerticalStackLayout Spacing="6">
+                        <HorizontalStackLayout Spacing="6">
+                            <Ellipse WidthRequest="8" HeightRequest="8" Fill="{DynamicResource ChartEntrada}" VerticalOptions="Center" />
+                            <Label Text="Receita de fretes" Style="{StaticResource RotuloIndicador}" />
+                        </HorizontalStackLayout>
+                        <Label Text="{Binding ReceitaFretes}" Style="{StaticResource ValorIndicador}" />
+                        <Label Text="{Binding ViagensTexto}" Style="{StaticResource SubtituloCard}" />
+                    </VerticalStackLayout>
+                </Border>
+                <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource CardDashboard}" Padding="14">
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Lucro estimado" Style="{StaticResource RotuloIndicador}" />
+                        <Label Text="{Binding LucroEstimado}" Style="{StaticResource ValorIndicador}" />
+                        <Label Text="fretes − custo por km" Style="{StaticResource SubtituloCard}" />
+                    </VerticalStackLayout>
+                </Border>
+                <Border Grid.Row="1" Grid.Column="0" Style="{StaticResource CardDashboard}" Padding="14">
+                    <VerticalStackLayout Spacing="6">
+                        <HorizontalStackLayout Spacing="6">
+                            <Ellipse WidthRequest="8" HeightRequest="8" Fill="{DynamicResource ChartSaida}" VerticalOptions="Center" />
+                            <Label Text="Combustível" Style="{StaticResource RotuloIndicador}" />
+                        </HorizontalStackLayout>
+                        <Label Text="{Binding GastoCombustivel}" Style="{StaticResource ValorIndicador}" />
+                    </VerticalStackLayout>
+                </Border>
+                <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource CardDashboard}" Padding="14">
+                    <VerticalStackLayout Spacing="6">
+                        <HorizontalStackLayout Spacing="6">
+                            <Ellipse WidthRequest="8" HeightRequest="8" Fill="{DynamicResource ChartSaida}" VerticalOptions="Center" />
+                            <Label Text="Manutenção" Style="{StaticResource RotuloIndicador}" />
+                        </HorizontalStackLayout>
+                        <Label Text="{Binding GastoManutencao}" Style="{StaticResource ValorIndicador}" />
+                    </VerticalStackLayout>
+                </Border>
+            </Grid>
+
+            <!-- Ranking de média por caminhão -->
+            <Border Style="{StaticResource CardDashboard}">
+                <VerticalStackLayout Spacing="14">
+                    <VerticalStackLayout Spacing="2">
+                        <Label Text="Ranking de média (km/l)" Style="{StaticResource TituloCard}" />
+                        <Label Text="Do mais econômico para o que mais consome, no período" Style="{StaticResource SubtituloCard}" />
+                    </VerticalStackLayout>
+
+                    <charts:RankingBarChart Items="{Binding RankingMedia}"
+                                            BarColorKey="ChartEntrada"
+                                            IsVisible="{Binding HasRankingMedia}" />
+
+                    <Label Text="Sem médias no período. A média aparece a partir de dois abastecimentos com tanque cheio."
+                           IsVisible="{Binding HasNoRankingMedia}"
+                           TextColor="{DynamicResource TextSecondary}"
+                           FontSize="13" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Média ao longo do tempo -->
+            <Border Style="{StaticResource CardDashboard}">
+                <VerticalStackLayout Spacing="12">
+                    <VerticalStackLayout Spacing="2">
+                        <Label Text="Média mês a mês" Style="{StaticResource TituloCard}" />
+                        <Label Text="Escolha a frota ou um caminhão" Style="{StaticResource SubtituloCard}" />
+                    </VerticalStackLayout>
+
+                    <ScrollView Orientation="Horizontal" HorizontalScrollBarVisibility="Never">
+                        <HorizontalStackLayout Spacing="8" BindableLayout.ItemsSource="{Binding SeriesConsumo}">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="viewmodels:SerieConsumoOpcao">
+                                    <Border StrokeShape="RoundRectangle 16" StrokeThickness="1" Padding="12,6">
+                                        <Border.GestureRecognizers>
+                                            <TapGestureRecognizer
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:FrotaDashboardViewModel}}, Path=SelecionarSerieCommand}"
+                                                CommandParameter="{Binding .}" />
+                                        </Border.GestureRecognizers>
+                                        <Border.Triggers>
+                                            <DataTrigger TargetType="Border" Binding="{Binding Selecionado}" Value="True">
+                                                <Setter Property="BackgroundColor" Value="{DynamicResource TextPrimary}" />
+                                                <Setter Property="Stroke" Value="{DynamicResource TextPrimary}" />
+                                            </DataTrigger>
+                                            <DataTrigger TargetType="Border" Binding="{Binding Selecionado}" Value="False">
+                                                <Setter Property="BackgroundColor" Value="{DynamicResource CardBg}" />
+                                                <Setter Property="Stroke" Value="{DynamicResource FieldBorder}" />
+                                            </DataTrigger>
+                                        </Border.Triggers>
+                                        <Label Text="{Binding Rotulo}" FontSize="12" FontAttributes="Bold">
+                                            <Label.Triggers>
+                                                <DataTrigger TargetType="Label" Binding="{Binding Selecionado}" Value="True">
+                                                    <Setter Property="TextColor" Value="{DynamicResource PageBg}" />
+                                                </DataTrigger>
+                                                <DataTrigger TargetType="Label" Binding="{Binding Selecionado}" Value="False">
+                                                    <Setter Property="TextColor" Value="{DynamicResource TextSecondary}" />
+                                                </DataTrigger>
+                                            </Label.Triggers>
+                                        </Label>
+                                    </Border>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </HorizontalStackLayout>
+                    </ScrollView>
+
+                    <VerticalStackLayout Spacing="2">
+                        <Label Text="{Binding ConsumoMes}" TextColor="{DynamicResource TextSecondary}" FontSize="12" />
+                        <Label Text="{Binding ConsumoValor}" TextColor="{DynamicResource TextPrimary}" FontAttributes="Bold" FontSize="20" />
+                        <Label Text="{Binding ConsumoDetalhe}" TextColor="{DynamicResource TextSecondary}" FontSize="12" />
+                    </VerticalStackLayout>
+
+                    <charts:LineChart Items="{Binding ConsumoMensal}"
+                                      SelectedIndex="{Binding ConsumoSelecionado}"
+                                      FormatoEixo="numero"
+                                      IncluirZero="False"
+                                      HeightRequest="200" />
+
+                    <Label Text="Toque em um mês para ver a média."
+                           TextColor="{DynamicResource TextSecondary}"
+                           FontSize="11"
+                           HorizontalOptions="Center" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Custo por km -->
+            <Border Style="{StaticResource CardDashboard}">
+                <VerticalStackLayout Spacing="14">
+                    <VerticalStackLayout Spacing="2">
+                        <Label Text="Maior custo por km" Style="{StaticResource TituloCard}" />
+                        <Label Text="Diesel + manutenção dividido pelos km rodados no período" Style="{StaticResource SubtituloCard}" />
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Spacing="2" IsVisible="{Binding HasCustoPorKm}">
+                        <Label Text="Mais caro de rodar" TextColor="{DynamicResource TextSecondary}" FontSize="12" />
+                        <Label Text="{Binding MaiorCustoTexto}" TextColor="{DynamicResource TextPrimary}" FontAttributes="Bold" FontSize="14" />
+                    </VerticalStackLayout>
+
+                    <charts:RankingBarChart Items="{Binding RankingCustoPorKm}"
+                                            BarColorKey="ChartSaida"
+                                            IsVisible="{Binding HasCustoPorKm}" />
+
+                    <Label Text="Sem km rodados no período. O km é medido pelos abastecimentos."
+                           IsVisible="{Binding HasNoCustoPorKm}"
+                           TextColor="{DynamicResource TextSecondary}"
+                           FontSize="13" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Rota mais lucrativa por mês -->
+            <Border Style="{StaticResource CardDashboard}">
+                <VerticalStackLayout Spacing="12">
+                    <VerticalStackLayout Spacing="2">
+                        <Label Text="Rota mais lucrativa por mês" Style="{StaticResource TituloCard}" />
+                        <Label Text="Lucro estimado: frete − km da viagem × custo por km do caminhão" Style="{StaticResource SubtituloCard}" />
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Spacing="2">
+                        <Label Text="{Binding RotaMesTitulo}" TextColor="{DynamicResource TextSecondary}" FontSize="12" />
+                        <Label Text="{Binding MelhorRotaMes}" TextColor="{DynamicResource TextPrimary}" FontAttributes="Bold" FontSize="18" />
+                        <Label Text="{Binding MelhorRotaMesDetalhe}" TextColor="{DynamicResource TextSecondary}" FontSize="12" />
+                    </VerticalStackLayout>
+
+                    <charts:ColumnChart Items="{Binding RotasMensal}"
+                                        SelectedIndex="{Binding RotaMesSelecionado}"
+                                        BarColorKey="ChartEntrada"
+                                        HeightRequest="200" />
+
+                    <Label Text="Cada coluna é o lucro da melhor rota do mês. Toque em um mês para ver todas as rotas."
+                           TextColor="{DynamicResource TextSecondary}"
+                           FontSize="11"
+                           HorizontalTextAlignment="Center" />
+
+                    <charts:RankingBarChart Items="{Binding RotasDoMes}"
+                                            BarColorKey="ChartEntrada"
+                                            IsVisible="{Binding HasRotasDoMes}" />
+
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10" IsVisible="{Binding HasMelhorRotaPeriodo}">
+                        <Label Grid.Column="0"
+                               Text="{x:Static helpers:IconFont.Rota}"
+                               FontFamily="FontAwesomeSolid"
+                               TextColor="{DynamicResource Accent}"
+                               FontSize="14"
+                               VerticalOptions="Start"
+                               Margin="0,1,0,0" />
+                        <Label Grid.Column="1" FontSize="13" TextColor="{DynamicResource TextSecondary}">
+                            <Label.FormattedText>
+                                <FormattedString>
+                                    <Span Text="Mais lucrativa no período: " />
+                                    <Span Text="{Binding MelhorRotaPeriodo}" TextColor="{DynamicResource TextPrimary}" FontAttributes="Bold" />
+                                </FormattedString>
+                            </Label.FormattedText>
+                        </Label>
+                    </Grid>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Manutenções por caminhão -->
+            <Border Style="{StaticResource CardDashboard}">
+                <VerticalStackLayout Spacing="14">
+                    <VerticalStackLayout Spacing="2">
+                        <Label Text="Manutenções por caminhão" Style="{StaticResource TituloCard}" />
+                        <Label Text="Quantidade e valor gasto no período" Style="{StaticResource SubtituloCard}" />
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Spacing="2" IsVisible="{Binding HasManutencoes}">
+                        <Label Text="Mais manutenções" TextColor="{DynamicResource TextSecondary}" FontSize="12" />
+                        <Label Text="{Binding MaisManutencoesTexto}" TextColor="{DynamicResource TextPrimary}" FontAttributes="Bold" FontSize="14" />
+                    </VerticalStackLayout>
+
+                    <charts:RankingBarChart Items="{Binding RankingManutencoes}"
+                                            BarColorKey="ChartSaida"
+                                            IsVisible="{Binding HasManutencoes}" />
+
+                    <Label Text="Nenhuma manutenção no período."
+                           IsVisible="{Binding HasNoManutencoes}"
+                           TextColor="{DynamicResource TextSecondary}"
+                           FontSize="13" />
+                </VerticalStackLayout>
+            </Border>
+
+        </VerticalStackLayout>
+    </VerticalStackLayout>
+
+</ContentView>

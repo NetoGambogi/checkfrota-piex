@@ -46,10 +46,18 @@
         ContentTemplate="{DataTemplate views:MotoristaHomePage}"
         Route="motorista" />
 
-    <ShellContent
-        Title="Frota"
-        ContentTemplate="{DataTemplate views:FrotaHomePage}"
-        Route="frota" />
+    <TabBar Route="frota">
+        <ShellContent Title="Dashboard" ContentTemplate="{DataTemplate views:DashboardPage}">
+            <ShellContent.Icon>
+                <FontImageSource FontFamily="FontAwesomeSolid" Glyph="{x:Static helpers:IconFont.Dashboard}" Color="{AppThemeBinding Light=#0A1330, Dark=White}" Size="20" />
+            </ShellContent.Icon>
+        </ShellContent>
+        <ShellContent Title="Frota" ContentTemplate="{DataTemplate views:FrotaHomePage}">
+            <ShellContent.Icon>
+                <FontImageSource FontFamily="FontAwesomeSolid" Glyph="{x:Static helpers:IconFont.Frota}" Color="{AppThemeBinding Light=#0A1330, Dark=White}" Size="20" />
+            </ShellContent.Icon>
+        </ShellContent>
+    </TabBar>
 
     <TabBar Route="financeiro">
         <ShellContent Title="Dashboard" ContentTemplate="{DataTemplate views:DashboardPage}">

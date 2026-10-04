@@ -194,3 +194,29 @@ test('excluir o abastecimento exclui a despesa pendente', function () {
 test('financeiro cannot lancar abastecimentos', function () {
     lancarAbastecimento(User::factory()->financeiro()->create())->assertForbidden();
 });
+
+test('listagem por periodo calcula a media mesmo quando o tanque cheio de partida e anterior ao periodo', function () {
+    $frota = User::factory()->frota()->create();
+    $veiculo = Veiculo::factory()->create();
+    historicoDeAbastecimentos($veiculo);
+
+    // O intervalo do abastecimento de 20/09 começa no tanque cheio de 10/09, fora do período.
+    $this->actingAs($frota, 'sanctum')->getJson("/api/abastecimentos?veiculo_id={$veiculo->id}&data_inicio=2026-09-15&data_fim=2026-09-30")
+        ->assertOk()
+        ->assertJsonCount(1, 'abastecimentos')
+        ->assertJsonPath('abastecimentos.0.km', 12000)
+        ->assertJsonPath('abastecimentos.0.consumo.km_rodados', 800)
+        ->assertJsonPath('abastecimentos.0.consumo.media_km_l', 3.2);
+});
+
+test('listagem rejeita periodo invalido', function () {
+    $frota = User::factory()->frota()->create();
+
+    $this->actingAs($frota, 'sanctum')->getJson('/api/abastecimentos?data_inicio=ontem')
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('data_inicio');
+
+    $this->actingAs($frota, 'sanctum')->getJson('/api/abastecimentos?data_inicio=2026-10-01&data_fim=2026-09-01')
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('data_fim');
+});

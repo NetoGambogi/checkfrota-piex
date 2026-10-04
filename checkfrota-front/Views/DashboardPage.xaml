@@ -19,9 +19,8 @@
                              HasAvatar="{Binding HasAvatar}" />
 
         <RefreshView Grid.Row="1"
-                     Command="{Binding FinanceiroDashboard.AtualizarCommand}"
-                     IsRefreshing="{Binding FinanceiroDashboard.IsRefreshing}"
-                     IsEnabled="{Binding IsFinanceiroSelecionado}">
+                     Command="{Binding AtualizarCommand}"
+                     IsRefreshing="{Binding IsRefreshing}">
             <ScrollView>
                 <VerticalStackLayout Padding="20,16,20,28" Spacing="16">
 
@@ -82,29 +81,9 @@
                         <dashboards:FinanceiroDashboardView BindingContext="{Binding FinanceiroDashboard}" />
                     </ContentView>
 
-                    <!-- Frota ainda não tem dados: estado vazio até o módulo existir -->
-                    <Border IsVisible="{Binding IsFrotaSelecionado}"
-                            BackgroundColor="{DynamicResource CardBg}"
-                            Stroke="Transparent"
-                            StrokeShape="RoundRectangle 16"
-                            Padding="20,32">
-                        <VerticalStackLayout Spacing="10" HorizontalOptions="Center">
-                            <Label Text="{x:Static helpers:IconFont.Frota}"
-                                   FontFamily="FontAwesomeSolid"
-                                   FontSize="28"
-                                   TextColor="{DynamicResource TextSecondary}"
-                                   HorizontalOptions="Center" />
-                            <Label Text="Dashboard da frota em breve"
-                                   TextColor="{DynamicResource TextPrimary}"
-                                   FontAttributes="Bold"
-                                   FontSize="16"
-                                   HorizontalOptions="Center" />
-                            <Label Text="Os indicadores de veículos e manutenção aparecem aqui quando o módulo de frota estiver pronto."
-                                   TextColor="{DynamicResource TextSecondary}"
-                                   FontSize="13"
-                                   HorizontalTextAlignment="Center" />
-                        </VerticalStackLayout>
-                    </Border>
+                    <ContentView IsVisible="{Binding IsFrotaSelecionado}">
+                        <dashboards:FrotaDashboardView BindingContext="{Binding FrotaDashboard}" />
+                    </ContentView>
 
                 </VerticalStackLayout>
             </ScrollView>

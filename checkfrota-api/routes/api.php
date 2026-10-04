@@ -4,6 +4,7 @@ use App\Http\Controllers\AbastecimentoController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoriaFinanceiraController;
 use App\Http\Controllers\DashboardFinanceiroController;
+use App\Http\Controllers\DashboardFrotaController;
 use App\Http\Controllers\FinanciamentoController;
 use App\Http\Controllers\FormaPagamentoController;
 use App\Http\Controllers\ManutencaoController;
@@ -111,6 +112,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::middleware('role:admin,financeiro')->prefix('dashboards')->group(function () {
         Route::get('/financeiro', DashboardFinanceiroController::class);
+    });
+
+    Route::middleware('role:admin,frota')->prefix('dashboards')->group(function () {
+        Route::get('/frota', DashboardFrotaController::class);
     });
 
     Route::middleware('role:admin,financeiro')->prefix('financiamentos')->group(function () {

@@ -14,6 +14,13 @@ public partial class ManutencaoManagementViewModel : AdminSectionViewModelBase
 
     private bool _isLoadingManutencoes;
 
+    // Filtro alterado durante um carregamento: recarrega quando ele terminar. Só os filtros usam isso;
+    // o comando de carregar apenas ignora chamadas repetidas, porque o RefreshView o executa de novo
+    // sempre que IsRefreshing (ligado a IsBusy) vira true, o que viraria uma recarga sem fim.
+    private bool _recarregarAoTerminar;
+
+    public FiltroPeriodo Periodo { get; } = new();
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowInitialLoading))]
     private ObservableCollection<ManutencaoRowViewModel> manutencoes = new();
@@ -39,6 +46,7 @@ public partial class ManutencaoManagementViewModel : AdminSectionViewModelBase
     public ManutencaoManagementViewModel(ManutencaoService manutencaoService, ApiAuthService apiAuth) : base(apiAuth)
     {
         _manutencaoService = manutencaoService;
+        Periodo.Alterado += (_, _) => RecarregarPorFiltro();
     }
 
     [RelayCommand]
@@ -59,7 +67,7 @@ public partial class ManutencaoManagementViewModel : AdminSectionViewModelBase
             IsBusy = true;
             ErrorMessage = null;
 
-            var items = await _manutencaoService.GetManutencoesAsync();
+            var items = await _manutencaoService.GetManutencoesAsync(Periodo.DataInicio, Periodo.DataFim);
             _allManutencoes = items.Select(m => new ManutencaoRowViewModel(m)).ToList();
             ApplyFilter();
         }
@@ -73,6 +81,23 @@ public partial class ManutencaoManagementViewModel : AdminSectionViewModelBase
             IsBusy = false;
             _isLoadingManutencoes = false;
         }
+
+        if (_recarregarAoTerminar)
+        {
+            _recarregarAoTerminar = false;
+            await LoadManutencoesAsync();
+        }
+    }
+
+    private void RecarregarPorFiltro()
+    {
+        if (_isLoadingManutencoes)
+        {
+            _recarregarAoTerminar = true;
+            return;
+        }
+
+        _ = LoadManutencoesAsync();
     }
 
     partial void OnSearchTextChanged(string value) => ApplyFilter();

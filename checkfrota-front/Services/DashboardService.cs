@@ -17,4 +17,10 @@ public class DashboardService
         var client = await _apiAuth.GetAuthenticatedClientAsync();
         return await client.GetFromJsonAsync<DashboardFinanceiro>($"dashboards/financeiro?meses={meses}");
     }
+
+    public async Task<DashboardFrota?> GetFrotaAsync(int meses)
+    {
+        var client = await _apiAuth.GetAuthenticatedClientAsync();
+        return await client.GetFromJsonAsync<DashboardFrota>($"dashboards/frota?meses={meses}");
+    }
 }

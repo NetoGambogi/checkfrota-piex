@@ -45,6 +45,8 @@
                                         VerticalOptions="Center" />
                             </Border>
 
+                            <shared:FiltroPeriodoView BindingContext="{Binding Periodo}" />
+
                             <Label Text="{Binding ErrorMessage}"
                                    TextColor="{DynamicResource Danger}"
                                    FontSize="13" />
@@ -61,7 +63,7 @@
                                                TextColor="White"
                                                FontSize="14"
                                                VerticalOptions="Center" />
-                                        <Label Text="Média de consumo"
+                                        <Label Text="Média de consumo no período"
                                                TextColor="#9CA3AF"
                                                FontSize="13"
                                                VerticalOptions="Center" />
@@ -136,7 +138,7 @@
                                    HorizontalOptions="Center"
                                    Margin="0,16,0,0" />
 
-                            <Label Text="Nenhum abastecimento registrado."
+                            <Label Text="Nenhum abastecimento no período."
                                    IsVisible="{Binding ShowEmptyState}"
                                    TextColor="{DynamicResource TextSecondary}"
                                    HorizontalOptions="Center"

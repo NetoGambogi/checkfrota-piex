@@ -10,7 +10,7 @@ declarado em [AppShell.xaml](AppShell.xaml):
 <ShellContent Title="Pendente" ContentTemplate="{DataTemplate views:PendingApprovalPage}" Route="pendente" />
 <TabBar Route="admin"> <!-- abas: Dashboard (DashboardPage), Financeiro, Frota, Usuários --> </TabBar>
 <ShellContent Title="Motorista" ContentTemplate="{DataTemplate views:MotoristaHomePage}" Route="motorista" />
-<ShellContent Title="Frota" ContentTemplate="{DataTemplate views:FrotaHomePage}" Route="frota" />
+<TabBar Route="frota"> <!-- abas: Dashboard (DashboardPage), Frota --> </TabBar>
 <ShellContent Title="Financeiro" ContentTemplate="{DataTemplate views:FinanceiroHomePage}" Route="financeiro" />
 ```
 
@@ -183,14 +183,16 @@ o mínimo pra validar manualmente:
 
 ## Dashboards por role
 
-A aba **Dashboard** (`DashboardPage`) aparece para `admin` e `financeiro`. Quais
-dashboards cada role enxerga é definido no catálogo de
+A aba **Dashboard** (`DashboardPage`) aparece para `admin`, `financeiro` e `frota`.
+Quais dashboards cada role enxerga é definido no catálogo de
 [ViewModels/DashboardViewModel.cs](ViewModels/DashboardViewModel.cs):
 
 - `admin` vê todos e escolhe no seletor no topo da tela.
-- `financeiro` vê só o dashboard financeiro (o seletor fica oculto).
+- `financeiro` vê só o dashboard financeiro e `frota` só o da frota (o seletor fica oculto).
 
-Os dados vêm da API em `GET /api/dashboards/<nome>` (hoje só `financeiro`,
-liberado para `admin` e `financeiro`). Para adicionar um dashboard novo:
+Os dados vêm da API em `GET /api/dashboards/<nome>`: `financeiro` (liberado para
+`admin` e `financeiro`) e `frota` (liberado para `admin` e `frota`). Para testar com
+dados fictícios: `php artisan financeiro:demo` e `php artisan frota:demo` no
+`checkfrota-api` (ambos aceitam `--remover`). Para adicionar um dashboard novo:
 inclua uma entrada no catálogo com as roles permitidas, crie a view em
 `Views/Dashboards/` e adicione o bloco correspondente na `DashboardPage`.

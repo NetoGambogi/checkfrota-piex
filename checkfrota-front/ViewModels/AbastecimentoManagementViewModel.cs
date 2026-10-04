@@ -38,6 +38,13 @@ public partial class AbastecimentoManagementViewModel : AdminSectionViewModelBas
     private readonly VeiculoService _veiculoService;
 
     private bool _isLoadingAbastecimentos;
+
+    // Filtro alterado durante um carregamento: recarrega quando ele terminar. Só os filtros usam isso;
+    // o comando de carregar apenas ignora chamadas repetidas, porque o RefreshView o executa de novo
+    // sempre que IsRefreshing (ligado a IsBusy) vira true, o que viraria uma recarga sem fim.
+    private bool _recarregarAoTerminar;
+
+    public FiltroPeriodo Periodo { get; } = new();
     private bool _filtrosCarregados;
 
     [ObservableProperty]
@@ -93,6 +100,7 @@ public partial class AbastecimentoManagementViewModel : AdminSectionViewModelBas
     {
         _abastecimentoService = abastecimentoService;
         _veiculoService = veiculoService;
+        Periodo.Alterado += (_, _) => RecarregarPorFiltro();
     }
 
     [RelayCommand]
@@ -123,7 +131,7 @@ public partial class AbastecimentoManagementViewModel : AdminSectionViewModelBas
 
     partial void OnSelectedFiltroVeiculoChanged(FiltroVeiculoOption value)
     {
-        if (_filtrosCarregados) _ = LoadAbastecimentosAsync();
+        if (_filtrosCarregados) RecarregarPorFiltro();
     }
 
     [RelayCommand]
@@ -138,8 +146,8 @@ public partial class AbastecimentoManagementViewModel : AdminSectionViewModelBas
             ErrorMessage = null;
 
             var veiculoId = SelectedFiltroVeiculo?.Id;
-            var itemsTask = _abastecimentoService.GetAbastecimentosAsync(veiculoId);
-            var consumoTask = _abastecimentoService.GetConsumoAsync(veiculoId);
+            var itemsTask = _abastecimentoService.GetAbastecimentosAsync(Periodo.DataInicio, Periodo.DataFim, veiculoId);
+            var consumoTask = _abastecimentoService.GetConsumoAsync(Periodo.DataInicio, Periodo.DataFim, veiculoId);
             await Task.WhenAll(itemsTask, consumoTask);
 
             Abastecimentos = new ObservableCollection<AbastecimentoRowViewModel>(itemsTask.Result.Select(a => new AbastecimentoRowViewModel(a)));
@@ -156,6 +164,23 @@ public partial class AbastecimentoManagementViewModel : AdminSectionViewModelBas
             IsBusy = false;
             _isLoadingAbastecimentos = false;
         }
+
+        if (_recarregarAoTerminar)
+        {
+            _recarregarAoTerminar = false;
+            await LoadAbastecimentosAsync();
+        }
+    }
+
+    private void RecarregarPorFiltro()
+    {
+        if (_isLoadingAbastecimentos)
+        {
+            _recarregarAoTerminar = true;
+            return;
+        }
+
+        _ = LoadAbastecimentosAsync();
     }
 
     private void AplicarResumo(ConsumoResponse? consumo)

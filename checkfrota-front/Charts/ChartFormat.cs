@@ -22,6 +22,9 @@ public static class ChartFormat
         };
     }
 
+    // Valores de eixo que não são dinheiro: "2", "2,5".
+    public static string Numero(double valor) => valor.ToString("0.##", PtBr);
+
     // "2026-10" -> "out/26"
     public static string MesCurto(string anoMes) =>
         DateTime.TryParseExact(anoMes, "yyyy-MM", CultureInfo.InvariantCulture, DateTimeStyles.None, out var data)

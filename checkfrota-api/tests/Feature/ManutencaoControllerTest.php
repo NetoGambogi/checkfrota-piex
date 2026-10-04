@@ -174,3 +174,16 @@ test('frota pode listar categorias e formas de pagamento mas nao alterar', funct
     $this->actingAs($frota, 'sanctum')->deleteJson("/api/categorias-financeiras/{$categoria->id}")->assertForbidden();
     $this->actingAs($frota, 'sanctum')->postJson('/api/formas-pagamento', ['nome' => 'Boleto'])->assertForbidden();
 });
+
+test('listing manutencoes filtra pelo periodo', function () {
+    $frota = User::factory()->frota()->create();
+    Manutencao::factory()->create(['data' => '2026-08-20']);
+    Manutencao::factory()->create(['data' => '2026-09-10']);
+
+    $this->actingAs($frota, 'sanctum')->getJson('/api/manutencoes?data_inicio=2026-09-01&data_fim=2026-09-30')
+        ->assertOk()
+        ->assertJsonCount(1, 'manutencoes')
+        ->assertJsonPath('manutencoes.0.data', '2026-09-10');
+
+    $this->actingAs($frota, 'sanctum')->getJson('/api/manutencoes?data_fim=31-02-2026')->assertUnprocessable();
+});

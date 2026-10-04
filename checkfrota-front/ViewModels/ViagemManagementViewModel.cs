@@ -14,6 +14,13 @@ public partial class ViagemManagementViewModel : AdminSectionViewModelBase
 
     private bool _isLoadingViagens;
 
+    // Filtro alterado durante um carregamento: recarrega quando ele terminar. Só os filtros usam isso;
+    // o comando de carregar apenas ignora chamadas repetidas, porque o RefreshView o executa de novo
+    // sempre que IsRefreshing (ligado a IsBusy) vira true, o que viraria uma recarga sem fim.
+    private bool _recarregarAoTerminar;
+
+    public FiltroPeriodo Periodo { get; } = new();
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowInitialLoading))]
     private ObservableCollection<ViagemRowViewModel> viagens = new();
@@ -39,6 +46,7 @@ public partial class ViagemManagementViewModel : AdminSectionViewModelBase
     public ViagemManagementViewModel(ViagemService viagemService, ApiAuthService apiAuth) : base(apiAuth)
     {
         _viagemService = viagemService;
+        Periodo.Alterado += (_, _) => RecarregarPorFiltro();
     }
 
     [RelayCommand]
@@ -59,7 +67,7 @@ public partial class ViagemManagementViewModel : AdminSectionViewModelBase
             IsBusy = true;
             ErrorMessage = null;
 
-            var items = await _viagemService.GetViagensAsync();
+            var items = await _viagemService.GetViagensAsync(Periodo.DataInicio, Periodo.DataFim);
             _allViagens = items.Select(v => new ViagemRowViewModel(v)).ToList();
             ApplyFilter();
         }
@@ -73,6 +81,23 @@ public partial class ViagemManagementViewModel : AdminSectionViewModelBase
             IsBusy = false;
             _isLoadingViagens = false;
         }
+
+        if (_recarregarAoTerminar)
+        {
+            _recarregarAoTerminar = false;
+            await LoadViagensAsync();
+        }
+    }
+
+    private void RecarregarPorFiltro()
+    {
+        if (_isLoadingViagens)
+        {
+            _recarregarAoTerminar = true;
+            return;
+        }
+
+        _ = LoadViagensAsync();
     }
 
     partial void OnSearchTextChanged(string value) => ApplyFilter();

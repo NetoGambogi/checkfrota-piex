@@ -185,3 +185,14 @@ test('listing viagens filtra por status', function () {
 test('motorista cannot registrar viagens', function () {
     registrarViagem(User::factory()->create(['role' => 'motorista']))->assertForbidden();
 });
+
+test('listing viagens filtra pelo periodo da data de saida', function () {
+    $frota = User::factory()->frota()->create();
+    Viagem::factory()->create(['data_saida' => '2026-08-20']);
+    Viagem::factory()->create(['data_saida' => '2026-09-10']);
+
+    $this->actingAs($frota, 'sanctum')->getJson('/api/viagens?data_inicio=2026-09-01&data_fim=2026-09-30')
+        ->assertOk()
+        ->assertJsonCount(1, 'viagens')
+        ->assertJsonPath('viagens.0.data_saida', '2026-09-10');
+});

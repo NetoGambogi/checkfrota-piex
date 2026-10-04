@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\FiltraPorPeriodo;
 use App\Http\Controllers\Concerns\ValidaLancamentoFinanceiro;
 use App\Models\Veiculo;
 use App\Models\Viagem;
@@ -14,7 +15,7 @@ use Illuminate\Validation\ValidationException;
 
 class ViagemController extends Controller
 {
-    use ValidaLancamentoFinanceiro;
+    use FiltraPorPeriodo, ValidaLancamentoFinanceiro;
 
     private const SITUACOES = ['ativos', 'inativos', 'todos'];
 
@@ -26,6 +27,8 @@ class ViagemController extends Controller
 
     public function index(Request $request): JsonResponse
     {
+        $this->validarPeriodo($request);
+
         $situacao = in_array($request->string('situacao')->toString(), self::SITUACOES, true)
             ? $request->string('situacao')->toString()
             : 'ativos';

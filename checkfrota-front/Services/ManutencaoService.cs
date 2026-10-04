@@ -12,10 +12,10 @@ public class ManutencaoService
         _apiAuth = apiAuth;
     }
 
-    public async Task<List<ManutencaoListItem>> GetManutencoesAsync(int? veiculoId = null)
+    public async Task<List<ManutencaoListItem>> GetManutencoesAsync(DateTime dataInicio, DateTime dataFim, int? veiculoId = null)
     {
         var client = await _apiAuth.GetAuthenticatedClientAsync();
-        var query = veiculoId is int id ? $"manutencoes?veiculo_id={id}" : "manutencoes";
+        var query = $"manutencoes?{ConsultaPeriodo.Montar(dataInicio, dataFim, veiculoId)}";
         var response = await client.GetFromJsonAsync<ManutencaoListResponse>(query);
         return response?.Manutencoes ?? new List<ManutencaoListItem>();
     }

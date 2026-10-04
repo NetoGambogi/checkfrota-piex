@@ -16,7 +16,7 @@ public partial class DashboardOpcao : ObservableObject
 }
 
 // Tela de dashboards: mostra apenas os dashboards permitidos para a role do usuário.
-// O admin vê todos e escolhe no seletor; o financeiro vê só o financeiro (sem seletor).
+// O admin vê todos e escolhe no seletor; financeiro e frota veem só o seu (sem seletor).
 public partial class DashboardViewModel : AdminSectionViewModelBase
 {
     public const string Financeiro = "financeiro";
@@ -27,12 +27,14 @@ public partial class DashboardViewModel : AdminSectionViewModelBase
     private static readonly (string Chave, string Titulo, string Icone, string[] Roles)[] Catalogo =
     [
         (Financeiro, "Financeiro", IconFont.Financeiro, ["admin", "financeiro"]),
-        (Frota, "Frota", IconFont.Frota, ["admin"]),
+        (Frota, "Frota", IconFont.Frota, ["admin", "frota"]),
     ];
 
     private readonly ApiAuthService _apiAuth;
 
     public FinanceiroDashboardViewModel FinanceiroDashboard { get; }
+
+    public FrotaDashboardViewModel FrotaDashboard { get; }
 
     public IReadOnlyList<DashboardOpcao> Opcoes { get; private set; } = [];
 
@@ -46,10 +48,14 @@ public partial class DashboardViewModel : AdminSectionViewModelBase
     [ObservableProperty]
     private bool mostrarSeletor;
 
-    public DashboardViewModel(ApiAuthService apiAuth, FinanceiroDashboardViewModel financeiroDashboard) : base(apiAuth)
+    [ObservableProperty]
+    private bool isRefreshing;
+
+    public DashboardViewModel(ApiAuthService apiAuth, FinanceiroDashboardViewModel financeiroDashboard, FrotaDashboardViewModel frotaDashboard) : base(apiAuth)
     {
         _apiAuth = apiAuth;
         FinanceiroDashboard = financeiroDashboard;
+        FrotaDashboard = frotaDashboard;
     }
 
     [RelayCommand]
@@ -72,6 +78,20 @@ public partial class DashboardViewModel : AdminSectionViewModelBase
         await CarregarSelecionadoAsync();
     }
 
+    // Pull-to-refresh: recarrega o dashboard que está na tela.
+    [RelayCommand]
+    private async Task AtualizarAsync()
+    {
+        try
+        {
+            await CarregarSelecionadoAsync();
+        }
+        finally
+        {
+            IsRefreshing = false;
+        }
+    }
+
     [RelayCommand]
     private async Task SelecionarDashboardAsync(DashboardOpcao opcao)
     {
@@ -91,6 +111,7 @@ public partial class DashboardViewModel : AdminSectionViewModelBase
     private Task CarregarSelecionadoAsync() => Selecionado switch
     {
         Financeiro => FinanceiroDashboard.CarregarAsync(),
+        Frota => FrotaDashboard.CarregarAsync(),
         _ => Task.CompletedTask,
     };
 }

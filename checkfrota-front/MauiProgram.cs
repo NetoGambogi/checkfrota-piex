@@ -40,6 +40,7 @@ namespace checkfrota_front
 
             builder.Services.AddTransient<DashboardService>();
             builder.Services.AddTransient<FinanceiroDashboardViewModel>();
+            builder.Services.AddTransient<FrotaDashboardViewModel>();
             builder.Services.AddTransient<DashboardViewModel>();
             builder.Services.AddTransient<Views.DashboardPage>();
 

@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\FiltraPorPeriodo;
 use App\Http\Controllers\Concerns\ValidaLancamentoFinanceiro;
 use App\Models\Abastecimento;
 use App\Models\Veiculo;
 use App\Services\ConsumoCombustivelService;
+use Carbon\CarbonInterface;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -16,7 +18,7 @@ use Illuminate\Validation\ValidationException;
 
 class AbastecimentoController extends Controller
 {
-    use ValidaLancamentoFinanceiro;
+    use FiltraPorPeriodo, ValidaLancamentoFinanceiro;
 
     private const SITUACOES = ['ativos', 'inativos', 'todos'];
 
@@ -28,6 +30,8 @@ class AbastecimentoController extends Controller
 
     public function index(Request $request): JsonResponse
     {
+        $this->validarPeriodo($request);
+
         $situacao = in_array($request->string('situacao')->toString(), self::SITUACOES, true)
             ? $request->string('situacao')->toString()
             : 'ativos';
@@ -56,7 +60,11 @@ class AbastecimentoController extends Controller
             ->orderByDesc('km')
             ->get();
 
-        $intervalos = $this->intervalosDosVeiculos($abastecimentos->pluck('veiculo_id')->unique());
+        $intervalos = $this->intervalosDosVeiculos(
+            $abastecimentos->pluck('veiculo_id')->unique(),
+            $request->date('data_inicio'),
+            $request->date('data_fim'),
+        );
 
         return response()->json([
             'abastecimentos' => $abastecimentos->map(
@@ -222,15 +230,28 @@ class AbastecimentoController extends Controller
     }
 
     /**
-     * Intervalos de consumo de todos os abastecimentos ativos dos veículos informados, indexados
-     * pelo id do abastecimento. O cálculo usa o histórico completo, mesmo quando a listagem é filtrada.
+     * Intervalos de consumo dos abastecimentos ativos dos veículos informados, indexados pelo id do
+     * abastecimento que fecha cada intervalo. Para os intervalos que fecham dentro do período, basta
+     * carregar a partir do último tanque cheio anterior a ele (onde esses intervalos começam), em vez
+     * do histórico inteiro dos veículos.
      *
      * @param  Collection<int, int>  $veiculoIds
      * @return array<int, array<string, int|float>>
      */
-    private function intervalosDosVeiculos(Collection $veiculoIds): array
+    private function intervalosDosVeiculos(Collection $veiculoIds, ?CarbonInterface $inicio = null, ?CarbonInterface $fim = null): array
     {
+        $inicioDoCalculo = $inicio === null ? null : Abastecimento::whereIn('veiculo_id', $veiculoIds)
+            ->where('tanque_cheio', true)
+            ->whereDate('data', '<', $inicio)
+            ->groupBy('veiculo_id')
+            ->selectRaw('max(data) as ultimo_tanque_cheio')
+            ->pluck('ultimo_tanque_cheio')
+            ->push($inicio->toDateString())
+            ->min();
+
         return Abastecimento::whereIn('veiculo_id', $veiculoIds)
+            ->when($inicioDoCalculo, fn ($query) => $query->whereDate('data', '>=', $inicioDoCalculo))
+            ->when($fim, fn ($query) => $query->whereDate('data', '<=', $fim))
             ->get(['id', 'veiculo_id', 'data', 'km', 'litros', 'valor_total', 'tanque_cheio'])
             ->groupBy('veiculo_id')
             ->reduce(fn (array $carry, Collection $doVeiculo) => $carry + $this->consumo->intervalos($doVeiculo), []);
@@ -241,7 +262,7 @@ class AbastecimentoController extends Controller
      */
     private function payloadComConsumo(Abastecimento $abastecimento): array
     {
-        $intervalos = $this->intervalosDosVeiculos(collect([$abastecimento->veiculo_id]));
+        $intervalos = $this->intervalosDosVeiculos(collect([$abastecimento->veiculo_id]), $abastecimento->data, $abastecimento->data);
 
         return $abastecimento->load(self::RELACOES)->toApiPayload($intervalos[$abastecimento->id] ?? null);
     }

@@ -37,6 +37,8 @@
                            VerticalOptions="Center" />
             </Border>
 
+            <shared:FiltroPeriodoView BindingContext="{Binding Periodo}" />
+
             <Label Text="{Binding ErrorMessage}"
                    TextColor="{DynamicResource Danger}"
                    FontSize="13" />
@@ -51,7 +53,7 @@
                    HorizontalOptions="Center"
                    VerticalOptions="Center" />
 
-            <Label Text="Nenhuma viagem encontrada."
+            <Label Text="Nenhuma viagem no período."
                    IsVisible="{Binding ShowEmptyState}"
                    TextColor="{DynamicResource TextSecondary}"
                    HorizontalOptions="Center"

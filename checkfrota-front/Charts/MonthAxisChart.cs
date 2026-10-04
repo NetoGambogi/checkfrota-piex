@@ -8,6 +8,16 @@ public abstract class MonthAxisChart : ChartViewBase
     protected const float MargemTopo = 10;
     protected const float MargemBase = 24;
 
+    public static readonly BindableProperty FormatoEixoProperty = BindableProperty.Create(
+        nameof(FormatoEixo), typeof(string), typeof(MonthAxisChart), "moeda", propertyChanged: Redesenhar);
+
+    // "moeda" (R$ 1,2 mil) ou "numero" (2,5), para séries que não são valores em reais (ex.: km/l).
+    public string FormatoEixo
+    {
+        get => (string)GetValue(FormatoEixoProperty);
+        set => SetValue(FormatoEixoProperty, value);
+    }
+
     protected abstract int Quantidade { get; }
 
     protected static RectF AreaDoPlot(RectF area) => new(
@@ -32,7 +42,7 @@ public abstract class MonthAxisChart : ChartViewBase
     }
 
     // Grade horizontal discreta, linha do zero mais forte e rótulos do eixo Y à esquerda.
-    protected static void DesenharEixoY(ICanvas canvas, RectF plot, double minimo, double maximo, double passo)
+    protected void DesenharEixoY(ICanvas canvas, RectF plot, double minimo, double maximo, double passo)
     {
         var grade = Cor("ChartGrid", Colors.LightGray);
         var linhaBase = Cor("ChartBaseline", Colors.Gray);
@@ -44,7 +54,8 @@ public abstract class MonthAxisChart : ChartViewBase
             var y = PosicaoY(plot, valor, minimo, maximo);
             canvas.StrokeColor = Math.Abs(valor) < passo / 1000 ? linhaBase : grade;
             canvas.DrawLine(plot.Left, y, plot.Right, y);
-            DesenharTexto(canvas, ChartFormat.MoedaCompacta(valor), 0, y - 8, MargemEsquerda - 8, 16,
+            var rotulo = FormatoEixo == "numero" ? ChartFormat.Numero(valor) : ChartFormat.MoedaCompacta(valor);
+            DesenharTexto(canvas, rotulo, 0, y - 8, MargemEsquerda - 8, 16,
                 texto, 10, HorizontalAlignment.Right);
         }
     }

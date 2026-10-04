@@ -12,19 +12,19 @@ public class AbastecimentoService
         _apiAuth = apiAuth;
     }
 
-    public async Task<List<AbastecimentoListItem>> GetAbastecimentosAsync(int? veiculoId = null)
+    public async Task<List<AbastecimentoListItem>> GetAbastecimentosAsync(DateTime dataInicio, DateTime dataFim, int? veiculoId = null)
     {
         var client = await _apiAuth.GetAuthenticatedClientAsync();
-        var query = veiculoId is int id ? $"abastecimentos?veiculo_id={id}" : "abastecimentos";
+        var query = $"abastecimentos?{ConsultaPeriodo.Montar(dataInicio, dataFim, veiculoId)}";
         var response = await client.GetFromJsonAsync<AbastecimentoListResponse>(query);
         return response?.Abastecimentos ?? new List<AbastecimentoListItem>();
     }
 
-    /// <summary>Média km/l e custos por veículo, mais o consolidado da frota.</summary>
-    public async Task<ConsumoResponse?> GetConsumoAsync(int? veiculoId = null)
+    /// <summary>Média km/l e custos por veículo no período, mais o consolidado da frota.</summary>
+    public async Task<ConsumoResponse?> GetConsumoAsync(DateTime dataInicio, DateTime dataFim, int? veiculoId = null)
     {
         var client = await _apiAuth.GetAuthenticatedClientAsync();
-        var query = veiculoId is int id ? $"abastecimentos/consumo?veiculo_id={id}" : "abastecimentos/consumo";
+        var query = $"abastecimentos/consumo?{ConsultaPeriodo.Montar(dataInicio, dataFim, veiculoId)}";
         return await client.GetFromJsonAsync<ConsumoResponse>(query);
     }
 
