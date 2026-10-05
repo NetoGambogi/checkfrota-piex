@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\CategoriaFinanceira;
+use App\Models\Financiamento;
 use App\Models\FormaPagamento;
 use App\Models\MovimentacaoFinanceira;
 use App\Models\User;
@@ -40,6 +41,7 @@ class DemoFinanceiroCommand extends Command
 
         $usuario = $this->usuarioDemo();
         $removidos = MovimentacaoFinanceira::withTrashed()->where('user_id', $usuario->id)->forceDelete();
+        Financiamento::withTrashed()->where('user_id', $usuario->id)->forceDelete();
 
         if ($this->option('remover')) {
             $this->info("{$removidos} lançamentos de demonstração removidos.");
@@ -85,6 +87,7 @@ class DemoFinanceiroCommand extends Command
             'Seguro da frota' => ['despesa', 'seguro'],
             'Salários' => ['despesa', 'outros'],
             'Impostos' => ['despesa', 'outros'],
+            'Financiamento de veículos' => ['despesa', 'outros'],
             'Fretes' => ['receita', 'outros'],
             'Locação de veículos' => ['receita', 'outros'],
         ];
@@ -143,11 +146,49 @@ class DemoFinanceiroCommand extends Command
             $this->lancar($usuario, $hoje, 'saida', 'Impostos', 'DAS / impostos do mês', round(max(1500, $receitaDoMes * 0.06), 2), $mes->setDay(20), ['Boleto']);
         }
 
+        $this->financiamentos($usuario, $hoje);
+
         // Contas em atraso, para o alerta de vencidos.
         $mesPassado = $hoje->subMonthNoOverflow();
         $this->lancar($usuario, $hoje, 'saida', 'Manutenção', 'Troca de embreagem '.$this->placa(), 2780, $mesPassado->setDay(18), [], pendente: true);
         $this->lancar($usuario, $hoje, 'saida', 'Pedágio', 'Fatura de pedágio (tag)', 412.5, $mesPassado->setDay(25), [], pendente: true);
         $this->lancar($usuario, $hoje, 'entrada', 'Fretes', 'Frete '.$this->cliente().' (cliente em atraso)', 5400, $mesPassado->setDay(22), [], pendente: true);
+    }
+
+    /**
+     * Dois financiamentos em andamento (um caminhão e uma carreta). Parcelas vencidas até hoje entram
+     * como pagas por boleto no próprio vencimento; as demais ficam pendentes e alimentam a previsão.
+     */
+    private function financiamentos(User $usuario, CarbonImmutable $hoje): void
+    {
+        $financiamentos = [
+            ['descricao' => 'Caminhão Scania R 450 (Finame)', 'valor_parcela' => 7850, 'quantidade_parcelas' => 60, 'dia_vencimento' => 15, 'meses_atras' => 18],
+            ['descricao' => 'Carreta graneleira Randon', 'valor_parcela' => 3240, 'quantidade_parcelas' => 36, 'dia_vencimento' => 5, 'meses_atras' => 5],
+        ];
+
+        foreach ($financiamentos as $dados) {
+            $financiamento = Financiamento::create([
+                'descricao' => $dados['descricao'],
+                'categoria_financeira_id' => $this->categorias['Financiamento de veículos']->id,
+                'forma_pagamento_id' => $this->formas['Boleto']->id,
+                'valor_parcela' => $dados['valor_parcela'],
+                'quantidade_parcelas' => $dados['quantidade_parcelas'],
+                'dia_vencimento' => $dados['dia_vencimento'],
+                'data_inicio' => $hoje->startOfMonth()->subMonths($dados['meses_atras'])->toDateString(),
+                'user_id' => $usuario->id,
+            ]);
+
+            $financiamento->gerarParcelas();
+            $financiamento->movimentacoes()
+                ->whereDate('data_vencimento', '<=', $hoje->toDateString())
+                ->get()
+                ->each(fn (MovimentacaoFinanceira $parcela) => $parcela->update([
+                    'status' => 'pago',
+                    'data_pagamento' => $parcela->data_vencimento,
+                ]));
+
+            $this->criados += $dados['quantidade_parcelas'];
+        }
     }
 
     /**
