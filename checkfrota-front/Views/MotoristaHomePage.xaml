@@ -6,16 +6,79 @@
              x:DataType="viewmodels:MotoristaHomeViewModel"
              Title="Motorista">
 
-    <VerticalStackLayout Padding="30" Spacing="25" VerticalOptions="Center">
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="16">
+    <Grid ColumnDefinitions="*,Auto">
+                <VerticalStackLayout Grid.Column="0" VerticalOptions="Center">
+                    <Label Text="{Binding UserName}"
+                           FontSize="18"
+                           FontAttributes="Bold" />
+                    <Label Text="MOTORISTA"
+                           FontSize="12"
+                           TextColor="Gray" />
+                </VerticalStackLayout>
 
-        <Label Text="{Binding UserName, StringFormat='Bem-vindo, {0}'}"
-               FontSize="24"
-               HorizontalOptions="Center" />
+                <Border Grid.Column="1"
+                        BackgroundColor="{Binding StatusCor}"
+                        StrokeThickness="0"
+                        StrokeShape="RoundRectangle 12"
+                        Padding="12,4"
+                        VerticalOptions="Center">
+                    <Label Text="{Binding StatusTexto}"
+                           TextColor="White"
+                           FontSize="12"
+                           FontAttributes="Bold" />
+                </Border>
+            </Grid>
 
-        <Button Text="Sair"
-                Command="{Binding LogoutCommand}"
-                HorizontalOptions="Fill" />
+            <Border BackgroundColor="#0B1F3A"
+                    StrokeThickness="0"
+                    StrokeShape="RoundRectangle 12"
+                    Padding="16">
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Sua rota de hoje"
+                           TextColor="White"
+                           FontSize="16"
+                           FontAttributes="Bold" />
+                    <Label Text="{Binding RotaDescricao}" TextColor="White" />
+                    <Label Text="{Binding EntregaDescricao}" TextColor="White" />
+                    <Label Text="{Binding StatusRota}" TextColor="White" />
+                </VerticalStackLayout>
+            </Border>
 
-    </VerticalStackLayout>
+            <!-- Ações do motorista -->
+            <Grid RowDefinitions="120,120"
+                  ColumnDefinitions="*,*"
+                  RowSpacing="12"
+                  ColumnSpacing="12">
+
+                <Button Grid.Row="0" Grid.Column="0"
+                        Text="Minhas Viagens"
+                        Command="{Binding AbrirViagensCommand}"
+                        CornerRadius="12"
+                        BackgroundColor="{AppThemeBinding Light=#E5E7EB, Dark=#1F2937}"
+                        TextColor="{AppThemeBinding Light=Black, Dark=White}" />
+
+                <Button Grid.Row="0" Grid.Column="1"
+                        Text="Registrar Hodômetro"
+                        Command="{Binding AbrirHodometroCommand}"
+                        CornerRadius="12"
+                        BackgroundColor="{AppThemeBinding Light=#E5E7EB, Dark=#1F2937}"
+                        TextColor="{AppThemeBinding Light=Black, Dark=White}" />
+
+                <Button Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                        Text="Meu Perfil"
+                        Command="{Binding AbrirPerfilCommand}"
+                        CornerRadius="12"
+                        BackgroundColor="{AppThemeBinding Light=#E5E7EB, Dark=#1F2937}"
+                        TextColor="{AppThemeBinding Light=Black, Dark=White}" />
+            </Grid>
+
+            <Button Text="Sair"
+                    Command="{Binding LogoutCommand}"
+                    HorizontalOptions="Fill" />
+
+        </VerticalStackLayout>
+    </ScrollView>
 
 </ContentPage>
