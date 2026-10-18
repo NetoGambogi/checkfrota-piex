@@ -50,4 +50,9 @@ return [
         'folder' => env('CLOUDINARY_FOLDER', 'checkfrota/comprovantes'),
     ],
 
+    'firebase' => [
+        // JSON da conta de serviço; caminho absoluto ou relativo à raiz do projeto.
+        'credentials' => env('FIREBASE_CREDENTIALS'),
+    ],
+
 ];

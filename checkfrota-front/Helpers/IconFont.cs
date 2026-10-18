@@ -26,4 +26,6 @@ public static class IconFont
     public const string Anexo = "";
     public const string Saldo = "";
     public const string Alerta = "";
+    public const string Notificacao = "";
+    public const string MarcarLidas = "";
 }

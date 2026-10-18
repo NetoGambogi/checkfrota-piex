@@ -1,5 +1,6 @@
 using checkfrota_front.Helpers;
 using checkfrota_front.Resources.Styles;
+using checkfrota_front.Services;
 
 namespace checkfrota_front
 {
@@ -20,7 +21,17 @@ namespace checkfrota_front
 
         protected override Window CreateWindow(IActivationState? activationState)
         {
-            return new Window(new AppShell());
+            var window = new Window(new AppShell());
+
+            // Ao voltar para o app, o sino reflete o que chegou enquanto ele estava em segundo plano.
+            window.Resumed += async (_, _) =>
+            {
+                var notificacoes = IPlatformApplication.Current?.Services.GetService<NotificacaoService>();
+                if (notificacoes is not null)
+                    await notificacoes.AtualizarContadorAsync();
+            };
+
+            return window;
         }
 
         // Troca a paleta (LightTheme/DarkTheme) seguindo o tema do sistema. As telas usam

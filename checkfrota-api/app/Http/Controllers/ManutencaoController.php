@@ -89,6 +89,8 @@ class ManutencaoController extends Controller
             return $manutencao;
         });
 
+        $this->notificarFinanceiro($manutencao->movimentacaoFinanceira, $request->user());
+
         return response()->json([
             'manutencao' => $manutencao->load(self::RELACOES)->toApiPayload(),
         ], 201);

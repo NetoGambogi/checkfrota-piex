@@ -5,7 +5,9 @@ namespace App\Models;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -30,6 +32,26 @@ class User extends Authenticatable
             'deleted_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function dispositivos(): HasMany
+    {
+        return $this->hasMany(Dispositivo::class);
+    }
+
+    /**
+     * Usuários que devem receber uma notificação: os das roles informadas, menos o autor da ação,
+     * que não precisa ser avisado do que ele mesmo fez.
+     *
+     * @param  list<string>  $roles
+     * @return Collection<int, User>
+     */
+    public static function destinatarios(array $roles, ?User $autor = null): Collection
+    {
+        return static::query()
+            ->whereIn('role', $roles)
+            ->when($autor, fn ($query) => $query->whereKeyNot($autor->getKey()))
+            ->get();
     }
 
     /**

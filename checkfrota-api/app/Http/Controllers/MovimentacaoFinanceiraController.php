@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\CategoriaFinanceira;
 use App\Models\MovimentacaoFinanceira;
+use App\Notifications\LancamentoFinanceiroQuitado;
 use App\Services\CloudinaryService;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\JsonResponse;
@@ -174,6 +175,13 @@ class MovimentacaoFinanceiraController extends Controller
             'forma_pagamento_id' => $validated['forma_pagamento_id'],
             'data_pagamento' => $validated['data_pagamento'] ?? now()->toDateString(),
         ]);
+
+        // Quem lançou (ex.: a frota, ao registrar a manutenção) fica sabendo que foi quitado.
+        $autor = $movimentacaoFinanceira->user;
+
+        if ($autor && ! $autor->is($request->user())) {
+            $autor->notify(new LancamentoFinanceiroQuitado($movimentacaoFinanceira));
+        }
 
         return response()->json([
             'movimentacao' => $movimentacaoFinanceira->load(['categoriaFinanceira', 'formaPagamento'])->toApiPayload(),
