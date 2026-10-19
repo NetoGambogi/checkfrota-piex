@@ -8,6 +8,7 @@ public partial class LoginViewModel : ObservableObject
 {
     private readonly IGoogleAuthService _googleAuth;
     private readonly ApiAuthService _apiAuth;
+    private readonly NotificacaoService _notificacoes;
 
     [ObservableProperty]
     private bool isBusy;
@@ -15,10 +16,11 @@ public partial class LoginViewModel : ObservableObject
     [ObservableProperty]
     private string? errorMessage;
 
-    public LoginViewModel(IGoogleAuthService googleAuth, ApiAuthService apiAuth)
+    public LoginViewModel(IGoogleAuthService googleAuth, ApiAuthService apiAuth, NotificacaoService notificacoes)
     {
         _googleAuth = googleAuth;
         _apiAuth = apiAuth;
+        _notificacoes = notificacoes;
     }
 
     [RelayCommand]
@@ -57,6 +59,12 @@ public partial class LoginViewModel : ObservableObject
             };
 
             await Shell.Current.GoToAsync(route);
+
+            // Em segundo plano para não segurar a entrada no app (pode abrir o pedido de permissão).
+            _ = _notificacoes.RegistrarDispositivoAsync();
+
+            // Se o app foi aberto pelo toque numa notificação, leva para a tela dela.
+            await _notificacoes.AbrirToquePendenteAsync();
         }
         catch (Exception ex)
         {

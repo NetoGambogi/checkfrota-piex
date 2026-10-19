@@ -4,12 +4,17 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Concerns\FiltraPorPeriodo;
 use App\Http\Controllers\Concerns\ValidaLancamentoFinanceiro;
+use App\Models\User;
 use App\Models\Veiculo;
 use App\Models\Viagem;
+use App\Notifications\NotificacaoApp;
+use App\Notifications\ViagemConcluida;
+use App\Notifications\ViagemIniciada;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
@@ -102,8 +107,15 @@ class ViagemController extends Controller
             return $viagem;
         });
 
+        $viagem->load(self::RELACOES);
+        $this->notificarFrota($viagem->data_chegada ? new ViagemConcluida($viagem) : new ViagemIniciada($viagem), $request->user());
+
+        if ($viagem->possuiMovimentacaoAtiva()) {
+            $this->notificarFinanceiro($viagem->movimentacaoFinanceira, $request->user());
+        }
+
         return response()->json([
-            'viagem' => $viagem->load(self::RELACOES)->toApiPayload(),
+            'viagem' => $viagem->toApiPayload(),
         ], 201);
     }
 
@@ -115,6 +127,7 @@ class ViagemController extends Controller
     {
         $validated = $this->validar($request);
         $possuiReceita = $viagem->possuiMovimentacaoAtiva();
+        $estavaEmAndamento = $viagem->data_chegada === null;
 
         if (isset($validated['valor_frete'])) {
             // O status só vale ao criar a receita; depois, o recebimento é registrado pelo financeiro.
@@ -145,8 +158,18 @@ class ViagemController extends Controller
             Veiculo::registrarLeituraKm($viagem->veiculo_id, $viagem->km_chegada);
         });
 
+        $viagem->load(self::RELACOES);
+
+        if ($estavaEmAndamento && $viagem->data_chegada) {
+            $this->notificarFrota(new ViagemConcluida($viagem), $request->user());
+        }
+
+        if (! $possuiReceita && $viagem->possuiMovimentacaoAtiva()) {
+            $this->notificarFinanceiro($viagem->movimentacaoFinanceira, $request->user());
+        }
+
         return response()->json([
-            'viagem' => $viagem->load(self::RELACOES)->toApiPayload(),
+            'viagem' => $viagem->toApiPayload(),
         ]);
     }
 
@@ -203,6 +226,14 @@ class ViagemController extends Controller
         }
 
         return $validated;
+    }
+
+    /**
+     * Avisa a gestão de frota e os administradores (menos quem registrou) sobre a viagem.
+     */
+    private function notificarFrota(NotificacaoApp $notificacao, User $autor): void
+    {
+        Notification::send(User::destinatarios(['admin', 'frota'], $autor), $notificacao);
     }
 
     /**

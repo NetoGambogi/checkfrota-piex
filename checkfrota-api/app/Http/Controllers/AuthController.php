@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Notifications\UsuarioAguardandoAprovacao;
 use Illuminate\Http\Client\Response as HttpResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Notification;
 
 class AuthController extends Controller
 {
@@ -83,6 +85,8 @@ class AuthController extends Controller
                 'password' => null,
                 'role' => 'pendente',
             ]);
+
+            Notification::send(User::destinatarios(['admin']), new UsuarioAguardandoAprovacao($user));
         }
 
         return [

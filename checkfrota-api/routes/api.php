@@ -5,10 +5,12 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoriaFinanceiraController;
 use App\Http\Controllers\DashboardFinanceiroController;
 use App\Http\Controllers\DashboardFrotaController;
+use App\Http\Controllers\DispositivoController;
 use App\Http\Controllers\FinanciamentoController;
 use App\Http\Controllers\FormaPagamentoController;
 use App\Http\Controllers\ManutencaoController;
 use App\Http\Controllers\MovimentacaoFinanceiraController;
+use App\Http\Controllers\NotificacaoController;
 use App\Http\Controllers\RotaController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VeiculoController;
@@ -21,6 +23,16 @@ Route::post('/auth/google/desktop', [AuthController::class, 'loginWithGoogleDesk
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
     Route::post('/logout', [AuthController::class, 'logout']);
+
+    // Liberado para qualquer role, inclusive "pendente", que é avisada quando o acesso é aprovado.
+    Route::post('/dispositivos', [DispositivoController::class, 'store']);
+    Route::delete('/dispositivos', [DispositivoController::class, 'destroy']);
+
+    Route::prefix('notificacoes')->group(function () {
+        Route::get('/', [NotificacaoController::class, 'index']);
+        Route::patch('/lidas', [NotificacaoController::class, 'marcarTodasComoLidas']);
+        Route::patch('/{notificacao}/lida', [NotificacaoController::class, 'marcarComoLida']);
+    });
 
     Route::middleware('role:admin')->prefix('users')->group(function () {
         Route::get('/', [UserController::class, 'index']);

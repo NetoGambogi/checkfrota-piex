@@ -134,6 +134,8 @@ class AbastecimentoController extends Controller
             return $abastecimento;
         });
 
+        $this->notificarFinanceiro($abastecimento->movimentacaoFinanceira, $request->user());
+
         return response()->json(['abastecimento' => $this->payloadComConsumo($abastecimento)], 201);
     }
 

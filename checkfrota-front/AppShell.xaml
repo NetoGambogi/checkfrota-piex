@@ -34,7 +34,7 @@
                 <FontImageSource FontFamily="FontAwesomeSolid" Glyph="{x:Static helpers:IconFont.Frota}" Color="{AppThemeBinding Light=#0A1330, Dark=White}" Size="20" />
             </ShellContent.Icon>
         </ShellContent>
-        <ShellContent Title="Usuários" ContentTemplate="{DataTemplate views:UserManagementPage}">
+        <ShellContent Title="Usuários" ContentTemplate="{DataTemplate views:UserManagementPage}" Route="usuarios">
             <ShellContent.Icon>
                 <FontImageSource FontFamily="FontAwesomeSolid" Glyph="{x:Static helpers:IconFont.Usuarios}" Color="{AppThemeBinding Light=#0A1330, Dark=White}" Size="20" />
             </ShellContent.Icon>

@@ -25,9 +25,15 @@ namespace checkfrota_front
 
 #if ANDROID
             builder.Services.AddSingleton<IGoogleAuthService, checkfrota_front.Platforms.Android.Services.GoogleAuthService>();
+            builder.Services.AddSingleton<IPushNotificationService, checkfrota_front.Platforms.Android.Services.PushNotificationService>();
 #elif WINDOWS
             builder.Services.AddSingleton<IGoogleAuthService, checkfrota_front.Platforms.Windows.Services.GoogleAuthService>();
+            builder.Services.AddSingleton<IPushNotificationService, checkfrota_front.Platforms.Windows.Services.PushNotificationService>();
 #endif
+
+            builder.Services.AddSingleton<NotificacaoService>();
+            builder.Services.AddTransient<NotificacoesViewModel>();
+            builder.Services.AddTransient<Views.NotificacoesPage>();
 
             builder.Services.AddTransient<LoginViewModel>();
             builder.Services.AddTransient<Views.LoginPage>();

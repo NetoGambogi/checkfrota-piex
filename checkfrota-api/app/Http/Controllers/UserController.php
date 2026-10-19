@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Notifications\ContaAprovada;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -52,7 +53,12 @@ class UserController extends Controller
             abort(422, 'Você não pode remover sua própria role de administrador.');
         }
 
+        $estavaPendente = $user->role === 'pendente';
         $user->update(['role' => $validated['role']]);
+
+        if ($estavaPendente && $user->role !== 'pendente') {
+            $user->notify(new ContaAprovada($user->role));
+        }
 
         return response()->json(['user' => $user->toApiPayload()]);
     }

@@ -3,6 +3,10 @@
 namespace App\Http\Controllers\Concerns;
 
 use App\Models\CategoriaFinanceira;
+use App\Models\MovimentacaoFinanceira;
+use App\Models\User;
+use App\Notifications\LancamentoFinanceiroRegistrado;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
@@ -47,6 +51,18 @@ trait ValidaLancamentoFinanceiro
                 'forma_pagamento_id' => 'Forma de pagamento é obrigatória para lançamentos já pagos.',
             ]);
         }
+    }
+
+    /**
+     * Avisa o financeiro e os administradores (menos quem lançou) da despesa/receita gerada pelo
+     * registro operacional.
+     */
+    protected function notificarFinanceiro(MovimentacaoFinanceira $movimentacao, User $autor): void
+    {
+        Notification::send(
+            User::destinatarios(['admin', 'financeiro'], $autor),
+            new LancamentoFinanceiroRegistrado($movimentacao, $autor),
+        );
     }
 
     /**

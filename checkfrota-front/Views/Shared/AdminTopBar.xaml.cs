@@ -1,3 +1,4 @@
+using checkfrota_front.Services;
 using checkfrota_front.Views;
 
 namespace checkfrota_front.Views.Shared;
@@ -13,8 +14,10 @@ public partial class AdminTopBar : ContentView
     public static readonly BindableProperty TitleProperty =
         BindableProperty.Create(nameof(Title), typeof(string), typeof(AdminTopBar));
 
+    // O sino, como o avatar, só aparece nas telas principais (sem botão de voltar).
     public static readonly BindableProperty ShowBackButtonProperty =
-        BindableProperty.Create(nameof(ShowBackButton), typeof(bool), typeof(AdminTopBar));
+        BindableProperty.Create(nameof(ShowBackButton), typeof(bool), typeof(AdminTopBar),
+            propertyChanged: (bindable, _, newValue) => ((AdminTopBar)bindable).Sino.IsVisible = !(bool)newValue);
 
     public bool ShowBackButton
     {
@@ -43,6 +46,26 @@ public partial class AdminTopBar : ContentView
     public AdminTopBar()
     {
         InitializeComponent();
+        Loaded += OnLoaded;
+    }
+
+    // O contador é compartilhado (singleton); cada tela principal que aparece o atualiza.
+    private async void OnLoaded(object? sender, EventArgs e)
+    {
+        if (ShowBackButton)
+            return;
+
+        var notificacoes = Handler?.MauiContext?.Services.GetService<NotificacaoService>();
+        if (notificacoes is null)
+            return;
+
+        Sino.BindingContext = notificacoes;
+        await notificacoes.AtualizarContadorAsync();
+    }
+
+    private async void OnSinoTapped(object? sender, TappedEventArgs e)
+    {
+        await Shell.Current.GoToAsync(nameof(NotificacoesPage));
     }
 
     private async void OnAvatarTapped(object? sender, TappedEventArgs e)

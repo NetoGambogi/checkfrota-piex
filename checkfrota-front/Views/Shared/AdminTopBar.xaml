@@ -2,10 +2,11 @@
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:helpers="clr-namespace:checkfrota_front.Helpers"
+             xmlns:services="clr-namespace:checkfrota_front.Services"
              x:Class="checkfrota_front.Views.Shared.AdminTopBar"
              x:Name="Root">
 
-    <Grid BackgroundColor="{DynamicResource HeaderBg}" HeightRequest="64" Padding="20,0" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+    <Grid BackgroundColor="{DynamicResource HeaderBg}" HeightRequest="64" Padding="20,0" ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="12">
 
         <Label Grid.Column="0"
                Text="{x:Static helpers:IconFont.Back}"
@@ -27,7 +28,43 @@
                VerticalOptions="Center"
                LineBreakMode="TailTruncation" />
 
-        <Border Grid.Column="2"
+        <!-- Sino: BindingContext é o NotificacaoService (definido no code-behind) -->
+        <Grid x:Name="Sino"
+              x:DataType="services:NotificacaoService"
+              Grid.Column="2"
+              WidthRequest="36"
+              HeightRequest="36"
+              VerticalOptions="Center">
+            <Label Text="{x:Static helpers:IconFont.Notificacao}"
+                   FontFamily="FontAwesomeSolid"
+                   FontSize="20"
+                   TextColor="White"
+                   HorizontalOptions="Center"
+                   VerticalOptions="Center" />
+            <Border BackgroundColor="{DynamicResource DangerSolid}"
+                    Stroke="{DynamicResource HeaderBg}"
+                    StrokeThickness="2"
+                    StrokeShape="RoundRectangle 9"
+                    MinimumWidthRequest="18"
+                    HeightRequest="18"
+                    Padding="4,0"
+                    HorizontalOptions="End"
+                    VerticalOptions="Start"
+                    Margin="0,-2,-6,0"
+                    IsVisible="{Binding PossuiNaoLidas}">
+                <Label Text="{Binding NaoLidasTexto}"
+                       TextColor="White"
+                       FontAttributes="Bold"
+                       FontSize="10"
+                       HorizontalOptions="Center"
+                       VerticalOptions="Center" />
+            </Border>
+            <Grid.GestureRecognizers>
+                <TapGestureRecognizer Tapped="OnSinoTapped" />
+            </Grid.GestureRecognizers>
+        </Grid>
+
+        <Border Grid.Column="3"
                 WidthRequest="36"
                 HeightRequest="36"
                 StrokeShape="Ellipse"

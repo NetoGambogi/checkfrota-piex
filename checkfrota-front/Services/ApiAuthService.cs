@@ -71,6 +71,17 @@ public class ApiAuthService
             if (!string.IsNullOrEmpty(token))
             {
                 _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+                // Para de mandar push da conta para este aparelho.
+                var pushToken = Preferences.Get(NotificacaoService.PreferenciaTokenPush, string.Empty);
+                if (!string.IsNullOrEmpty(pushToken))
+                {
+                    await _http.SendAsync(new HttpRequestMessage(HttpMethod.Delete, "dispositivos")
+                    {
+                        Content = JsonContent.Create(new { token = pushToken }),
+                    });
+                }
+
                 await _http.PostAsync("logout", null);
             }
         }

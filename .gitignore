@@ -361,3 +361,5 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+# Configuração do Firebase do app Android (contém a chave de API do projeto; peça ao responsável)
+checkfrota-front/Platforms/Android/google-services.json

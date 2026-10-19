@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFrameworks>net10.0-android</TargetFrameworks>
@@ -28,7 +28,7 @@
 		<MauiXamlInflator>SourceGen</MauiXamlInflator>
 
 		<!-- Display name -->
-		<ApplicationTitle>checkfrota-front</ApplicationTitle>
+		<ApplicationTitle>CheckFrota</ApplicationTitle>
 
 		<!-- App Identifier -->
 		<ApplicationId>com.companyname.checkfrotafront</ApplicationId>
@@ -49,11 +49,13 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<!-- App Icon -->
-		<MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#512BD4" />
+		<!-- App Icon: logo dos caminhões da tela de login, em branco sobre o azul-escuro do topo das telas (HeaderBg).
+		     A escala mantém o logo dentro do círculo que o Android recorta -->
+		<MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.png" ForegroundScale="0.62" Color="#0A1330" />
 
-		<!-- Splash Screen -->
-		<MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#512BD4" BaseSize="128,128" />
+		<!-- Splash Screen: o mesmo logo. Largura limitada para caber no círculo da tela de abertura
+		     do Android 12+ -->
+		<MauiSplashScreen Include="Resources\Splash\splash.png" Color="#0A1330" BaseSize="150,47" />
 
 		<!-- Images -->
 		<MauiImage Include="Resources\Images\*" />
@@ -79,6 +81,17 @@
 	  <PackageReference Include="Xamarin.GoogleAndroid.Libraries.Identity.GoogleId" Version="1.1.0.13" />
 	  <PackageReference Include="Xamarin.AndroidX.Fragment" Version="1.9.0" />
 	  <PackageReference Include="Xamarin.AndroidX.Fragment.Ktx" Version="1.9.0" />
+	  <!-- Notificações push (Firebase Cloud Messaging) -->
+	  <PackageReference Include="Xamarin.Firebase.Messaging" Version="125.1.3" />
+	  <!-- O Firebase traz o LiveData.Core 2.11; alinha os demais pacotes do LiveData na mesma versão -->
+	  <PackageReference Include="Xamarin.AndroidX.Lifecycle.LiveData" Version="2.11.0.1" />
+	  <PackageReference Include="Xamarin.AndroidX.Lifecycle.LiveData.Core.Ktx" Version="2.11.0.1" />
+	</ItemGroup>
+
+	<!-- Baixado no Console do Firebase (app Android com o pacote do ApplicationId). Sem ele o app
+	     compila e roda normalmente, só não recebe push. -->
+	<ItemGroup Condition="'$(TargetFramework)' == 'net10.0-android' And Exists('Platforms\Android\google-services.json')">
+	  <GoogleServicesJson Include="Platforms\Android\google-services.json" />
 	</ItemGroup>
 
 </Project>
