@@ -1,6 +1,7 @@
 using checkfrota_front.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using checkfrota_front.Views;
 
 namespace checkfrota_front.ViewModels;
 
@@ -46,16 +47,16 @@ public partial class MotoristaHomeViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private Task AbrirViagensAsync() => EmBreveAsync("Minhas Viagens");
+    private Task AbrirViagensAsync() => Shell.Current.GoToAsync("//motorista/viagens");
 
     [RelayCommand]
-    private Task AbrirHodometroAsync() => EmBreveAsync("Registrar Hodômetro");
+    private Task AbrirHodometroAsync() => Shell.Current.GoToAsync(nameof(HodometroPage));
 
     [RelayCommand]
-    private Task AbrirPerfilAsync() => EmBreveAsync("Meu Perfil");
+    private Task AbrirNotificacoesAsync() => Shell.Current.GoToAsync("//motorista/notificacoes");
 
-    private static Task EmBreveAsync(string tela) =>
-        Shell.Current.DisplayAlert(tela, "Esta tela ainda será implementada.", "OK");
+    [RelayCommand]
+    private Task AbrirPerfilAsync() => Shell.Current.GoToAsync(nameof(PerfilPage));
     
     [RelayCommand]
     private async Task LogoutAsync()

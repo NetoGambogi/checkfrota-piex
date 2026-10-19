@@ -66,7 +66,15 @@
                         BackgroundColor="{AppThemeBinding Light=#E5E7EB, Dark=#1F2937}"
                         TextColor="{AppThemeBinding Light=Black, Dark=White}" />
 
-                <Button Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                <Button Grid.Row="1" Grid.Column="0"
+                        Text="Notificações"
+                        Command="{Binding AbrirNotificacoesCommand}"
+                        CornerRadius="12"
+                        BackgroundColor="{AppThemeBinding Light=#E5E7EB, Dark=#1F2937}"
+                        TextColor="{AppThemeBinding Light=Black, Dark=White}" />
+
+
+                <Button Grid.Row="1" Grid.Column="1"
                         Text="Meu Perfil"
                         Command="{Binding AbrirPerfilCommand}"
                         CornerRadius="12"

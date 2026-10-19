@@ -117,6 +117,13 @@ namespace checkfrota_front
             builder.Services.AddTransient<AbastecimentoFormViewModel>();
             builder.Services.AddTransient<Views.AbastecimentoFormPage>();
 
+            builder.Services.AddTransient<MinhasViagensViewModel>();
+            builder.Services.AddTransient<Views.MinhasViagensPage>();
+            builder.Services.AddTransient<HodometroViewModel>();
+            builder.Services.AddTransient<Views.HodometroPage>();
+            builder.Services.AddTransient<NotificacoesViewModel>();
+            builder.Services.AddTransient<Views.NotificacoesPage>();
+
             return builder.Build();
         }
     }

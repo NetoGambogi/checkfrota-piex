@@ -41,10 +41,26 @@
         </ShellContent>
     </TabBar>
 
-    <ShellContent
-        Title="Motorista"
-        ContentTemplate="{DataTemplate views:MotoristaHomePage}"
-        Route="motorista" />
+    <TabBar Route="motorista">
+    <ShellContent Title="Início" Route="inicio"
+                  ContentTemplate="{DataTemplate views:MotoristaHomePage}">
+        <ShellContent.Icon>
+            <FontImageSource FontFamily="FontAwesomeSolid" Glyph="{x:Static helpers:IconFont.Dashboard}" Color="{AppThemeBinding Light=#0A1330, Dark=White}" Size="20" />
+        </ShellContent.Icon>
+    </ShellContent>
+    <ShellContent Title="Viagens" Route="viagens"
+                  ContentTemplate="{DataTemplate views:MinhasViagensPage}">
+        <ShellContent.Icon>
+            <FontImageSource FontFamily="FontAwesomeSolid" Glyph="{x:Static helpers:IconFont.Viagem}" Color="{AppThemeBinding Light=#0A1330, Dark=White}" Size="20" />
+        </ShellContent.Icon>
+    </ShellContent>
+    <ShellContent Title="Notificações" Route="notificacoes"
+                  ContentTemplate="{DataTemplate views:NotificacoesPage}">
+        <ShellContent.Icon>
+            <FontImageSource FontFamily="FontAwesomeSolid" Glyph="{x:Static helpers:IconFont.Alerta}" Color="{AppThemeBinding Light=#0A1330, Dark=White}" Size="20" />
+        </ShellContent.Icon>
+    </ShellContent>
+</TabBar>
 
     <TabBar Route="frota">
         <ShellContent Title="Dashboard" ContentTemplate="{DataTemplate views:DashboardPage}">
