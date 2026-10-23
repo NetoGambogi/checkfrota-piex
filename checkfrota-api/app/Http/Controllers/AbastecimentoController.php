@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Concerns\FiltraPorPeriodo;
 use App\Http\Controllers\Concerns\ValidaLancamentoFinanceiro;
+use App\Http\Controllers\Concerns\ValidaSequenciaHodometro;
 use App\Models\Abastecimento;
 use App\Models\Veiculo;
 use App\Services\ConsumoCombustivelService;
@@ -14,11 +15,10 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\ValidationException;
 
 class AbastecimentoController extends Controller
 {
-    use FiltraPorPeriodo, ValidaLancamentoFinanceiro;
+    use FiltraPorPeriodo, ValidaLancamentoFinanceiro, ValidaSequenciaHodometro;
 
     private const SITUACOES = ['ativos', 'inativos', 'todos'];
 
@@ -202,33 +202,6 @@ class AbastecimentoController extends Controller
             'posto' => ['nullable', 'string', 'max:255'],
             ...$this->regrasFinanceiras(),
         ];
-    }
-
-    /**
-     * O km precisa crescer com a data: um km digitado errado distorceria a média de todos os
-     * intervalos vizinhos. Abastecimentos no mesmo dia são ordenados pelo próprio km.
-     *
-     * @param  array<string, mixed>  $validated
-     */
-    private function validarSequenciaDoHodometro(array $validated, ?Abastecimento $ignorar = null): void
-    {
-        $doVeiculo = Abastecimento::where('veiculo_id', $validated['veiculo_id'])
-            ->when($ignorar, fn ($query) => $query->whereKeyNot($ignorar->id));
-
-        $kmAnterior = (clone $doVeiculo)->whereDate('data', '<', $validated['data'])->max('km');
-        $kmPosterior = (clone $doVeiculo)->whereDate('data', '>', $validated['data'])->min('km');
-
-        if ($kmAnterior !== null && $validated['km'] <= $kmAnterior) {
-            throw ValidationException::withMessages([
-                'km' => "O km deve ser maior que {$kmAnterior}, registrado em um abastecimento anterior deste veículo.",
-            ]);
-        }
-
-        if ($kmPosterior !== null && $validated['km'] >= $kmPosterior) {
-            throw ValidationException::withMessages([
-                'km' => "O km deve ser menor que {$kmPosterior}, registrado em um abastecimento posterior deste veículo.",
-            ]);
-        }
     }
 
     /**

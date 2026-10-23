@@ -9,6 +9,8 @@ use App\Http\Controllers\DispositivoController;
 use App\Http\Controllers\FinanciamentoController;
 use App\Http\Controllers\FormaPagamentoController;
 use App\Http\Controllers\ManutencaoController;
+use App\Http\Controllers\MotoristaAbastecimentoController;
+use App\Http\Controllers\MotoristaViagemController;
 use App\Http\Controllers\MovimentacaoFinanceiraController;
 use App\Http\Controllers\NotificacaoController;
 use App\Http\Controllers\RotaController;
@@ -41,8 +43,19 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('/{user}/restore', [UserController::class, 'restore'])->withTrashed();
     });
 
-    Route::middleware('role:motorista')->group(function () {
-        // rotas só de motorista — registro de rota, contagem de estoque
+    Route::middleware('role:motorista')->prefix('motorista')->group(function () {
+        // Leitura das listas que o motorista precisa para escolher ao iniciar uma viagem.
+        Route::get('/rotas', [RotaController::class, 'index']);
+        Route::get('/veiculos', [VeiculoController::class, 'index']);
+
+        Route::get('/viagens', [MotoristaViagemController::class, 'index']);
+        Route::post('/viagens', [MotoristaViagemController::class, 'store']);
+        Route::put('/viagens/{viagem}', [MotoristaViagemController::class, 'update']);
+        Route::patch('/viagens/{viagem}/concluir', [MotoristaViagemController::class, 'concluir']);
+        Route::delete('/viagens/{viagem}', [MotoristaViagemController::class, 'destroy']);
+
+        Route::get('/abastecimentos', [MotoristaAbastecimentoController::class, 'index']);
+        Route::post('/abastecimentos', [MotoristaAbastecimentoController::class, 'store']);
     });
 
     Route::middleware('role:admin,frota')->prefix('veiculos')->group(function () {
