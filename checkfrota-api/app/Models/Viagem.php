@@ -5,10 +5,14 @@ namespace App\Models;
 use App\Models\Concerns\PossuiMovimentacaoFinanceira;
 use Database\Factories\ViagemFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Arr;
 
 #[Fillable(['rota_id', 'veiculo_id', 'data_saida', 'data_chegada', 'km_saida', 'km_chegada', 'cliente', 'valor_frete', 'observacoes', 'movimentacao_financeira_id', 'user_id'])]
 class Viagem extends Model
@@ -46,6 +50,22 @@ class Viagem extends Model
     public function veiculo(): BelongsTo
     {
         return $this->belongsTo(Veiculo::class)->withTrashed();
+    }
+
+    /**
+     * Viagens sem chegada registrada: o veículo está na estrada com o motorista.
+     *
+     * @param  Builder<Viagem>  $query
+     */
+    #[Scope]
+    protected function emAndamento(Builder $query): void
+    {
+        $query->whereNull('data_chegada');
+    }
+
+    public function ocorrencias(): HasMany
+    {
+        return $this->hasMany(OcorrenciaViagem::class);
     }
 
     public function user(): BelongsTo
@@ -118,5 +138,16 @@ class Viagem extends Model
             'criado_em' => $this->created_at?->toIso8601String(),
             'ativo' => $this->deleted_at === null,
         ];
+    }
+
+    /**
+     * Representação da viagem para o próprio motorista: sem frete nem lançamento financeiro,
+     * que são da frota/financeiro.
+     *
+     * @return array<string, mixed>
+     */
+    public function toMotoristaPayload(): array
+    {
+        return Arr::except($this->toApiPayload(), ['valor_frete', 'frete_por_km', 'financeiro']);
     }
 }

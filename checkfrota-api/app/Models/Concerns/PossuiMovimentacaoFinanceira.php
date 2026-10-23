@@ -122,6 +122,7 @@ trait PossuiMovimentacaoFinanceira
             'data_pagamento' => $movimentacao->data_pagamento?->toDateString(),
             'categoria' => $movimentacao->categoriaFinanceira?->only('id', 'nome', 'icone'),
             'forma_pagamento' => $movimentacao->formaPagamento?->only('id', 'nome'),
+            'comprovante' => $movimentacao->comprovantePayload(),
         ];
     }
 }

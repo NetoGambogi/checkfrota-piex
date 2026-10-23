@@ -10,9 +10,12 @@ use App\Http\Controllers\FinanciamentoController;
 use App\Http\Controllers\FormaPagamentoController;
 use App\Http\Controllers\ManutencaoController;
 use App\Http\Controllers\MotoristaAbastecimentoController;
+use App\Http\Controllers\MotoristaCatalogoController;
+use App\Http\Controllers\MotoristaOcorrenciaController;
 use App\Http\Controllers\MotoristaViagemController;
 use App\Http\Controllers\MovimentacaoFinanceiraController;
 use App\Http\Controllers\NotificacaoController;
+use App\Http\Controllers\OcorrenciaViagemController;
 use App\Http\Controllers\RotaController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VeiculoController;
@@ -45,8 +48,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::middleware('role:motorista')->prefix('motorista')->group(function () {
         // Leitura das listas que o motorista precisa para escolher ao iniciar uma viagem.
-        Route::get('/rotas', [RotaController::class, 'index']);
-        Route::get('/veiculos', [VeiculoController::class, 'index']);
+        Route::get('/rotas', [MotoristaCatalogoController::class, 'rotas']);
+        Route::get('/veiculos', [MotoristaCatalogoController::class, 'veiculos']);
 
         Route::get('/viagens', [MotoristaViagemController::class, 'index']);
         Route::post('/viagens', [MotoristaViagemController::class, 'store']);
@@ -56,6 +59,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::get('/abastecimentos', [MotoristaAbastecimentoController::class, 'index']);
         Route::post('/abastecimentos', [MotoristaAbastecimentoController::class, 'store']);
+
+        Route::get('/ocorrencias', [MotoristaOcorrenciaController::class, 'index']);
+        Route::post('/viagens/{viagem}/ocorrencias', [MotoristaOcorrenciaController::class, 'store']);
     });
 
     Route::middleware('role:admin,frota')->prefix('veiculos')->group(function () {
@@ -88,6 +94,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/{viagem}', [ViagemController::class, 'update']);
         Route::delete('/{viagem}', [ViagemController::class, 'destroy']);
         Route::patch('/{viagem}/restore', [ViagemController::class, 'restore'])->withTrashed();
+    });
+
+    Route::middleware('role:admin,frota')->prefix('ocorrencias')->group(function () {
+        Route::get('/', [OcorrenciaViagemController::class, 'index']);
+        Route::patch('/{ocorrencia}/resolver', [OcorrenciaViagemController::class, 'resolver']);
+        Route::patch('/{ocorrencia}/reabrir', [OcorrenciaViagemController::class, 'reabrir']);
     });
 
     Route::middleware('role:admin,frota')->prefix('abastecimentos')->group(function () {

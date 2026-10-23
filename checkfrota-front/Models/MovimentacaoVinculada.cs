@@ -24,6 +24,9 @@ namespace checkfrota_front.Models
         [JsonPropertyName("forma_pagamento")]
         public FormaPagamentoResumo? FormaPagamento { get; set; }
 
+        /// <summary>Nota anexada ao lançamento (abastecimentos e manutenções da frota).</summary>
+        public ComprovanteResumo? Comprovante { get; set; }
+
         [JsonIgnore]
         public bool IsPago => Status == "pago";
     }

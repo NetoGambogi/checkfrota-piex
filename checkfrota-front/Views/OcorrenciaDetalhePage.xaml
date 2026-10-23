@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:checkfrota_front.ViewModels"
+             xmlns:shared="clr-namespace:checkfrota_front.Views.Shared"
+             x:Class="checkfrota_front.Views.OcorrenciaDetalhePage"
+             x:DataType="viewmodels:OcorrenciaDetalheViewModel"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="{DynamicResource PageBg}"
+             Title="Ocorrência">
+
+    <Grid RowDefinitions="Auto,*">
+
+        <shared:AdminTopBar Grid.Row="0"
+                             Title="Ocorrência"
+                             AvatarUrl="{Binding AvatarUrl}"
+                             HasAvatar="{Binding HasAvatar}"
+                             ShowBackButton="True" />
+
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Padding="20,20,20,32" Spacing="16">
+
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="{Binding Ocorrencia.Titulo}"
+                           TextColor="{DynamicResource TextPrimary}"
+                           FontAttributes="Bold"
+                           FontSize="20" />
+                    <HorizontalStackLayout Spacing="6">
+                        <shared:GravidadeBadge Gravidade="{Binding Ocorrencia.Original.Gravidade}" />
+                        <Border StrokeShape="RoundRectangle 8" Stroke="Transparent" Padding="8,3">
+                            <Border.Triggers>
+                                <DataTrigger TargetType="Border" Binding="{Binding Ocorrencia.IsResolvida}" Value="True">
+                                    <Setter Property="BackgroundColor" Value="{DynamicResource SuccessBg}" />
+                                </DataTrigger>
+                                <DataTrigger TargetType="Border" Binding="{Binding Ocorrencia.IsResolvida}" Value="False">
+                                    <Setter Property="BackgroundColor" Value="{DynamicResource CardBg}" />
+                                    <Setter Property="Stroke" Value="{DynamicResource FieldBorder}" />
+                                </DataTrigger>
+                            </Border.Triggers>
+                            <Label Text="{Binding Ocorrencia.StatusLabel}" FontSize="11" FontAttributes="Bold">
+                                <Label.Triggers>
+                                    <DataTrigger TargetType="Label" Binding="{Binding Ocorrencia.IsResolvida}" Value="True">
+                                        <Setter Property="TextColor" Value="{DynamicResource Success}" />
+                                    </DataTrigger>
+                                    <DataTrigger TargetType="Label" Binding="{Binding Ocorrencia.IsResolvida}" Value="False">
+                                        <Setter Property="TextColor" Value="{DynamicResource TextSecondary}" />
+                                    </DataTrigger>
+                                </Label.Triggers>
+                            </Label>
+                        </Border>
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+
+                <Border BackgroundColor="{DynamicResource CardBg}"
+                        Stroke="Transparent"
+                        StrokeShape="RoundRectangle 16"
+                        Padding="16">
+                    <VerticalStackLayout Spacing="10">
+                        <VerticalStackLayout Spacing="2">
+                            <Label Text="Motorista" TextColor="{DynamicResource TextSecondary}" FontSize="12" />
+                            <Label Text="{Binding Ocorrencia.Original.Motorista.Name}" TextColor="{DynamicResource TextPrimary}" FontSize="14" />
+                        </VerticalStackLayout>
+                        <VerticalStackLayout Spacing="2">
+                            <Label Text="Onde" TextColor="{DynamicResource TextSecondary}" FontSize="12" />
+                            <Label Text="{Binding Ocorrencia.DetalheLabel}" TextColor="{DynamicResource TextPrimary}" FontSize="14" />
+                            <Label Text="{Binding ViagemLabel}" TextColor="{DynamicResource TextSecondary}" FontSize="13" />
+                        </VerticalStackLayout>
+                        <VerticalStackLayout Spacing="2">
+                            <Label Text="O que aconteceu" TextColor="{DynamicResource TextSecondary}" FontSize="12" />
+                            <Label Text="{Binding Ocorrencia.Descricao}" TextColor="{DynamicResource TextPrimary}" FontSize="14" />
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </Border>
+
+                <Border StrokeShape="RoundRectangle 16"
+                        Stroke="Transparent"
+                        HeightRequest="220"
+                        Padding="0"
+                        IsVisible="{Binding Ocorrencia.HasFoto}">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding AbrirFotoCommand}" />
+                    </Border.GestureRecognizers>
+                    <Grid>
+                        <Image Source="{Binding Ocorrencia.Original.Foto.UrlExibicao}" Aspect="AspectFill" />
+                        <Border BackgroundColor="#99000000"
+                                Stroke="Transparent"
+                                StrokeShape="RoundRectangle 8"
+                                Padding="10,4"
+                                HorizontalOptions="End"
+                                VerticalOptions="End"
+                                Margin="10">
+                            <Label Text="Toque para ampliar" TextColor="White" FontSize="11" />
+                        </Border>
+                    </Grid>
+                </Border>
+
+                <Border BackgroundColor="{DynamicResource SuccessBg}"
+                        Stroke="Transparent"
+                        StrokeShape="RoundRectangle 12"
+                        Padding="14"
+                        IsVisible="{Binding Ocorrencia.IsResolvida}">
+                    <Label Text="{Binding ResolucaoLabel}"
+                           TextColor="{DynamicResource Success}"
+                           FontSize="13" />
+                </Border>
+
+                <Label Text="{Binding ErrorMessage}"
+                       TextColor="{DynamicResource Danger}"
+                       FontSize="13" />
+
+                <VerticalStackLayout Spacing="10" IsVisible="{Binding CanResolver}">
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="O que foi feito (opcional)" TextColor="{DynamicResource TextSecondary}" FontSize="12" />
+                        <Border BackgroundColor="{DynamicResource FieldBg}"
+                                Stroke="{DynamicResource FieldBorder}"
+                                StrokeThickness="1"
+                                StrokeShape="RoundRectangle 10"
+                                Padding="8,4">
+                            <Editor Text="{Binding ObservacaoResolucao}"
+                                    Placeholder="Ex: guincho acionado, peça trocada na oficina."
+                                    AutoSize="TextChanges"
+                                    MinimumHeightRequest="80"
+                                    MaxLength="1000"
+                                    BackgroundColor="Transparent" />
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <Button Text="Marcar como resolvida"
+                            Command="{Binding ResolverCommand}"
+                            IsEnabled="{Binding IsNotBusy}"
+                            BackgroundColor="{DynamicResource Accent}"
+                            TextColor="White"
+                            FontAttributes="Bold"
+                            CornerRadius="10"
+                            HeightRequest="50" />
+                </VerticalStackLayout>
+
+                <Button Text="Reabrir ocorrência"
+                        Command="{Binding ReabrirCommand}"
+                        IsVisible="{Binding CanReabrir}"
+                        IsEnabled="{Binding IsNotBusy}"
+                        BackgroundColor="Transparent"
+                        TextColor="{DynamicResource Accent}"
+                        FontAttributes="Bold"
+                        BorderColor="{DynamicResource Accent}"
+                        BorderWidth="1"
+                        CornerRadius="10"
+                        HeightRequest="50" />
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+    </Grid>
+
+</ContentPage>

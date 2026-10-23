@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:checkfrota_front.ViewModels"
+             xmlns:shared="clr-namespace:checkfrota_front.Views.Shared"
+             xmlns:helpers="clr-namespace:checkfrota_front.Helpers"
+             x:Class="checkfrota_front.Views.MotoristaAbastecimentoFormPage"
+             x:DataType="viewmodels:MotoristaAbastecimentoFormViewModel"
+             Shell.NavBarIsVisible="False"
+             Shell.PresentationMode="Modal"
+             BackgroundColor="{DynamicResource PageBg}"
+             Title="Abastecimento">
+
+    <Grid RowDefinitions="Auto,*">
+
+        <shared:AdminTopBar Grid.Row="0"
+                             Title="Registrar abastecimento"
+                             AvatarUrl="{Binding AvatarUrl}"
+                             HasAvatar="{Binding HasAvatar}"
+                             ShowBackButton="True" />
+
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Padding="20,20,20,32" Spacing="18">
+
+                <Label Text="Registre o que foi abastecido e anexe a nota do posto. O pagamento é lançado depois pelo financeiro."
+                       TextColor="{DynamicResource TextSecondary}"
+                       FontSize="13" />
+
+                <Label Text="{Binding ErrorMessage}"
+                       TextColor="{DynamicResource Danger}"
+                       FontSize="13" />
+
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Veículo" TextColor="{DynamicResource TextSecondary}" FontSize="12" />
+                    <Border BackgroundColor="{DynamicResource FieldBg}"
+                            Stroke="{DynamicResource FieldBorder}"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 10"
+                            HeightRequest="48"
+                            Padding="12,0">
+                        <Picker ItemsSource="{Binding Veiculos}"
+                                ItemDisplayBinding="{Binding Rotulo}"
+                                SelectedItem="{Binding SelectedVeiculo}"
+                                Title="Selecione o veículo"
+                                TextColor="{DynamicResource TextPrimary}"
+                                BackgroundColor="Transparent"
+                                VerticalOptions="Center" />
+                    </Border>
+                </VerticalStackLayout>
+
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                    <VerticalStackLayout Grid.Column="0" Spacing="6">
+                        <Label Text="Data" TextColor="{DynamicResource TextSecondary}" FontSize="12" />
+                        <Border BackgroundColor="{DynamicResource FieldBg}"
+                                Stroke="{DynamicResource FieldBorder}"
+                                StrokeThickness="1"
+                                StrokeShape="RoundRectangle 10"
+                                HeightRequest="48"
+                                Padding="12,0">
+                            <DatePicker Date="{Binding Data}"
+                                        Format="dd/MM/yyyy"
+                                        TextColor="{DynamicResource TextPrimary}"
+                                        BackgroundColor="Transparent"
+                                        VerticalOptions="Center" />
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Grid.Column="1" Spacing="6">
+                        <Label Text="Km no hodômetro" TextColor="{DynamicResource TextSecondary}" FontSize="12" />
+                        <Border BackgroundColor="{DynamicResource FieldBg}"
+                                Stroke="{DynamicResource FieldBorder}"
+                                StrokeThickness="1"
+                                StrokeShape="RoundRectangle 10"
+                                HeightRequest="48"
+                                Padding="12,0">
+                            <Entry Text="{Binding Km}"
+                                   Placeholder="Ex: 152300"
+                                   Keyboard="Numeric"
+                                   BackgroundColor="Transparent"
+                                   VerticalOptions="Center" />
+                        </Border>
+                    </VerticalStackLayout>
+                </Grid>
+
+                <Label Text="{Binding UltimoKmLabel}"
+                       TextColor="{DynamicResource TextSecondary}"
+                       FontSize="12"
+                       Margin="0,-10,0,0" />
+
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                    <VerticalStackLayout Grid.Column="0" Spacing="6">
+                        <Label Text="Litros" TextColor="{DynamicResource TextSecondary}" FontSize="12" />
+                        <Border BackgroundColor="{DynamicResource FieldBg}"
+                                Stroke="{DynamicResource FieldBorder}"
+                                StrokeThickness="1"
+                                StrokeShape="RoundRectangle 10"
+                                HeightRequest="48"
+                                Padding="12,0">
+                            <Entry Text="{Binding Litros}"
+                                   Placeholder="Ex: 320,5"
+                                   Keyboard="Default"
+                                   BackgroundColor="Transparent"
+                                   VerticalOptions="Center" />
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Grid.Column="1" Spacing="6">
+                        <Label Text="Valor total (R$)" TextColor="{DynamicResource TextSecondary}" FontSize="12" />
+                        <Border BackgroundColor="{DynamicResource FieldBg}"
+                                Stroke="{DynamicResource FieldBorder}"
+                                StrokeThickness="1"
+                                StrokeShape="RoundRectangle 10"
+                                HeightRequest="48"
+                                Padding="12,0">
+                            <Entry Text="{Binding ValorTotal}"
+                                   Placeholder="0,00"
+                                   Keyboard="Default"
+                                   BackgroundColor="Transparent"
+                                   VerticalOptions="Center" />
+                        </Border>
+                    </VerticalStackLayout>
+                </Grid>
+
+                <Label Text="{Binding PrecoLitroLabel}"
+                       TextColor="{DynamicResource TextSecondary}"
+                       FontSize="12"
+                       Margin="0,-10,0,0" />
+
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                    <VerticalStackLayout Grid.Column="0" Spacing="6">
+                        <Label Text="Combustível" TextColor="{DynamicResource TextSecondary}" FontSize="12" />
+                        <Border BackgroundColor="{DynamicResource FieldBg}"
+                                Stroke="{DynamicResource FieldBorder}"
+                                StrokeThickness="1"
+                                StrokeShape="RoundRectangle 10"
+                                HeightRequest="48"
+                                Padding="12,0">
+                            <Picker ItemsSource="{Binding Combustiveis}"
+                                    ItemDisplayBinding="{Binding Label}"
+                                    SelectedItem="{Binding SelectedCombustivel}"
+                                    TextColor="{DynamicResource TextPrimary}"
+                                    BackgroundColor="Transparent"
+                                    VerticalOptions="Center" />
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Grid.Column="1" Spacing="6">
+                        <Label Text="Posto (opcional)" TextColor="{DynamicResource TextSecondary}" FontSize="12" />
+                        <Border BackgroundColor="{DynamicResource FieldBg}"
+                                Stroke="{DynamicResource FieldBorder}"
+                                StrokeThickness="1"
+                                StrokeShape="RoundRectangle 10"
+                                HeightRequest="48"
+                                Padding="12,0">
+                            <Entry Text="{Binding Posto}"
+                                   Placeholder="Ex: Posto Graal"
+                                   BackgroundColor="Transparent"
+                                   VerticalOptions="Center" />
+                        </Border>
+                    </VerticalStackLayout>
+                </Grid>
+
+                <Grid ColumnDefinitions="*,Auto">
+                    <Label Grid.Column="0" Text="Completou o tanque"
+                           TextColor="{DynamicResource TextPrimary}"
+                           FontSize="14"
+                           VerticalOptions="Center" />
+                    <Switch Grid.Column="1" IsToggled="{Binding TanqueCheio}" />
+                </Grid>
+
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Comprovante (obrigatório)" TextColor="{DynamicResource TextSecondary}" FontSize="12" />
+
+                    <Border IsVisible="{Binding HasNoComprovante}"
+                            BackgroundColor="{DynamicResource FieldBg}"
+                            Stroke="{DynamicResource FieldBorder}"
+                            StrokeThickness="1"
+                            StrokeDashArray="4,3"
+                            StrokeShape="RoundRectangle 10"
+                            Padding="12,14">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding AnexarComprovanteCommand}" />
+                        </Border.GestureRecognizers>
+                        <VerticalStackLayout Spacing="4" HorizontalOptions="Center">
+                            <HorizontalStackLayout Spacing="8" HorizontalOptions="Center">
+                                <Label Text="{x:Static helpers:IconFont.Anexo}"
+                                       FontFamily="FontAwesomeSolid"
+                                       FontSize="14"
+                                       TextColor="{DynamicResource Accent}"
+                                       VerticalOptions="Center" />
+                                <Label Text="Fotografar a nota do posto"
+                                       TextColor="{DynamicResource Accent}"
+                                       FontAttributes="Bold"
+                                       FontSize="14"
+                                       VerticalOptions="Center" />
+                            </HorizontalStackLayout>
+                            <Label Text="Foto (JPG, PNG) ou PDF de até 10 MB"
+                                   TextColor="{DynamicResource TextSecondary}"
+                                   FontSize="12"
+                                   HorizontalOptions="Center" />
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <Border IsVisible="{Binding HasComprovante}"
+                            BackgroundColor="{DynamicResource FieldBg}"
+                            Stroke="{DynamicResource FieldBorder}"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 10"
+                            Padding="12,8">
+                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                            <Label Grid.Column="0"
+                                   Text="{x:Static helpers:IconFont.Anexo}"
+                                   FontFamily="FontAwesomeSolid"
+                                   FontSize="14"
+                                   TextColor="{DynamicResource TextSecondary}"
+                                   VerticalOptions="Center" />
+                            <Label Grid.Column="1"
+                                   Text="{Binding ComprovanteNome}"
+                                   TextColor="{DynamicResource TextPrimary}"
+                                   FontSize="14"
+                                   LineBreakMode="MiddleTruncation"
+                                   VerticalOptions="Center" />
+                            <Button Grid.Column="2"
+                                    Text="Remover"
+                                    Command="{Binding RemoverComprovanteCommand}"
+                                    IsEnabled="{Binding IsNotBusy}"
+                                    BackgroundColor="Transparent"
+                                    TextColor="{DynamicResource Danger}"
+                                    FontAttributes="Bold"
+                                    Padding="8,0"
+                                    HeightRequest="36" />
+                        </Grid>
+                    </Border>
+                </VerticalStackLayout>
+
+                <Button Text="Registrar abastecimento"
+                        Command="{Binding SaveCommand}"
+                        IsEnabled="{Binding IsNotBusy}"
+                        BackgroundColor="{DynamicResource Accent}"
+                        TextColor="White"
+                        FontAttributes="Bold"
+                        CornerRadius="10"
+                        HeightRequest="50"
+                        Margin="0,10,0,0" />
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+    </Grid>
+
+</ContentPage>

@@ -31,6 +31,69 @@
                     Padding="16">
 
                 <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding AbrirOcorrenciasCommand}" />
+                </Border.GestureRecognizers>
+
+                <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="14">
+
+                    <Border Grid.Column="0"
+                            WidthRequest="46"
+                            HeightRequest="46"
+                            StrokeShape="Ellipse"
+                            Stroke="Transparent"
+                            Padding="0"
+                            BackgroundColor="{DynamicResource AccentSoftBg}">
+                        <Label Text="{x:Static helpers:IconFont.Alerta}"
+                               FontFamily="FontAwesomeSolid"
+                               TextColor="{DynamicResource Accent}"
+                               FontSize="18"
+                               HorizontalOptions="Center"
+                               VerticalOptions="Center" />
+                    </Border>
+
+                    <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                        <Label Text="Ocorrências"
+                               TextColor="{DynamicResource TextPrimary}"
+                               FontAttributes="Bold"
+                               FontSize="16" />
+                        <Label Text="Problemas relatados pelos motoristas"
+                               TextColor="{DynamicResource TextSecondary}"
+                               FontSize="13" />
+                    </VerticalStackLayout>
+
+                    <Border Grid.Column="2"
+                            BackgroundColor="{DynamicResource DangerSolid}"
+                            Stroke="Transparent"
+                            StrokeShape="RoundRectangle 11"
+                            MinimumWidthRequest="22"
+                            HeightRequest="22"
+                            Padding="7,0"
+                            VerticalOptions="Center"
+                            IsVisible="{Binding HasOcorrenciasAbertas}">
+                        <Label Text="{Binding OcorrenciasAbertasTexto}"
+                               TextColor="White"
+                               FontAttributes="Bold"
+                               FontSize="12"
+                               HorizontalOptions="Center"
+                               VerticalOptions="Center" />
+                    </Border>
+
+                    <Label Grid.Column="3"
+                           Text="{x:Static helpers:IconFont.ChevronDireita}"
+                           FontFamily="FontAwesomeSolid"
+                           TextColor="{DynamicResource TextSecondary}"
+                           FontSize="14"
+                           VerticalOptions="Center" />
+
+                </Grid>
+            </Border>
+
+            <Border BackgroundColor="{DynamicResource CardBg}"
+                    Stroke="Transparent"
+                    StrokeShape="RoundRectangle 16"
+                    Padding="16">
+
+                <Border.GestureRecognizers>
                     <TapGestureRecognizer Command="{Binding AbrirViagensCommand}" />
                 </Border.GestureRecognizers>
 

@@ -21,7 +21,8 @@ public class ManutencaoService
     }
 
     /// <summary>
-    /// Cria (id nulo) ou atualiza a manutenção. Na criação a API lança a despesa no financeiro.
+    /// Cria (id nulo) ou atualiza a manutenção. Na criação a API lança a despesa no financeiro com o
+    /// <paramref name="comprovante"/> (obrigatório); na edição, ele só é enviado para substituir o atual.
     /// </summary>
     public async Task<ApiSaveResult<ManutencaoListItem>> SaveAsync(
         int? id,
@@ -32,27 +33,25 @@ public class ManutencaoService
         int? km,
         string? oficina,
         decimal valor,
-        LancamentoFinanceiroDados financeiro)
+        LancamentoFinanceiroDados financeiro,
+        FileResult? comprovante)
     {
         var client = await _apiAuth.GetAuthenticatedClientAsync();
-        var payload = new
-        {
-            veiculo_id = veiculoId,
-            tipo,
-            descricao,
-            data = data.ToString("yyyy-MM-dd"),
-            km,
-            oficina,
-            valor,
-            categoria_financeira_id = financeiro.CategoriaFinanceiraId,
-            forma_pagamento_id = financeiro.FormaPagamentoId,
-            data_vencimento = financeiro.DataVencimento.ToString("yyyy-MM-dd"),
-            status = financeiro.Status,
-        };
+
+        await using var form = new FormularioMultipart()
+            .Campo("veiculo_id", veiculoId)
+            .Campo("tipo", tipo)
+            .Campo("descricao", descricao)
+            .Campo("data", data)
+            .Campo("km", km)
+            .Campo("oficina", oficina)
+            .Campo("valor", valor)
+            .Financeiro(financeiro);
+        await form.ArquivoAsync("comprovante", comprovante);
 
         var response = id is int manutencaoId
-            ? await client.PutAsJsonAsync($"manutencoes/{manutencaoId}", payload)
-            : await client.PostAsJsonAsync("manutencoes", payload);
+            ? await form.EnviarAsync(client, $"manutencoes/{manutencaoId}", atualizar: true)
+            : await form.EnviarAsync(client, "manutencoes");
 
         return await ApiSaveResult<ManutencaoListItem>.FromResponseAsync<ManutencaoResponse>(response, r => r.Manutencao);
     }

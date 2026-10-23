@@ -15,6 +15,7 @@ use App\Notifications\LancamentoFinanceiroRegistrado;
 use App\Notifications\UsuarioAguardandoAprovacao;
 use App\Notifications\ViagemConcluida;
 use App\Notifications\ViagemIniciada;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Notification;
 
@@ -54,8 +55,10 @@ test('manutencao lancada pela frota avisa o financeiro e os admins, mas nao quem
     $outraFrota = User::factory()->frota()->create();
     $financeiro = User::factory()->financeiro()->create();
     $admin = User::factory()->admin()->create();
+    fakeCloudinaryUpload();
 
     $this->actingAs($frota, 'sanctum')->postJson('/api/manutencoes', [
+        'comprovante' => UploadedFile::fake()->create('nota.pdf', 120, 'application/pdf'),
         'veiculo_id' => Veiculo::factory()->create(['placa' => 'ABC1D23'])->id,
         'tipo' => 'preventiva',
         'descricao' => 'Troca de óleo',
@@ -76,8 +79,10 @@ test('abastecimento lancado avisa o financeiro', function () {
     Notification::fake();
     $frota = User::factory()->frota()->create();
     $financeiro = User::factory()->financeiro()->create();
+    fakeCloudinaryUpload();
 
     $this->actingAs($frota, 'sanctum')->postJson('/api/abastecimentos', [
+        'comprovante' => UploadedFile::fake()->create('nota.pdf', 120, 'application/pdf'),
         'veiculo_id' => Veiculo::factory()->create(['km_atual' => 1000])->id,
         'data' => '2026-10-01',
         'km' => 1500,

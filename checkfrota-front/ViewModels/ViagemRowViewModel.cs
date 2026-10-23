@@ -11,6 +11,7 @@ public class ViagemRowViewModel
 
     public int Id { get; }
     public string RotaNome { get; }
+    public string Trajeto { get; }
     public string Subtitulo { get; }
     public string PeriodoLabel { get; }
     public string KmLabel { get; }
@@ -29,6 +30,7 @@ public class ViagemRowViewModel
         Original = item;
         Id = item.Id;
         RotaNome = item.Rota?.Nome ?? "Rota";
+        Trajeto = item.Rota is { } rota ? $"{rota.Origem} → {rota.Destino}" : string.Empty;
 
         var placa = item.Veiculo?.Placa ?? "-";
         Subtitulo = string.IsNullOrWhiteSpace(item.Cliente) ? placa : $"{placa} · {item.Cliente}";

@@ -2,13 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\AnexaComprovanteAoLancamento;
 use App\Http\Controllers\Concerns\FiltraPorPeriodo;
 use App\Http\Controllers\Concerns\ValidaLancamentoFinanceiro;
 use App\Http\Controllers\Concerns\ValidaSequenciaHodometro;
 use App\Models\Abastecimento;
 use App\Models\Veiculo;
+use App\Services\CloudinaryService;
 use App\Services\ConsumoCombustivelService;
 use Carbon\CarbonInterface;
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -18,7 +21,7 @@ use Illuminate\Validation\Rule;
 
 class AbastecimentoController extends Controller
 {
-    use FiltraPorPeriodo, ValidaLancamentoFinanceiro, ValidaSequenciaHodometro;
+    use AnexaComprovanteAoLancamento, FiltraPorPeriodo, ValidaLancamentoFinanceiro, ValidaSequenciaHodometro;
 
     private const SITUACOES = ['ativos', 'inativos', 'todos'];
 
@@ -113,26 +116,36 @@ class AbastecimentoController extends Controller
     }
 
     /**
-     * Registra o abastecimento e lança o valor como despesa no financeiro.
+     * Registra o abastecimento e lança o valor como despesa no financeiro. Se a despesa já foi paga,
+     * o comprovante (obrigatório) é anexado ao lançamento para o financeiro conferir.
      */
-    public function store(Request $request): JsonResponse
+    public function store(Request $request, CloudinaryService $cloudinary): JsonResponse
     {
-        $validated = $request->validate($this->rules());
+        $validated = $request->validate($this->rules(criando: true), $this->mensagensComprovante());
         $this->validarLancamentoFinanceiro($validated, 'despesa', 'abastecimentos');
         $this->validarSequenciaDoHodometro($validated);
 
-        $abastecimento = DB::transaction(function () use ($validated, $request) {
-            $abastecimento = Abastecimento::create([
-                ...Arr::only($validated, self::CAMPOS_ABASTECIMENTO),
-                'tanque_cheio' => $validated['tanque_cheio'] ?? true,
-                'user_id' => $request->user()->id,
-            ]);
+        // O upload fica dentro da transação: se o Cloudinary falhar, nada é gravado.
+        try {
+            $abastecimento = DB::transaction(function () use ($validated, $request, $cloudinary) {
+                $abastecimento = Abastecimento::create([
+                    ...Arr::only($validated, self::CAMPOS_ABASTECIMENTO),
+                    'tanque_cheio' => $validated['tanque_cheio'] ?? true,
+                    'user_id' => $request->user()->id,
+                ]);
 
-            $abastecimento->lancarMovimentacaoFinanceira($this->dadosFinanceiros($validated, $validated['data']));
-            Veiculo::registrarLeituraKm($abastecimento->veiculo_id, $abastecimento->km);
+                $movimentacao = $abastecimento->lancarMovimentacaoFinanceira($this->dadosFinanceiros($validated, $validated['data']));
+                if ($request->hasFile('comprovante')) {
+                    $this->anexarComprovante($movimentacao, $request->file('comprovante'), $cloudinary);
+                }
+                Veiculo::registrarLeituraKm($abastecimento->veiculo_id, $abastecimento->km);
 
-            return $abastecimento;
-        });
+                return $abastecimento;
+            });
+        } catch (RequestException $exception) {
+            report($exception);
+            abort(502, 'Não foi possível enviar o comprovante. Tente novamente.');
+        }
 
         $this->notificarFinanceiro($abastecimento->movimentacaoFinanceira, $request->user());
 
@@ -141,24 +154,34 @@ class AbastecimentoController extends Controller
 
     /**
      * Atualiza o abastecimento e mantém a despesa vinculada em sincronia. O status do pagamento não
-     * muda aqui: o pagamento é registrado pelo financeiro.
+     * muda aqui: o pagamento é registrado pelo financeiro. Um novo comprovante, se enviado,
+     * substitui o do lançamento.
      */
-    public function update(Request $request, Abastecimento $abastecimento): JsonResponse
+    public function update(Request $request, Abastecimento $abastecimento, CloudinaryService $cloudinary): JsonResponse
     {
-        $validated = Arr::except($request->validate($this->rules()), 'status');
+        $validated = Arr::except($request->validate($this->rules(criando: false), $this->mensagensComprovante()), 'status');
         $this->validarLancamentoFinanceiro($validated, 'despesa', 'abastecimentos');
         $this->validarSequenciaDoHodometro($validated, $abastecimento);
 
-        DB::transaction(function () use ($validated, $abastecimento) {
-            $abastecimento->update([
-                ...Arr::only($validated, self::CAMPOS_ABASTECIMENTO),
-                'tanque_cheio' => $validated['tanque_cheio'] ?? $abastecimento->tanque_cheio,
-            ]);
-            $abastecimento->load('veiculo');
+        try {
+            DB::transaction(function () use ($validated, $abastecimento, $request, $cloudinary) {
+                $abastecimento->update([
+                    ...Arr::only($validated, self::CAMPOS_ABASTECIMENTO),
+                    'tanque_cheio' => $validated['tanque_cheio'] ?? $abastecimento->tanque_cheio,
+                ]);
+                $abastecimento->load('veiculo');
 
-            $abastecimento->sincronizarMovimentacaoFinanceira($this->dadosFinanceiros($validated, $validated['data']));
-            Veiculo::registrarLeituraKm($abastecimento->veiculo_id, $abastecimento->km);
-        });
+                $abastecimento->sincronizarMovimentacaoFinanceira($this->dadosFinanceiros($validated, $validated['data']));
+                Veiculo::registrarLeituraKm($abastecimento->veiculo_id, $abastecimento->km);
+
+                if ($request->hasFile('comprovante') && $abastecimento->possuiMovimentacaoAtiva()) {
+                    $this->anexarComprovante($abastecimento->movimentacaoFinanceira, $request->file('comprovante'), $cloudinary);
+                }
+            });
+        } catch (RequestException $exception) {
+            report($exception);
+            abort(502, 'Não foi possível enviar o comprovante. Tente novamente.');
+        }
 
         return response()->json(['abastecimento' => $this->payloadComConsumo($abastecimento)]);
     }
@@ -187,9 +210,12 @@ class AbastecimentoController extends Controller
     }
 
     /**
+     * O comprovante é obrigatório ao lançar uma despesa já paga; na edição, só é enviado para
+     * substituir o atual.
+     *
      * @return array<string, mixed>
      */
-    private function rules(): array
+    private function rules(bool $criando): array
     {
         return [
             'veiculo_id' => ['required', 'integer', Rule::exists('veiculos', 'id')->whereNull('deleted_at')],
@@ -201,6 +227,7 @@ class AbastecimentoController extends Controller
             'tanque_cheio' => ['nullable', 'boolean'],
             'posto' => ['nullable', 'string', 'max:255'],
             ...$this->regrasFinanceiras(),
+            ...$this->regrasComprovante($criando ? 'required_if:status,pago' : 'nullable'),
         ];
     }
 
