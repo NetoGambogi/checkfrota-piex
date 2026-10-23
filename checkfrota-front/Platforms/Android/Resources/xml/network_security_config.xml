@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<!-- Libera HTTP (sem TLS) apenas para o host do emulador Android, usado durante o desenvolvimento
-     contra o "php artisan serve" local. Remover/ajustar antes de publicar em produção. -->
+<!-- Libera HTTP (sem TLS) só para a API local usada em Debug ("php artisan serve"): 10.0.2.2 é o PC visto
+     pelo emulador e o IP é o do PC na rede (DevApiHost no csproj). Se trocar o DevApiHost, inclua o novo
+     IP aqui. A produção usa HTTPS e não depende desta lista. -->
 <network-security-config>
     <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">10.0.2.2</domain>
         <domain includeSubdomains="false">192.168.3.21</domain>
     </domain-config>
 </network-security-config>

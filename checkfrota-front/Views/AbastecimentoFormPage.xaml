@@ -35,6 +35,15 @@
                        TextColor="{DynamicResource Danger}"
                        FontSize="13" />
 
+                <Button Text="Ver comprovante do motorista"
+                        Command="{Binding AbrirComprovanteCommand}"
+                        IsVisible="{Binding HasComprovante}"
+                        BackgroundColor="{DynamicResource AccentSoftBg}"
+                        TextColor="{DynamicResource Accent}"
+                        FontAttributes="Bold"
+                        CornerRadius="10"
+                        HeightRequest="46" />
+
                 <VerticalStackLayout Spacing="6">
                     <Label Text="Veículo" TextColor="{DynamicResource TextSecondary}" FontSize="12" />
                     <Border BackgroundColor="{DynamicResource FieldBg}"
@@ -185,6 +194,10 @@
                        Margin="0,6,0,0" />
 
                 <shared:LancamentoFinanceiroFields BindingContext="{Binding Financeiro}" />
+
+                <ContentView IsVisible="{Binding ShowComprovanteLancamento}">
+                    <shared:ComprovanteField BindingContext="{Binding ComprovanteLancamento}" />
+                </ContentView>
 
                 <Button Text="Salvar abastecimento"
                         Command="{Binding SaveCommand}"

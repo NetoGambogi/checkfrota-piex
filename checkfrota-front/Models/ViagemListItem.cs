@@ -67,4 +67,27 @@ namespace checkfrota_front.Models
     {
         public ViagemListItem Viagem { get; set; } = new();
     }
+
+    public class Paginacao
+    {
+        [JsonPropertyName("pagina_atual")]
+        public int PaginaAtual { get; set; } = 1;
+
+        [JsonPropertyName("por_pagina")]
+        public int PorPagina { get; set; }
+
+        public int Total { get; set; }
+
+        [JsonPropertyName("ultima_pagina")]
+        public int UltimaPagina { get; set; } = 1;
+
+        [JsonIgnore]
+        public bool TemMais => PaginaAtual < UltimaPagina;
+    }
+
+    /// <summary>Listagem paginada das viagens do motorista (/motorista/viagens).</summary>
+    public class ViagemPaginadaResponse : ViagemListResponse
+    {
+        public Paginacao Paginacao { get; set; } = new();
+    }
 }

@@ -42,7 +42,7 @@ class MotoristaViagemController extends Controller
             ->paginate($porPagina);
 
         return response()->json([
-            'viagens' => $viagens->getCollection()->map(fn (Viagem $viagem) => $viagem->toApiPayload()),
+            'viagens' => $viagens->getCollection()->map(fn (Viagem $viagem) => $viagem->toMotoristaPayload()),
             'paginacao' => [
                 'pagina_atual' => $viagens->currentPage(),
                 'por_pagina' => $viagens->perPage(),
@@ -60,7 +60,11 @@ class MotoristaViagemController extends Controller
     {
         $validated = $request->validate($this->regrasViagem());
 
+        $this->validarKmSaidaDoVeiculo($validated);
+
         $viagem = DB::transaction(function () use ($validated, $request) {
+            $this->garantirVeiculoLivre((int) $validated['veiculo_id'], $request->user());
+
             $viagem = Viagem::create([
                 ...$validated,
                 'user_id' => $request->user()->id,
@@ -75,33 +79,41 @@ class MotoristaViagemController extends Controller
         $this->notificarFrota(new ViagemIniciada($viagem), $request->user());
 
         return response()->json([
-            'viagem' => $viagem->toApiPayload(),
+            'viagem' => $viagem->toMotoristaPayload(),
         ], 201);
     }
 
     /**
-     * Edita uma viagem do próprio motorista (ex.: corrigir km de saída ou cliente). A chegada é
-     * registrada pelo endpoint de conclusão, não aqui.
+     * Edita uma viagem em andamento do próprio motorista (ex.: corrigir km de saída ou cliente).
+     * A chegada é registrada pelo endpoint de conclusão, não aqui; viagens concluídas ficam travadas.
      */
     public function update(Request $request, Viagem $viagem): JsonResponse
     {
         $this->garantirDonoDaViagem($request, $viagem);
 
-        $validated = $request->validate($this->regrasViagem());
-
-        if (isset($validated['km_saida']) && $viagem->km_chegada !== null && $validated['km_saida'] > $viagem->km_chegada) {
+        if ($viagem->data_chegada !== null) {
             throw ValidationException::withMessages([
-                'km_saida' => 'O km de saída não pode ser maior que o km de chegada já registrado.',
+                'data_chegada' => 'Viagens concluídas não podem ser editadas. Peça a correção à gestão da frota.',
             ]);
         }
 
-        DB::transaction(function () use ($validated, $viagem) {
+        $validated = $request->validate($this->regrasViagem());
+
+        // Ao trocar de veículo, o km de saída precisa ser coerente com o novo hodômetro. No mesmo
+        // veículo, o km_atual já pode refletir esta própria viagem, então a correção é livre.
+        if ((int) $validated['veiculo_id'] !== $viagem->veiculo_id) {
+            $this->validarKmSaidaDoVeiculo($validated);
+        }
+
+        DB::transaction(function () use ($validated, $viagem, $request) {
+            $this->garantirVeiculoLivre((int) $validated['veiculo_id'], $request->user(), $viagem);
+
             $viagem->update($validated);
             Veiculo::registrarLeituraKm($viagem->veiculo_id, $viagem->km_saida);
         });
 
         return response()->json([
-            'viagem' => $viagem->load(self::RELACOES)->toApiPayload(),
+            'viagem' => $viagem->load(self::RELACOES)->toMotoristaPayload(),
         ]);
     }
 
@@ -140,7 +152,7 @@ class MotoristaViagemController extends Controller
         $this->notificarFrota(new ViagemConcluida($viagem), $request->user());
 
         return response()->json([
-            'viagem' => $viagem->toApiPayload(),
+            'viagem' => $viagem->toMotoristaPayload(),
         ]);
     }
 
@@ -154,6 +166,52 @@ class MotoristaViagemController extends Controller
         $viagem->delete();
 
         return response()->json(['message' => 'Viagem excluída com sucesso.']);
+    }
+
+    /**
+     * Um veículo só pode estar em uma viagem em andamento por vez. O lock na linha do veículo
+     * serializa dois motoristas iniciando viagem com ele ao mesmo tempo: o segundo espera o
+     * primeiro gravar e então encontra a viagem em andamento.
+     */
+    private function garantirVeiculoLivre(int $veiculoId, User $motorista, ?Viagem $ignorar = null): void
+    {
+        $veiculo = Veiculo::whereKey($veiculoId)->lockForUpdate()->first();
+
+        $emUso = Viagem::emAndamento()
+            ->where('veiculo_id', $veiculoId)
+            ->when($ignorar, fn ($query) => $query->whereKeyNot($ignorar->id))
+            ->with('user')
+            ->first();
+
+        if ($emUso === null) {
+            return;
+        }
+
+        throw ValidationException::withMessages([
+            'veiculo_id' => $emUso->user_id === $motorista->id
+                ? "Você já tem uma viagem em andamento com o veículo {$veiculo->placa}. Conclua-a antes de iniciar outra."
+                : "O veículo {$veiculo->placa} está em uma viagem em andamento com {$emUso->user?->name} desde {$emUso->data_saida->format('d/m/Y')}.",
+        ]);
+    }
+
+    /**
+     * O km de saída não pode ser menor que o último km conhecido do veículo: o hodômetro só avança.
+     *
+     * @param  array<string, mixed>  $validated
+     */
+    private function validarKmSaidaDoVeiculo(array $validated): void
+    {
+        if (! isset($validated['km_saida'])) {
+            return;
+        }
+
+        $kmAtual = Veiculo::whereKey($validated['veiculo_id'])->value('km_atual');
+
+        if ($kmAtual !== null && $validated['km_saida'] < $kmAtual) {
+            throw ValidationException::withMessages([
+                'km_saida' => "O km de saída deve ser pelo menos {$kmAtual}, o km atual registrado para este veículo.",
+            ]);
+        }
     }
 
     /**

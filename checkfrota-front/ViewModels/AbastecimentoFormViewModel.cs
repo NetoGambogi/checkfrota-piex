@@ -1,6 +1,7 @@
 using checkfrota_front.Helpers;
 using checkfrota_front.Models;
 using checkfrota_front.Services;
+using checkfrota_front.Views;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
@@ -90,6 +91,13 @@ public partial class AbastecimentoFormViewModel : AdminSectionViewModelBase, IQu
     [ObservableProperty]
     private string? statusFinanceiroLabel;
 
+    /// <summary>Foto ou PDF da nota enviado pelo motorista que registrou o abastecimento.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasComprovante))]
+    private ComprovanteResumo? comprovante;
+
+    public bool HasComprovante => Comprovante is not null;
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsNotBusy))]
     private bool isBusy;
@@ -99,15 +107,33 @@ public partial class AbastecimentoFormViewModel : AdminSectionViewModelBase, IQu
     [ObservableProperty]
     private string? errorMessage;
 
+    /// <summary>Nota do posto anexada ao lançamento da despesa, para o financeiro conferir.</summary>
+    public ComprovanteSection ComprovanteLancamento { get; }
+
+    /// <summary>
+    /// Só para despesas já pagas, em que ele é obrigatório: ao lançar com "Já foi paga" marcado ou ao
+    /// editar um abastecimento cuja despesa está paga. Os registrados pelo motorista não têm
+    /// lançamento: o comprovante deles é o enviado pelo próprio motorista.
+    /// </summary>
+    public bool ShowComprovanteLancamento => (IsCreating || _original?.Financeiro is not null) && Financeiro.IsPago;
+
     public AbastecimentoFormViewModel(
         AbastecimentoService abastecimentoService,
         VeiculoService veiculoService,
         LancamentoFinanceiroSection financeiro,
+        ComprovanteSection comprovanteLancamento,
         ApiAuthService apiAuth) : base(apiAuth)
     {
         _abastecimentoService = abastecimentoService;
         _veiculoService = veiculoService;
         Financeiro = financeiro;
+        ComprovanteLancamento = comprovanteLancamento;
+
+        Financeiro.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(LancamentoFinanceiroSection.IsPago))
+                OnPropertyChanged(nameof(ShowComprovanteLancamento));
+        };
     }
 
     public void ApplyQueryAttributes(IDictionary<string, object> query)
@@ -122,12 +148,15 @@ public partial class AbastecimentoFormViewModel : AdminSectionViewModelBase, IQu
             SelectedCombustivel = CombustivelOptions.FirstOrDefault(c => c.Key == item.Combustivel) ?? CombustivelOptions[0];
             TanqueCheio = item.TanqueCheio;
             Posto = item.Posto;
+            Comprovante = item.Comprovante;
+            ComprovanteLancamento.Carregar(item.Financeiro?.Comprovante);
 
             StatusFinanceiroLabel = item.Financeiro?.IsPago == true
                 ? "Despesa já paga no financeiro. Alterações de valor também atualizam o lançamento."
                 : "Despesa pendente no financeiro. O pagamento é registrado pelo financeiro.";
 
             IsEditing = true;
+            OnPropertyChanged(nameof(ShowComprovanteLancamento));
         }
         else if (query.TryGetValue("veiculoId", out var veiculoIdObj) && veiculoIdObj is int veiculoId)
         {
@@ -199,6 +228,12 @@ public partial class AbastecimentoFormViewModel : AdminSectionViewModelBase, IQu
             return;
         }
 
+        if (ComprovanteLancamento.Validar(obrigatorio: IsCreating && ShowComprovanteLancamento) is string erroComprovante)
+        {
+            ErrorMessage = erroComprovante;
+            return;
+        }
+
         try
         {
             IsBusy = true;
@@ -214,7 +249,9 @@ public partial class AbastecimentoFormViewModel : AdminSectionViewModelBase, IQu
                 SelectedCombustivel.Key,
                 TanqueCheio,
                 string.IsNullOrWhiteSpace(Posto) ? null : Posto.Trim(),
-                Financeiro.ToDados(Data));
+                Financeiro.ToDados(Data),
+                // Comprovante escolhido e depois desmarcado o "Já foi paga" não vai junto.
+                ShowComprovanteLancamento ? ComprovanteLancamento.Pendente : null);
 
             if (!resultado.Sucesso)
             {
@@ -233,6 +270,17 @@ public partial class AbastecimentoFormViewModel : AdminSectionViewModelBase, IQu
         {
             IsBusy = false;
         }
+    }
+
+    [RelayCommand]
+    private async Task AbrirComprovanteAsync()
+    {
+        if (Comprovante is null) return;
+
+        await Shell.Current.GoToAsync(nameof(ComprovanteViewerPage), new Dictionary<string, object>
+        {
+            ["comprovante"] = Comprovante,
+        });
     }
 
     [RelayCommand]

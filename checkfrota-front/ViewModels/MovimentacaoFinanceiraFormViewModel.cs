@@ -1,3 +1,4 @@
+using checkfrota_front.Helpers;
 using checkfrota_front.Models;
 using checkfrota_front.Services;
 using checkfrota_front.Views;
@@ -11,18 +12,6 @@ namespace checkfrota_front.ViewModels;
 public partial class MovimentacaoFinanceiraFormViewModel : AdminSectionViewModelBase, IQueryAttributable
 {
     private static readonly FormaPagamentoListItem NenhumaForma = new() { Id = 0, Nome = "Nenhuma" };
-
-    // Mesmo limite validado pela API (plano gratuito do Cloudinary).
-    private const long ComprovanteTamanhoMaximo = 10 * 1024 * 1024;
-    private static readonly string[] ComprovanteExtensoes = [".jpg", ".jpeg", ".png", ".pdf"];
-
-    private static readonly FilePickerFileType ComprovanteTiposArquivo = new(new Dictionary<DevicePlatform, IEnumerable<string>>
-    {
-        { DevicePlatform.Android, ["image/jpeg", "image/png", "application/pdf"] },
-        { DevicePlatform.iOS, ["public.jpeg", "public.png", "com.adobe.pdf"] },
-        { DevicePlatform.MacCatalyst, ["public.jpeg", "public.png", "com.adobe.pdf"] },
-        { DevicePlatform.WinUI, ComprovanteExtensoes },
-    });
 
     private readonly MovimentacaoFinanceiraService _movimentacaoService;
     private readonly CategoriaFinanceiraService _categoriaService;
@@ -285,7 +274,7 @@ public partial class MovimentacaoFinanceiraFormViewModel : AdminSectionViewModel
         {
             await using var stream = await arquivo.OpenReadAsync();
             var resultado = await _movimentacaoService.UploadComprovanteAsync(
-                movimentacaoId, stream, arquivo.FileName, ObterContentType(arquivo));
+                movimentacaoId, stream, arquivo.FileName, Anexos.ObterContentType(arquivo));
 
             if (resultado is null) return false;
 
@@ -314,31 +303,13 @@ public partial class MovimentacaoFinanceiraFormViewModel : AdminSectionViewModel
     {
         if (IsBusy) return;
 
-        const string tirarFoto = "Tirar foto";
-        const string escolherArquivo = "Escolher arquivo (JPG, PNG ou PDF)";
-
-        var opcoes = MediaPicker.Default.IsCaptureSupported
-            ? new[] { tirarFoto, escolherArquivo }
-            : new[] { escolherArquivo };
-
-        var escolha = await Shell.Current.DisplayActionSheetAsync("Anexar comprovante", "Cancelar", null, opcoes);
-
         try
         {
-            var arquivo = escolha switch
-            {
-                tirarFoto => await MediaPicker.Default.CapturePhotoAsync(),
-                escolherArquivo => await FilePicker.Default.PickAsync(new PickOptions
-                {
-                    PickerTitle = "Selecione o comprovante",
-                    FileTypes = ComprovanteTiposArquivo,
-                }),
-                _ => null,
-            };
+            var arquivo = await Anexos.EscolherComprovanteAsync();
 
             if (arquivo is null) return;
 
-            var erro = await ValidarComprovanteAsync(arquivo);
+            var erro = await Anexos.ValidarAsync(arquivo);
             if (erro is not null)
             {
                 ErrorMessage = erro;
@@ -392,34 +363,6 @@ public partial class MovimentacaoFinanceiraFormViewModel : AdminSectionViewModel
         }
     }
 
-    private static async Task<string?> ValidarComprovanteAsync(FileResult arquivo)
-    {
-        var extensao = Path.GetExtension(arquivo.FileName).ToLowerInvariant();
-        if (!ComprovanteExtensoes.Contains(extensao))
-        {
-            return "O comprovante deve ser uma imagem (JPG, JPEG, PNG) ou um PDF.";
-        }
-
-        await using var stream = await arquivo.OpenReadAsync();
-        if (stream.CanSeek && stream.Length > ComprovanteTamanhoMaximo)
-        {
-            return "O comprovante deve ter no máximo 10 MB.";
-        }
-
-        return null;
-    }
-
-    private static string ObterContentType(FileResult arquivo)
-    {
-        if (!string.IsNullOrEmpty(arquivo.ContentType)) return arquivo.ContentType;
-
-        return Path.GetExtension(arquivo.FileName).ToLowerInvariant() switch
-        {
-            ".pdf" => "application/pdf",
-            ".png" => "image/png",
-            _ => "image/jpeg",
-        };
-    }
 
     [RelayCommand]
     private async Task MarcarComoPagoAsync()

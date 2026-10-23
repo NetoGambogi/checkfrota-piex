@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:checkfrota_front.ViewModels"
+             xmlns:shared="clr-namespace:checkfrota_front.Views.Shared"
+             x:Class="checkfrota_front.Views.MotoristaViagemFormPage"
+             x:DataType="viewmodels:MotoristaViagemFormViewModel"
+             Shell.NavBarIsVisible="False"
+             Shell.PresentationMode="Modal"
+             BackgroundColor="{DynamicResource PageBg}"
+             Title="Viagem">
+
+    <Grid RowDefinitions="Auto,*">
+
+        <shared:AdminTopBar Grid.Row="0"
+                             Title="{Binding PageTitle}"
+                             AvatarUrl="{Binding AvatarUrl}"
+                             HasAvatar="{Binding HasAvatar}"
+                             ShowBackButton="True" />
+
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Padding="20,20,20,32" Spacing="18">
+
+                <Label Text="A gestão da frota é avisada quando você inicia e conclui a viagem."
+                       IsVisible="{Binding IsCreating}"
+                       TextColor="{DynamicResource TextSecondary}"
+                       FontSize="13" />
+
+                <Label Text="{Binding ErrorMessage}"
+                       TextColor="{DynamicResource Danger}"
+                       FontSize="13" />
+
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Rota" TextColor="{DynamicResource TextSecondary}" FontSize="12" />
+                    <Border BackgroundColor="{DynamicResource FieldBg}"
+                            Stroke="{DynamicResource FieldBorder}"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 10"
+                            HeightRequest="48"
+                            Padding="12,0">
+                        <Picker ItemsSource="{Binding Rotas}"
+                                ItemDisplayBinding="{Binding Nome}"
+                                SelectedItem="{Binding SelectedRota}"
+                                Title="Selecione a rota"
+                                TextColor="{DynamicResource TextPrimary}"
+                                BackgroundColor="Transparent"
+                                VerticalOptions="Center" />
+                    </Border>
+                    <Label Text="{Binding KmEstimadoLabel}"
+                           TextColor="{DynamicResource TextSecondary}"
+                           FontSize="12" />
+                </VerticalStackLayout>
+
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Veículo" TextColor="{DynamicResource TextSecondary}" FontSize="12" />
+                    <Border BackgroundColor="{DynamicResource FieldBg}"
+                            Stroke="{DynamicResource FieldBorder}"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 10"
+                            HeightRequest="48"
+                            Padding="12,0">
+                        <Picker ItemsSource="{Binding Veiculos}"
+                                ItemDisplayBinding="{Binding Rotulo}"
+                                SelectedItem="{Binding SelectedVeiculo}"
+                                Title="Selecione o veículo"
+                                TextColor="{DynamicResource TextPrimary}"
+                                BackgroundColor="Transparent"
+                                VerticalOptions="Center" />
+                    </Border>
+                    <Label Text="{Binding VeiculoEmUsoLabel}"
+                           IsVisible="{Binding HasVeiculoEmUso}"
+                           TextColor="{DynamicResource Danger}"
+                           FontSize="12" />
+                </VerticalStackLayout>
+
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                    <VerticalStackLayout Grid.Column="0" Spacing="6">
+                        <Label Text="Data de saída" TextColor="{DynamicResource TextSecondary}" FontSize="12" />
+                        <Border BackgroundColor="{DynamicResource FieldBg}"
+                                Stroke="{DynamicResource FieldBorder}"
+                                StrokeThickness="1"
+                                StrokeShape="RoundRectangle 10"
+                                HeightRequest="48"
+                                Padding="12,0">
+                            <DatePicker Date="{Binding DataSaida}"
+                                        Format="dd/MM/yyyy"
+                                        TextColor="{DynamicResource TextPrimary}"
+                                        BackgroundColor="Transparent"
+                                        VerticalOptions="Center" />
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Grid.Column="1" Spacing="6">
+                        <Label Text="Km na saída" TextColor="{DynamicResource TextSecondary}" FontSize="12" />
+                        <Border BackgroundColor="{DynamicResource FieldBg}"
+                                Stroke="{DynamicResource FieldBorder}"
+                                StrokeThickness="1"
+                                StrokeShape="RoundRectangle 10"
+                                HeightRequest="48"
+                                Padding="12,0">
+                            <Entry Text="{Binding KmSaida}"
+                                   Placeholder="Hodômetro"
+                                   Keyboard="Numeric"
+                                   BackgroundColor="Transparent"
+                                   VerticalOptions="Center" />
+                        </Border>
+                    </VerticalStackLayout>
+                </Grid>
+
+                <Label Text="{Binding KmAtualLabel}"
+                       TextColor="{DynamicResource TextSecondary}"
+                       FontSize="12"
+                       Margin="0,-10,0,0" />
+
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Cliente (opcional)" TextColor="{DynamicResource TextSecondary}" FontSize="12" />
+                    <Border BackgroundColor="{DynamicResource FieldBg}"
+                            Stroke="{DynamicResource FieldBorder}"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 10"
+                            HeightRequest="48"
+                            Padding="12,0">
+                        <Entry Text="{Binding Cliente}"
+                               Placeholder="Para quem é a entrega"
+                               BackgroundColor="Transparent"
+                               VerticalOptions="Center" />
+                    </Border>
+                </VerticalStackLayout>
+
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Observações (opcional)" TextColor="{DynamicResource TextSecondary}" FontSize="12" />
+                    <Border BackgroundColor="{DynamicResource FieldBg}"
+                            Stroke="{DynamicResource FieldBorder}"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 10"
+                            HeightRequest="48"
+                            Padding="12,0">
+                        <Entry Text="{Binding Observacoes}"
+                               Placeholder="Ex: carga, nota fiscal"
+                               BackgroundColor="Transparent"
+                               VerticalOptions="Center" />
+                    </Border>
+                </VerticalStackLayout>
+
+                <Button Text="{Binding SaveButtonText}"
+                        Command="{Binding SaveCommand}"
+                        IsEnabled="{Binding IsNotBusy}"
+                        BackgroundColor="{DynamicResource Accent}"
+                        TextColor="White"
+                        FontAttributes="Bold"
+                        CornerRadius="10"
+                        HeightRequest="50"
+                        Margin="0,10,0,0" />
+
+                <Button Text="Concluir viagem"
+                        Command="{Binding ConcluirCommand}"
+                        IsVisible="{Binding IsEditing}"
+                        IsEnabled="{Binding IsNotBusy}"
+                        BackgroundColor="Transparent"
+                        TextColor="{DynamicResource Accent}"
+                        FontAttributes="Bold"
+                        BorderColor="{DynamicResource Accent}"
+                        BorderWidth="1"
+                        CornerRadius="10"
+                        HeightRequest="50" />
+
+                <Button Text="Excluir viagem"
+                        Command="{Binding DeleteCommand}"
+                        IsVisible="{Binding IsEditing}"
+                        IsEnabled="{Binding IsNotBusy}"
+                        BackgroundColor="Transparent"
+                        TextColor="{DynamicResource Danger}"
+                        FontAttributes="Bold"
+                        BorderColor="{DynamicResource Danger}"
+                        BorderWidth="1"
+                        CornerRadius="10"
+                        HeightRequest="50" />
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+    </Grid>
+
+</ContentPage>

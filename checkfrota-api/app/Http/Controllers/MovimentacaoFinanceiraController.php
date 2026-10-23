@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\AnexaComprovanteAoLancamento;
 use App\Models\CategoriaFinanceira;
 use App\Models\MovimentacaoFinanceira;
 use App\Notifications\LancamentoFinanceiroQuitado;
@@ -14,6 +15,8 @@ use Illuminate\Validation\ValidationException;
 
 class MovimentacaoFinanceiraController extends Controller
 {
+    use AnexaComprovanteAoLancamento;
+
     private const TIPOS = ['entrada', 'saida'];
 
     private const PAGAMENTO_STATUSES = ['pendente', 'pago'];
@@ -21,9 +24,6 @@ class MovimentacaoFinanceiraController extends Controller
     private const SITUACOES = ['ativos', 'inativos', 'todos'];
 
     private const CAMPOS_DATA = ['vencimento', 'pagamento'];
-
-    /** Limite do plano gratuito do Cloudinary para imagens e PDFs. */
-    private const COMPROVANTE_MAX_KB = 10240;
 
     public function index(Request $request): JsonResponse
     {
@@ -193,33 +193,14 @@ class MovimentacaoFinanceiraController extends Controller
      */
     public function uploadComprovante(Request $request, MovimentacaoFinanceira $movimentacaoFinanceira, CloudinaryService $cloudinary): JsonResponse
     {
-        $request->validate([
-            'comprovante' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:'.self::COMPROVANTE_MAX_KB],
-        ], [
-            'comprovante.mimes' => 'O comprovante deve ser uma imagem (JPG, JPEG, PNG) ou um PDF.',
-            'comprovante.max' => 'O comprovante deve ter no máximo 10 MB.',
-        ]);
-
-        $arquivo = $request->file('comprovante');
+        $request->validate($this->regrasComprovante('required'), $this->mensagensComprovante());
 
         try {
-            $enviado = $cloudinary->upload($arquivo, $movimentacaoFinanceira->nomeComprovante($arquivo->getMimeType()));
+            $this->anexarComprovante($movimentacaoFinanceira, $request->file('comprovante'), $cloudinary);
         } catch (RequestException $exception) {
             report($exception);
             abort(502, 'Não foi possível enviar o comprovante. Tente novamente.');
         }
-
-        $this->removerComprovanteDoCloudinary($movimentacaoFinanceira, $cloudinary);
-
-        $movimentacaoFinanceira->update([
-            'comprovante_public_id' => $enviado['public_id'],
-            'comprovante_resource_type' => $enviado['resource_type'],
-            'comprovante_url' => $enviado['secure_url'],
-            'comprovante_nome' => $movimentacaoFinanceira->nomeComprovante($arquivo->getMimeType()),
-            'comprovante_mime' => $arquivo->getMimeType(),
-            'comprovante_tamanho' => $enviado['bytes'] ?? $arquivo->getSize(),
-            'comprovante_paginas' => $enviado['pages'] ?? 1,
-        ]);
 
         return response()->json([
             'movimentacao' => $movimentacaoFinanceira->load(['categoriaFinanceira', 'formaPagamento'])->toApiPayload(),
@@ -228,7 +209,11 @@ class MovimentacaoFinanceiraController extends Controller
 
     public function destroyComprovante(MovimentacaoFinanceira $movimentacaoFinanceira, CloudinaryService $cloudinary): JsonResponse
     {
-        $this->removerComprovanteDoCloudinary($movimentacaoFinanceira, $cloudinary);
+        $this->removerArquivoDoCloudinary(
+            $movimentacaoFinanceira->comprovante_public_id,
+            $movimentacaoFinanceira->comprovante_resource_type,
+            $cloudinary,
+        );
 
         $movimentacaoFinanceira->update([
             'comprovante_public_id' => null,
@@ -259,23 +244,6 @@ class MovimentacaoFinanceiraController extends Controller
         return response()->json([
             'movimentacao' => $movimentacaoFinanceira->load(['categoriaFinanceira', 'formaPagamento'])->toApiPayload(),
         ]);
-    }
-
-    /**
-     * Falha ao apagar o arquivo antigo não deve impedir a operação no lançamento:
-     * no pior caso sobra um arquivo órfão no Cloudinary, que é registrado no log.
-     */
-    private function removerComprovanteDoCloudinary(MovimentacaoFinanceira $movimentacao, CloudinaryService $cloudinary): void
-    {
-        if (blank($movimentacao->comprovante_public_id)) {
-            return;
-        }
-
-        try {
-            $cloudinary->destroy($movimentacao->comprovante_public_id, $movimentacao->comprovante_resource_type ?? 'image');
-        } catch (RequestException $exception) {
-            report($exception);
-        }
     }
 
     private function assertTipoCombinaComCategoria(string $tipo, CategoriaFinanceira $categoria): void

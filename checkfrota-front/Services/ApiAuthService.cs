@@ -1,6 +1,7 @@
 ﻿using checkfrota_front.Models;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Reflection;
 
 namespace checkfrota_front.Services;
 
@@ -8,15 +9,36 @@ public class ApiAuthService
 {
     private readonly HttpClient _http;
 
-    // 10.0.2.2 é o alias do host no emulador Android para o "php artisan serve" local (porta 8000).
-    // Em dispositivo físico, trocar pelo IP da máquina na rede local e usar HTTPS em produção.
     // Barra final obrigatória: combinada com caminhos relativos SEM "/" inicial abaixo,
     // isso garante que o HttpClient acrescente ao invés de substituir o "/api" do BaseAddress.
+    private const string ProducaoUrl = "https://checkfrota.netogambogi.cloud/api/";
+
+    private static readonly string BaseUrl = ResolverBaseUrl();
+
+    /// <summary>
+    /// Em Debug (propriedade ApiLocal do csproj) usa o "php artisan serve" do PC: localhost no Windows,
+    /// 10.0.2.2 (alias do host) no emulador Android e o DevApiHost (IP do PC na rede) em celular físico.
+    /// No celular, o servidor precisa ouvir na rede: "php artisan serve --host=0.0.0.0".
+    /// </summary>
+    private static string ResolverBaseUrl()
+    {
+        var config = typeof(ApiAuthService).Assembly
+            .GetCustomAttributes(typeof(AssemblyMetadataAttribute), false)
+            .Cast<AssemblyMetadataAttribute>()
+            .ToDictionary(a => a.Key, a => a.Value);
+
+        if (config.GetValueOrDefault("ApiLocal") != "true")
+            return ProducaoUrl;
+
 #if ANDROID
-    private const string BaseUrl = "http://192.168.3.21:8000/api/";
+        var host = DeviceInfo.Current.DeviceType == DeviceType.Virtual
+            ? "10.0.2.2"
+            : config.GetValueOrDefault("DevApiHost") ?? "localhost";
 #else
-    private const string BaseUrl = "http://localhost:8000/api/";
+        var host = "localhost";
 #endif
+        return $"http://{host}:8000/api/";
+    }
 
     public ApiAuthService(HttpClient http)
     {

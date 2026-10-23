@@ -44,6 +44,9 @@ namespace checkfrota_front.Models
         public ConsumoIntervalo? Consumo { get; set; }
         public MovimentacaoVinculada? Financeiro { get; set; }
 
+        /// <summary>Foto ou PDF da nota enviado pelo motorista; nulo nos lançados pela frota.</summary>
+        public ComprovanteResumo? Comprovante { get; set; }
+
         [JsonPropertyName("criado_em")]
         public string? CriadoEm { get; set; }
 

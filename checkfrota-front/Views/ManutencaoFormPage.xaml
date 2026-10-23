@@ -190,6 +190,10 @@
 
                 <shared:LancamentoFinanceiroFields BindingContext="{Binding Financeiro}" />
 
+                <ContentView IsVisible="{Binding ShowComprovanteLancamento}">
+                    <shared:ComprovanteField BindingContext="{Binding ComprovanteLancamento}" />
+                </ContentView>
+
                 <Button Text="Salvar manutenção"
                         Command="{Binding SaveCommand}"
                         IsEnabled="{Binding IsNotBusy}"

@@ -54,13 +54,7 @@
             <FontImageSource FontFamily="FontAwesomeSolid" Glyph="{x:Static helpers:IconFont.Viagem}" Color="{AppThemeBinding Light=#0A1330, Dark=White}" Size="20" />
         </ShellContent.Icon>
     </ShellContent>
-    <ShellContent Title="Notificações" Route="notificacoes"
-                  ContentTemplate="{DataTemplate views:NotificacoesPage}">
-        <ShellContent.Icon>
-            <FontImageSource FontFamily="FontAwesomeSolid" Glyph="{x:Static helpers:IconFont.Alerta}" Color="{AppThemeBinding Light=#0A1330, Dark=White}" Size="20" />
-        </ShellContent.Icon>
-    </ShellContent>
-</TabBar>
+    </TabBar>
 
     <TabBar Route="frota">
         <ShellContent Title="Dashboard" ContentTemplate="{DataTemplate views:DashboardPage}">

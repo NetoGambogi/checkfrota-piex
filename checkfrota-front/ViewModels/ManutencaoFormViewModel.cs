@@ -63,15 +63,32 @@ public partial class ManutencaoFormViewModel : AdminSectionViewModelBase, IQuery
     [ObservableProperty]
     private string? errorMessage;
 
+    /// <summary>Nota da oficina anexada ao lançamento da despesa, para o financeiro conferir.</summary>
+    public ComprovanteSection ComprovanteLancamento { get; }
+
+    /// <summary>
+    /// Só para despesas já pagas, em que ele é obrigatório: ao lançar com "Já foi paga" marcado ou ao
+    /// editar uma manutenção cuja despesa está paga.
+    /// </summary>
+    public bool ShowComprovanteLancamento => Financeiro.IsPago;
+
     public ManutencaoFormViewModel(
         ManutencaoService manutencaoService,
         VeiculoService veiculoService,
         LancamentoFinanceiroSection financeiro,
+        ComprovanteSection comprovanteLancamento,
         ApiAuthService apiAuth) : base(apiAuth)
     {
         _manutencaoService = manutencaoService;
         _veiculoService = veiculoService;
         Financeiro = financeiro;
+        ComprovanteLancamento = comprovanteLancamento;
+
+        Financeiro.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(LancamentoFinanceiroSection.IsPago))
+                OnPropertyChanged(nameof(ShowComprovanteLancamento));
+        };
     }
 
     public void ApplyQueryAttributes(IDictionary<string, object> query)
@@ -85,6 +102,7 @@ public partial class ManutencaoFormViewModel : AdminSectionViewModelBase, IQuery
             Km = item.Km?.ToString() ?? string.Empty;
             Oficina = item.Oficina;
             Valor = item.Valor.ToString("0.00", CultureInfo.GetCultureInfo("pt-BR"));
+            ComprovanteLancamento.Carregar(item.Financeiro?.Comprovante);
 
             StatusFinanceiroLabel = item.Financeiro?.IsPago == true
                 ? "Despesa já paga no financeiro. Alterações de valor também atualizam o lançamento."
@@ -162,6 +180,12 @@ public partial class ManutencaoFormViewModel : AdminSectionViewModelBase, IQuery
             return;
         }
 
+        if (ComprovanteLancamento.Validar(obrigatorio: IsCreating && ShowComprovanteLancamento) is string erroComprovante)
+        {
+            ErrorMessage = erroComprovante;
+            return;
+        }
+
         try
         {
             IsBusy = true;
@@ -176,7 +200,9 @@ public partial class ManutencaoFormViewModel : AdminSectionViewModelBase, IQuery
                 kmInt,
                 string.IsNullOrWhiteSpace(Oficina) ? null : Oficina.Trim(),
                 valorDecimal,
-                Financeiro.ToDados(Data));
+                Financeiro.ToDados(Data),
+                // Comprovante escolhido e depois desmarcado o "Já foi paga" não vai junto.
+                ShowComprovanteLancamento ? ComprovanteLancamento.Pendente : null);
 
             if (!resultado.Sucesso)
             {

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\PossuiComprovante;
 use App\Models\Concerns\PossuiMovimentacaoFinanceira;
 use Database\Factories\AbastecimentoFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -9,12 +10,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Arr;
 
-#[Fillable(['veiculo_id', 'data', 'km', 'litros', 'valor_total', 'combustivel', 'tanque_cheio', 'posto', 'movimentacao_financeira_id', 'user_id'])]
+#[Fillable(['veiculo_id', 'data', 'km', 'litros', 'valor_total', 'combustivel', 'tanque_cheio', 'posto', 'movimentacao_financeira_id', 'user_id', 'comprovante_public_id', 'comprovante_resource_type', 'comprovante_url', 'comprovante_mime', 'comprovante_tamanho', 'comprovante_paginas'])]
 class Abastecimento extends Model
 {
     /** @use HasFactory<AbastecimentoFactory> */
-    use HasFactory, PossuiMovimentacaoFinanceira, SoftDeletes;
+    use HasFactory, PossuiComprovante, PossuiMovimentacaoFinanceira, SoftDeletes;
 
     public const COMBUSTIVEIS = [
         'diesel_s10' => 'Diesel S10',
@@ -97,9 +99,35 @@ class Abastecimento extends Model
             'tanque_cheio' => $this->tanque_cheio,
             'posto' => $this->posto,
             'consumo' => $consumo,
+            'comprovante' => $this->comprovantePayload(),
             'financeiro' => $this->financeiroPayload(),
             'criado_em' => $this->created_at?->toIso8601String(),
             'ativo' => $this->deleted_at === null,
         ];
+    }
+
+    /**
+     * Nome padronizado do comprovante, ex.: "abastecimento-000042.jpg".
+     */
+    public function nomeComprovante(?string $mime = null): string
+    {
+        $extensao = match ($mime ?? $this->comprovante_mime) {
+            'application/pdf' => 'pdf',
+            'image/png' => 'png',
+            default => 'jpg',
+        };
+
+        return sprintf('abastecimento-%06d.%s', $this->id, $extensao);
+    }
+
+    /**
+     * Representação do abastecimento para o próprio motorista: sem o lançamento financeiro que a
+     * frota/financeiro venha a vincular depois.
+     *
+     * @return array<string, mixed>
+     */
+    public function toMotoristaPayload(): array
+    {
+        return Arr::except($this->toApiPayload(), ['consumo', 'financeiro']);
     }
 }

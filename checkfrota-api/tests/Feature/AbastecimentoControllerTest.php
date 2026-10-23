@@ -6,11 +6,19 @@ use App\Models\FormaPagamento;
 use App\Models\MovimentacaoFinanceira;
 use App\Models\User;
 use App\Models\Veiculo;
+use Illuminate\Http\Client\Factory as HttpFactory;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Testing\TestResponse;
+
+beforeEach(function () {
+    fakeCloudinaryUpload('checkfrota/comprovantes/nota-posto');
+});
 
 function lancarAbastecimento(User $user, array $overrides = []): TestResponse
 {
     return test()->actingAs($user, 'sanctum')->postJson('/api/abastecimentos', [
+        'comprovante' => UploadedFile::fake()->create('nota.pdf', 120, 'application/pdf'),
         'veiculo_id' => $overrides['veiculo_id'] ?? Veiculo::factory()->create(['placa' => 'ABC1D23', 'km_atual' => 10000])->id,
         'data' => '2026-10-01',
         'km' => 10500,
@@ -219,4 +227,83 @@ test('listagem rejeita periodo invalido', function () {
     $this->actingAs($frota, 'sanctum')->getJson('/api/abastecimentos?data_inicio=2026-10-01&data_fim=2026-09-01')
         ->assertUnprocessable()
         ->assertJsonValidationErrors('data_fim');
+});
+
+test('abastecimento ja pago exige comprovante', function () {
+    $frota = User::factory()->frota()->create();
+
+    lancarAbastecimento($frota, [
+        'comprovante' => null,
+        'status' => 'pago',
+        'forma_pagamento_id' => FormaPagamento::factory()->create()->id,
+    ])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['comprovante' => 'Anexe a foto ou o PDF do comprovante do pagamento.']);
+
+    expect(Abastecimento::count())->toBe(0)
+        ->and(MovimentacaoFinanceira::count())->toBe(0);
+});
+
+test('abastecimento com despesa pendente dispensa o comprovante', function () {
+    $frota = User::factory()->frota()->create();
+
+    lancarAbastecimento($frota, ['comprovante' => null])
+        ->assertCreated()
+        ->assertJsonPath('abastecimento.financeiro.status', 'pendente')
+        ->assertJsonPath('abastecimento.financeiro.comprovante', null);
+
+    Http::assertNothingSent();
+});
+
+test('comprovante do abastecimento fica no lancamento financeiro', function () {
+    $frota = User::factory()->frota()->create();
+
+    $response = lancarAbastecimento($frota)
+        ->assertCreated()
+        ->assertJsonPath('abastecimento.financeiro.comprovante.url', 'https://res.cloudinary.com/demo-cloud/image/upload/v1/checkfrota/comprovantes/nota-posto');
+
+    $movimentacao = MovimentacaoFinanceira::find($response->json('abastecimento.financeiro.movimentacao_id'));
+    expect($movimentacao->comprovante_public_id)->toBe('checkfrota/comprovantes/nota-posto')
+        ->and($movimentacao->comprovante_nome)->toBe(sprintf('lancamento-despesa-%06d.pdf', $movimentacao->id));
+
+    $this->actingAs(User::factory()->financeiro()->create(), 'sanctum')
+        ->getJson('/api/movimentacoes-financeiras?data_inicio=2026-10-01&data_fim=2026-10-31')
+        ->assertOk()
+        ->assertJsonPath('movimentacoes.0.comprovante.url', 'https://res.cloudinary.com/demo-cloud/image/upload/v1/checkfrota/comprovantes/nota-posto');
+});
+
+test('falha no upload do comprovante nao grava o abastecimento da frota', function () {
+    Http::swap(new HttpFactory);
+    Http::fake(['api.cloudinary.com/*' => Http::response(['error' => ['message' => 'falhou']], 500)]);
+    $frota = User::factory()->frota()->create();
+
+    lancarAbastecimento($frota)->assertStatus(502);
+
+    expect(Abastecimento::count())->toBe(0)
+        ->and(MovimentacaoFinanceira::count())->toBe(0);
+});
+
+test('editar o abastecimento com novo comprovante substitui o anterior', function () {
+    $frota = User::factory()->frota()->create();
+    $response = lancarAbastecimento($frota);
+    $id = $response->json('abastecimento.id');
+
+    Http::swap(new HttpFactory);
+    fakeCloudinaryUpload('checkfrota/comprovantes/nota-corrigida');
+
+    $this->actingAs($frota, 'sanctum')->putJson("/api/abastecimentos/{$id}", [
+        'veiculo_id' => $response->json('abastecimento.veiculo.id'),
+        'data' => '2026-10-01',
+        'km' => 10500,
+        'litros' => 300.5,
+        'valor_total' => 1863.10,
+        'combustivel' => 'diesel_s10',
+        'categoria_financeira_id' => $response->json('abastecimento.financeiro.categoria.id'),
+        'comprovante' => UploadedFile::fake()->create('nota-corrigida.pdf', 120, 'application/pdf'),
+    ])
+        ->assertOk()
+        ->assertJsonPath('abastecimento.financeiro.comprovante.url', 'https://res.cloudinary.com/demo-cloud/image/upload/v1/checkfrota/comprovantes/nota-corrigida');
+
+    Http::assertSent(fn ($request) => str_ends_with($request->url(), '/image/destroy')
+        && $request['public_id'] === 'checkfrota/comprovantes/nota-posto');
 });

@@ -27,6 +27,13 @@
 		       <MauiXaml Update="MyPage.xaml" Inflator="Runtime" /> (force runtime inflation) -->
 		<MauiXamlInflator>SourceGen</MauiXamlInflator>
 
+		<!-- API local ("php artisan serve", porta 8000) em Debug; Release usa sempre a VPS.
+		     Para sobrescrever na sua máquina, sem commitar, use o checkfrota-front.csproj.user:
+		       <ApiLocal>false</ApiLocal>          (Debug contra a VPS)
+		       <DevApiHost>192.168.0.10</DevApiHost> (IP do PC na rede, para celular físico) -->
+		<ApiLocal Condition="'$(ApiLocal)' == '' And '$(Configuration)' == 'Debug'">true</ApiLocal>
+		<DevApiHost Condition="'$(DevApiHost)' == ''">192.168.3.21</DevApiHost>
+
 		<!-- Display name -->
 		<ApplicationTitle>CheckFrota</ApplicationTitle>
 
@@ -92,6 +99,13 @@
 	     compila e roda normalmente, só não recebe push. -->
 	<ItemGroup Condition="'$(TargetFramework)' == 'net10.0-android' And Exists('Platforms\Android\google-services.json')">
 	  <GoogleServicesJson Include="Platforms\Android\google-services.json" />
+	</ItemGroup>
+
+	<!-- Lidos pelo ApiAuthService em tempo de execução para escolher a URL da API. Itens são avaliados
+	     depois de todas as propriedades, então já enxergam o que o .csproj.user sobrescreveu. -->
+	<ItemGroup>
+		<AssemblyMetadata Include="ApiLocal" Value="$(ApiLocal)" />
+		<AssemblyMetadata Include="DevApiHost" Value="$(DevApiHost)" />
 	</ItemGroup>
 
 </Project>
