@@ -15,20 +15,6 @@ beforeEach(function () {
     ]);
 });
 
-function fakeCloudinaryUpload(string $publicId = 'checkfrota/comprovantes/abc123', string $resourceType = 'image', ?int $pages = null): void
-{
-    Http::fake([
-        'api.cloudinary.com/v1_1/demo-cloud/auto/upload' => Http::response(array_filter([
-            'public_id' => $publicId,
-            'resource_type' => $resourceType,
-            'secure_url' => "https://res.cloudinary.com/demo-cloud/{$resourceType}/upload/v1/{$publicId}",
-            'bytes' => 2048,
-            'pages' => $pages,
-        ])),
-        'api.cloudinary.com/v1_1/demo-cloud/*/destroy' => Http::response(['result' => 'ok']),
-    ]);
-}
-
 test('financeiro can attach a pdf comprovante to a movimentacao', function () {
     fakeCloudinaryUpload();
     $financeiro = User::factory()->financeiro()->create();

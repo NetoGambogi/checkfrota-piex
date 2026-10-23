@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:checkfrota_front.ViewModels"
+             xmlns:helpers="clr-namespace:checkfrota_front.Helpers"
+             x:Class="checkfrota_front.Views.Shared.ComprovanteField"
+             x:DataType="viewmodels:ComprovanteSection">
+
+    <VerticalStackLayout Spacing="6">
+        <Label Text="Comprovante do pagamento (obrigatório)" TextColor="{DynamicResource TextSecondary}" FontSize="12" />
+
+        <Border IsVisible="{Binding HasNoComprovante}"
+                BackgroundColor="{DynamicResource FieldBg}"
+                Stroke="{DynamicResource FieldBorder}"
+                StrokeThickness="1"
+                StrokeDashArray="4,3"
+                StrokeShape="RoundRectangle 10"
+                Padding="12,14">
+            <Border.GestureRecognizers>
+                <TapGestureRecognizer Command="{Binding AnexarCommand}" />
+            </Border.GestureRecognizers>
+            <VerticalStackLayout Spacing="4" HorizontalOptions="Center">
+                <HorizontalStackLayout Spacing="8" HorizontalOptions="Center">
+                    <Label Text="{x:Static helpers:IconFont.Anexo}"
+                           FontFamily="FontAwesomeSolid"
+                           FontSize="14"
+                           TextColor="{DynamicResource Accent}"
+                           VerticalOptions="Center" />
+                    <Label Text="Anexar comprovante"
+                           TextColor="{DynamicResource Accent}"
+                           FontAttributes="Bold"
+                           FontSize="14"
+                           VerticalOptions="Center" />
+                </HorizontalStackLayout>
+                <Label Text="Foto (JPG, PNG) ou PDF de até 10 MB"
+                       TextColor="{DynamicResource TextSecondary}"
+                       FontSize="12"
+                       HorizontalOptions="Center" />
+            </VerticalStackLayout>
+        </Border>
+
+        <Border IsVisible="{Binding HasComprovante}"
+                BackgroundColor="{DynamicResource FieldBg}"
+                Stroke="{DynamicResource FieldBorder}"
+                StrokeThickness="1"
+                StrokeShape="RoundRectangle 10"
+                Padding="12,8">
+            <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto" ColumnSpacing="6">
+                <Label Grid.Column="0"
+                       Text="{x:Static helpers:IconFont.Anexo}"
+                       FontFamily="FontAwesomeSolid"
+                       FontSize="14"
+                       TextColor="{DynamicResource TextSecondary}"
+                       VerticalOptions="Center" />
+                <Label Grid.Column="1"
+                       Text="{Binding Nome}"
+                       TextColor="{DynamicResource TextPrimary}"
+                       FontSize="14"
+                       LineBreakMode="MiddleTruncation"
+                       VerticalOptions="Center" />
+                <Button Grid.Column="2"
+                        Text="Ver"
+                        Command="{Binding VerCommand}"
+                        IsVisible="{Binding CanVer}"
+                        BackgroundColor="Transparent"
+                        TextColor="{DynamicResource Accent}"
+                        FontAttributes="Bold"
+                        Padding="8,0"
+                        HeightRequest="36" />
+                <Button Grid.Column="3"
+                        Text="Trocar"
+                        Command="{Binding AnexarCommand}"
+                        BackgroundColor="Transparent"
+                        TextColor="{DynamicResource Accent}"
+                        FontAttributes="Bold"
+                        Padding="8,0"
+                        HeightRequest="36" />
+                <Button Grid.Column="4"
+                        Text="Remover"
+                        Command="{Binding RemoverCommand}"
+                        IsVisible="{Binding CanRemover}"
+                        BackgroundColor="Transparent"
+                        TextColor="{DynamicResource Danger}"
+                        FontAttributes="Bold"
+                        Padding="8,0"
+                        HeightRequest="36" />
+            </Grid>
+        </Border>
+
+        <Label Text="{Binding Erro}"
+               TextColor="{DynamicResource Danger}"
+               FontSize="12" />
+    </VerticalStackLayout>
+
+</ContentView>

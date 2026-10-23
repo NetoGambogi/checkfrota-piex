@@ -29,7 +29,14 @@ namespace checkfrota_front
             Routing.RegisterRoute(nameof(ViagemFormPage), typeof(ViagemFormPage));
             Routing.RegisterRoute(nameof(AbastecimentoManagementPage), typeof(AbastecimentoManagementPage));
             Routing.RegisterRoute(nameof(AbastecimentoFormPage), typeof(AbastecimentoFormPage));
-            Routing.RegisterRoute(nameof(HodometroPage), typeof(HodometroPage));
+            Routing.RegisterRoute(nameof(MotoristaViagemFormPage), typeof(MotoristaViagemFormPage));
+            Routing.RegisterRoute(nameof(ConcluirViagemPage), typeof(ConcluirViagemPage));
+            Routing.RegisterRoute(nameof(MeusAbastecimentosPage), typeof(MeusAbastecimentosPage));
+            Routing.RegisterRoute(nameof(MotoristaAbastecimentoFormPage), typeof(MotoristaAbastecimentoFormPage));
+            Routing.RegisterRoute(nameof(MotoristaOcorrenciaFormPage), typeof(MotoristaOcorrenciaFormPage));
+            Routing.RegisterRoute(nameof(MinhasOcorrenciasPage), typeof(MinhasOcorrenciasPage));
+            Routing.RegisterRoute(nameof(OcorrenciaManagementPage), typeof(OcorrenciaManagementPage));
+            Routing.RegisterRoute(nameof(OcorrenciaDetalhePage), typeof(OcorrenciaDetalhePage));
         }
     }
 }

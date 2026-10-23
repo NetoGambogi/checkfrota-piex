@@ -6,11 +6,17 @@ use App\Models\Manutencao;
 use App\Models\MovimentacaoFinanceira;
 use App\Models\User;
 use App\Models\Veiculo;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Testing\TestResponse;
+
+beforeEach(function () {
+    fakeCloudinaryUpload('checkfrota/comprovantes/nota-oficina');
+});
 
 function lancarManutencao(User $user, array $overrides = []): TestResponse
 {
     return test()->actingAs($user, 'sanctum')->postJson('/api/manutencoes', [
+        'comprovante' => UploadedFile::fake()->create('nota.pdf', 120, 'application/pdf'),
         'veiculo_id' => Veiculo::factory()->create(['placa' => 'ABC1D23', 'km_atual' => 1000])->id,
         'tipo' => 'preventiva',
         'descricao' => 'Troca de óleo',
@@ -186,4 +192,81 @@ test('listing manutencoes filtra pelo periodo', function () {
         ->assertJsonPath('manutencoes.0.data', '2026-09-10');
 
     $this->actingAs($frota, 'sanctum')->getJson('/api/manutencoes?data_fim=31-02-2026')->assertUnprocessable();
+});
+
+test('manutencao ja paga exige comprovante', function () {
+    $frota = User::factory()->frota()->create();
+
+    lancarManutencao($frota, [
+        'comprovante' => null,
+        'status' => 'pago',
+        'forma_pagamento_id' => FormaPagamento::factory()->create()->id,
+    ])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['comprovante' => 'Anexe a foto ou o PDF do comprovante do pagamento.']);
+
+    expect(Manutencao::count())->toBe(0)
+        ->and(MovimentacaoFinanceira::count())->toBe(0);
+});
+
+test('manutencao com despesa pendente dispensa o comprovante', function () {
+    $frota = User::factory()->frota()->create();
+
+    lancarManutencao($frota, ['comprovante' => null])
+        ->assertCreated()
+        ->assertJsonPath('manutencao.financeiro.status', 'pendente')
+        ->assertJsonPath('manutencao.financeiro.comprovante', null);
+});
+
+test('comprovante da manutencao fica no lancamento financeiro', function () {
+    $frota = User::factory()->frota()->create();
+
+    $response = lancarManutencao($frota)
+        ->assertCreated()
+        ->assertJsonPath('manutencao.financeiro.comprovante.url', 'https://res.cloudinary.com/demo-cloud/image/upload/v1/checkfrota/comprovantes/nota-oficina');
+
+    expect(MovimentacaoFinanceira::find($response->json('manutencao.financeiro.movimentacao_id'))->comprovante_public_id)
+        ->toBe('checkfrota/comprovantes/nota-oficina');
+});
+
+test('manutencao aceita comprovante em foto', function () {
+    $frota = User::factory()->frota()->create();
+
+    lancarManutencao($frota, ['comprovante' => UploadedFile::fake()->image('nota.jpg')])
+        ->assertCreated()
+        ->assertJsonPath('manutencao.financeiro.comprovante.mime', 'image/jpeg');
+});
+
+test('manutencao rejeita comprovante em formato invalido', function () {
+    $frota = User::factory()->frota()->create();
+
+    lancarManutencao($frota, ['comprovante' => UploadedFile::fake()->create('nota.txt', 5, 'text/plain')])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('comprovante');
+});
+
+test('app edita a manutencao com novo comprovante via post com _method put', function () {
+    $frota = User::factory()->frota()->create();
+    $response = lancarManutencao($frota)->assertCreated();
+    $id = $response->json('manutencao.id');
+
+    $this->actingAs($frota, 'sanctum')->post("/api/manutencoes/{$id}", [
+        '_method' => 'PUT',
+        'veiculo_id' => $response->json('manutencao.veiculo.id'),
+        'tipo' => 'corretiva',
+        'descricao' => 'Troca de embreagem',
+        'data' => '2026-10-01',
+        'km' => '',
+        'oficina' => '',
+        'valor' => '1200.50',
+        'categoria_financeira_id' => $response->json('manutencao.financeiro.categoria.id'),
+        'forma_pagamento_id' => '',
+        'data_vencimento' => '2026-10-15',
+        'comprovante' => UploadedFile::fake()->create('nota-nova.pdf', 100, 'application/pdf'),
+    ], ['Accept' => 'application/json'])
+        ->assertOk()
+        ->assertJsonPath('manutencao.tipo', 'corretiva')
+        ->assertJsonPath('manutencao.oficina', null);
+
+    expect((float) Manutencao::find($id)->movimentacaoFinanceira->valor)->toBe(1200.5);
 });

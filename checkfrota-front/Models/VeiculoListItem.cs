@@ -25,9 +25,25 @@ namespace checkfrota_front.Models
 
         public bool Ativo { get; set; }
 
+        /// <summary>
+        /// Só no catálogo do motorista: nome de quem está com o veículo numa viagem em andamento,
+        /// ou nulo quando ele está livre.
+        /// </summary>
+        [JsonPropertyName("em_viagem_com")]
+        public string? EmViagemCom { get; set; }
+
+        /// <summary>A viagem em andamento com o veículo é do próprio motorista logado.</summary>
+        [JsonPropertyName("em_viagem_propria")]
+        public bool EmViagemPropria { get; set; }
+
+        [JsonIgnore]
+        public bool EmViagem => EmViagemCom is not null;
+
         /// <summary>Texto exibido nos seletores de veículo, ex: "ABC1D23 · Volvo FH 540".</summary>
         [JsonIgnore]
-        public string Rotulo => $"{Placa} · {Marca} {Modelo}";
+        public string Rotulo => EmViagem
+            ? $"{Placa} · {Marca} {Modelo} (em viagem)"
+            : $"{Placa} · {Marca} {Modelo}";
     }
 
     public class VeiculoListResponse

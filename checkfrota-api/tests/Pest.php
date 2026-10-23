@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 /*
@@ -44,7 +45,25 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+/**
+ * Configura credenciais de teste do Cloudinary e simula o upload e a exclusão de arquivos.
+ */
+function fakeCloudinaryUpload(string $publicId = 'checkfrota/comprovantes/abc123', string $resourceType = 'image', ?int $pages = null): void
 {
-    // ..
+    config([
+        'services.cloudinary.cloud_name' => 'demo-cloud',
+        'services.cloudinary.api_key' => '123456',
+        'services.cloudinary.api_secret' => 'segredo',
+    ]);
+
+    Http::fake([
+        'api.cloudinary.com/v1_1/demo-cloud/auto/upload' => Http::response(array_filter([
+            'public_id' => $publicId,
+            'resource_type' => $resourceType,
+            'secure_url' => "https://res.cloudinary.com/demo-cloud/{$resourceType}/upload/v1/{$publicId}",
+            'bytes' => 2048,
+            'pages' => $pages,
+        ])),
+        'api.cloudinary.com/v1_1/demo-cloud/*/destroy' => Http::response(['result' => 'ok']),
+    ]);
 }

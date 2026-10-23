@@ -54,6 +54,7 @@ namespace checkfrota_front
             builder.Services.AddTransient<UserManagementViewModel>();
             builder.Services.AddTransient<Views.UserManagementPage>();
 
+            builder.Services.AddTransient<MotoristaService>();
             builder.Services.AddTransient<MotoristaHomeViewModel>();
             builder.Services.AddTransient<Views.MotoristaHomePage>();
 
@@ -110,6 +111,7 @@ namespace checkfrota_front
             builder.Services.AddTransient<Views.RotaFormPage>();
 
             builder.Services.AddTransient<LancamentoFinanceiroSection>();
+            builder.Services.AddTransient<ComprovanteSection>();
 
             builder.Services.AddTransient<ViagemService>();
             builder.Services.AddTransient<ViagemManagementViewModel>();
@@ -125,8 +127,24 @@ namespace checkfrota_front
 
             builder.Services.AddTransient<MinhasViagensViewModel>();
             builder.Services.AddTransient<Views.MinhasViagensPage>();
-            builder.Services.AddTransient<HodometroViewModel>();
-            builder.Services.AddTransient<Views.HodometroPage>();
+            builder.Services.AddTransient<MotoristaViagemFormViewModel>();
+            builder.Services.AddTransient<Views.MotoristaViagemFormPage>();
+            builder.Services.AddTransient<ConcluirViagemViewModel>();
+            builder.Services.AddTransient<Views.ConcluirViagemPage>();
+            builder.Services.AddTransient<MeusAbastecimentosViewModel>();
+            builder.Services.AddTransient<Views.MeusAbastecimentosPage>();
+            builder.Services.AddTransient<MotoristaAbastecimentoFormViewModel>();
+            builder.Services.AddTransient<Views.MotoristaAbastecimentoFormPage>();
+            builder.Services.AddTransient<MotoristaOcorrenciaFormViewModel>();
+            builder.Services.AddTransient<Views.MotoristaOcorrenciaFormPage>();
+            builder.Services.AddTransient<MinhasOcorrenciasViewModel>();
+            builder.Services.AddTransient<Views.MinhasOcorrenciasPage>();
+
+            builder.Services.AddTransient<OcorrenciaService>();
+            builder.Services.AddTransient<OcorrenciaManagementViewModel>();
+            builder.Services.AddTransient<Views.OcorrenciaManagementPage>();
+            builder.Services.AddTransient<OcorrenciaDetalheViewModel>();
+            builder.Services.AddTransient<Views.OcorrenciaDetalhePage>();
             builder.Services.AddTransient<NotificacoesViewModel>();
             builder.Services.AddTransient<Views.NotificacoesPage>();
 

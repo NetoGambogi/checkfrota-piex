@@ -19,16 +19,16 @@ class CloudinaryService
 
     /**
      * Envia o arquivo para o Cloudinary. O resource_type "auto" faz imagens e PDFs
-     * caírem como "image" e qualquer outro formato como "raw".
+     * caírem como "image" e qualquer outro formato como "raw". Sem pasta, usa a dos comprovantes.
      *
      * @return array{public_id: string, resource_type: string, secure_url: string, bytes: int, pages?: int}
      *
      * @throws RequestException
      */
-    public function upload(UploadedFile $file, ?string $nome = null): array
+    public function upload(UploadedFile $file, ?string $nome = null, ?string $pasta = null): array
     {
         $params = $this->signedParams([
-            'folder' => config('services.cloudinary.folder'),
+            'folder' => $pasta ?? config('services.cloudinary.folder'),
         ]);
 
         $response = Http::asMultipart()

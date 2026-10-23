@@ -54,7 +54,22 @@ public partial class LancamentoFinanceiroSection : ObservableObject
     /// <summary>Lançamento já pago é registrado na data do próprio registro; não há vencimento a escolher.</summary>
     public bool ShowDataVencimento => !(MarcarComoPago && PermiteMarcarComoPago);
 
-    partial void OnPermiteMarcarComoPagoChanged(bool value) => OnPropertyChanged(nameof(ShowDataVencimento));
+    // Status do lançamento existente (edição), que não muda por aqui.
+    private bool _existentePago;
+
+    /// <summary>
+    /// O lançamento está pago: ao criar, pelo "Já foi paga" marcado; ao editar, pelo status salvo.
+    /// Pagamentos exigem o comprovante.
+    /// </summary>
+    public bool IsPago => PermiteMarcarComoPago ? MarcarComoPago : _existentePago;
+
+    partial void OnPermiteMarcarComoPagoChanged(bool value)
+    {
+        OnPropertyChanged(nameof(ShowDataVencimento));
+        OnPropertyChanged(nameof(IsPago));
+    }
+
+    partial void OnMarcarComoPagoChanged(bool value) => OnPropertyChanged(nameof(IsPago));
 
     public LancamentoFinanceiroSection(CategoriaFinanceiraService categoriaService, FormaPagamentoService formaPagamentoService)
     {
@@ -90,6 +105,7 @@ public partial class LancamentoFinanceiroSection : ObservableObject
             SelectedCategoria = Categorias.FirstOrDefault(c => c.Id == existente.Categoria?.Id);
             SelectedFormaPagamento = FormasPagamento.FirstOrDefault(f => f.Id == existente.FormaPagamento?.Id) ?? NenhumaForma;
             if (DateTime.TryParse(existente.DataVencimento, out var vencimento)) DataVencimento = vencimento;
+            _existentePago = existente.IsPago;
             PermiteMarcarComoPago = false;
         }
         else

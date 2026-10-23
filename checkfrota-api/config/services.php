@@ -48,6 +48,7 @@ return [
         'api_key' => env('CLOUDINARY_API_KEY'),
         'api_secret' => env('CLOUDINARY_API_SECRET'),
         'folder' => env('CLOUDINARY_FOLDER', 'checkfrota/comprovantes'),
+        'folder_ocorrencias' => env('CLOUDINARY_FOLDER_OCORRENCIAS', 'checkfrota/ocorrencias'),
     ],
 
     'firebase' => [

@@ -29,7 +29,8 @@ public class AbastecimentoService
     }
 
     /// <summary>
-    /// Cria (id nulo) ou atualiza o abastecimento. Na criação a API lança a despesa no financeiro.
+    /// Cria (id nulo) ou atualiza o abastecimento. Na criação a API lança a despesa no financeiro com
+    /// o <paramref name="comprovante"/> (obrigatório); na edição, ele só é enviado para substituir o atual.
     /// </summary>
     public async Task<ApiSaveResult<AbastecimentoListItem>> SaveAsync(
         int? id,
@@ -41,28 +42,26 @@ public class AbastecimentoService
         string combustivel,
         bool tanqueCheio,
         string? posto,
-        LancamentoFinanceiroDados financeiro)
+        LancamentoFinanceiroDados financeiro,
+        FileResult? comprovante)
     {
         var client = await _apiAuth.GetAuthenticatedClientAsync();
-        var payload = new
-        {
-            veiculo_id = veiculoId,
-            data = data.ToString("yyyy-MM-dd"),
-            km,
-            litros,
-            valor_total = valorTotal,
-            combustivel,
-            tanque_cheio = tanqueCheio,
-            posto,
-            categoria_financeira_id = financeiro.CategoriaFinanceiraId,
-            forma_pagamento_id = financeiro.FormaPagamentoId,
-            data_vencimento = financeiro.DataVencimento.ToString("yyyy-MM-dd"),
-            status = financeiro.Status,
-        };
+
+        await using var form = new FormularioMultipart()
+            .Campo("veiculo_id", veiculoId)
+            .Campo("data", data)
+            .Campo("km", km)
+            .Campo("litros", litros)
+            .Campo("valor_total", valorTotal)
+            .Campo("combustivel", combustivel)
+            .Campo("tanque_cheio", tanqueCheio)
+            .Campo("posto", posto)
+            .Financeiro(financeiro);
+        await form.ArquivoAsync("comprovante", comprovante);
 
         var response = id is int abastecimentoId
-            ? await client.PutAsJsonAsync($"abastecimentos/{abastecimentoId}", payload)
-            : await client.PostAsJsonAsync("abastecimentos", payload);
+            ? await form.EnviarAsync(client, $"abastecimentos/{abastecimentoId}", atualizar: true)
+            : await form.EnviarAsync(client, "abastecimentos");
 
         return await ApiSaveResult<AbastecimentoListItem>.FromResponseAsync<AbastecimentoResponse>(response, r => r.Abastecimento);
     }
