@@ -1,4 +1,5 @@
 using checkfrota_front.Models;
+using checkfrota_front.Services;
 using System.Globalization;
 
 namespace checkfrota_front.ViewModels;
@@ -20,10 +21,16 @@ public class AbastecimentoRowViewModel
     public bool HasMedia => MediaLabel is not null;
     public bool IsParcial { get; }
 
-    public AbastecimentoRowViewModel(AbastecimentoListItem item)
+    /// <summary>Registro feito no aparelho e ainda não confirmado pela API (só no app do motorista).</summary>
+    public OperacaoPendente? Pendencia { get; }
+    public bool IsAguardandoEnvio => Pendencia?.Situacao == SituacaoOperacao.Pendente;
+    public bool IsRecusado => Pendencia?.Situacao == SituacaoOperacao.Recusada;
+
+    public AbastecimentoRowViewModel(AbastecimentoListItem item, OperacaoPendente? pendencia = null)
     {
         Original = item;
         Id = item.Id;
+        Pendencia = pendencia;
 
         var data = DateTime.TryParse(item.Data, out var valor) ? valor.ToString("dd/MM/yyyy", PtBr) : "-";
         Titulo = $"{item.Veiculo?.Placa ?? "-"} · {data}";

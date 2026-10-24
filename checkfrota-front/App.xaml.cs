@@ -23,9 +23,15 @@ namespace checkfrota_front
         {
             var window = new Window(new AppShell());
 
-            // Ao voltar para o app, o sino reflete o que chegou enquanto ele estava em segundo plano.
+            var sincronizacao = IPlatformApplication.Current?.Services.GetService<SincronizacaoService>();
+            sincronizacao?.Iniciar();
+
+            // Ao voltar para o app, o sino reflete o que chegou enquanto ele estava em segundo plano
+            // e o que foi registrado sem rede é enviado.
             window.Resumed += async (_, _) =>
             {
+                sincronizacao?.Disparar();
+
                 var notificacoes = IPlatformApplication.Current?.Services.GetService<NotificacaoService>();
                 if (notificacoes is not null)
                     await notificacoes.AtualizarContadorAsync();

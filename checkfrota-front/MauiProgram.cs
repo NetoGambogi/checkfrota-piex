@@ -23,6 +23,11 @@ namespace checkfrota_front
 #endif
             builder.Services.AddHttpClient<ApiAuthService>();
 
+            // Modo offline do motorista: cache das consultas e fila dos registros feitos sem rede.
+            builder.Services.AddSingleton<CacheLocal>();
+            builder.Services.AddSingleton<FilaOffline>();
+            builder.Services.AddSingleton<SincronizacaoService>();
+
 #if ANDROID
             builder.Services.AddSingleton<IGoogleAuthService, checkfrota_front.Platforms.Android.Services.GoogleAuthService>();
             builder.Services.AddSingleton<IPushNotificationService, checkfrota_front.Platforms.Android.Services.PushNotificationService>();

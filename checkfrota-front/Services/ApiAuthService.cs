@@ -40,10 +40,15 @@ public class ApiAuthService
         return $"http://{host}:8000/api/";
     }
 
-    public ApiAuthService(HttpClient http)
+    private readonly CacheLocal _cache;
+    private readonly FilaOffline _fila;
+
+    public ApiAuthService(HttpClient http, CacheLocal cache, FilaOffline fila)
     {
         _http = http;
         _http.BaseAddress = new Uri(BaseUrl);
+        _cache = cache;
+        _fila = fila;
     }
 
     public async Task<LoginResponse?> LoginWithGoogleAsync(GoogleSignInResult signInResult)
@@ -118,6 +123,10 @@ public class ApiAuthService
             SecureStorage.Remove("user_name");
             SecureStorage.Remove("user_avatar");
             SecureStorage.Remove("user_created_at");
+
+            // Dados offline são do usuário que saiu (quem chamou já confirmou o descarte das pendências).
+            _cache.Limpar();
+            await _fila.LimparAsync();
         }
     }
 

@@ -164,3 +164,41 @@ test('abastecimento recusado nao dispara notificacao', function () {
 
     Notification::assertNothingSent();
 });
+
+test('reenvio com o mesmo client_uuid devolve o abastecimento ja registrado', function () {
+    Notification::fake();
+    User::factory()->frota()->create();
+    $motorista = User::factory()->create(['role' => 'motorista']);
+    $veiculo = Veiculo::factory()->create(['km_atual' => 50000]);
+    $uuid = '7f9c2b1e-4d3a-4c8e-9a6b-2e1f0d3c4b5a';
+
+    $primeiro = registrarAbastecimentoMotorista($motorista, ['veiculo_id' => $veiculo->id, 'client_uuid' => $uuid])
+        ->assertCreated()
+        ->assertJsonPath('abastecimento.client_uuid', $uuid);
+
+    registrarAbastecimentoMotorista($motorista, ['veiculo_id' => $veiculo->id, 'client_uuid' => $uuid])
+        ->assertOk()
+        ->assertJsonPath('abastecimento.id', $primeiro->json('abastecimento.id'));
+
+    expect(Abastecimento::count())->toBe(1);
+    Http::assertSentCount(1);
+    Notification::assertCount(1);
+});
+
+test('client_uuid de outro motorista nao e reaproveitado', function () {
+    $uuid = '7f9c2b1e-4d3a-4c8e-9a6b-2e1f0d3c4b5a';
+    registrarAbastecimentoMotorista(User::factory()->create(['role' => 'motorista']), ['client_uuid' => $uuid])
+        ->assertCreated();
+
+    registrarAbastecimentoMotorista(User::factory()->create(['role' => 'motorista']), ['client_uuid' => $uuid])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('client_uuid');
+
+    expect(Abastecimento::count())->toBe(1);
+});
+
+test('abastecimento do motorista rejeita client_uuid invalido', function () {
+    registrarAbastecimentoMotorista(User::factory()->create(['role' => 'motorista']), ['client_uuid' => 'abc'])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('client_uuid');
+});

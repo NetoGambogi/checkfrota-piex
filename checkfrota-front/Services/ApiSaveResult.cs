@@ -22,7 +22,7 @@ public record ApiSaveResult<T>(T? Item, string? Erro)
         return new ApiSaveResult<T>(default, await ReadErrorMessageAsync(response));
     }
 
-    private static async Task<string?> ReadErrorMessageAsync(HttpResponseMessage response)
+    internal static async Task<string?> ReadErrorMessageAsync(HttpResponseMessage response)
     {
         try
         {

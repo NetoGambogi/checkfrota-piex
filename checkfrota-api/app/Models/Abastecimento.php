@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Arr;
 
-#[Fillable(['veiculo_id', 'data', 'km', 'litros', 'valor_total', 'combustivel', 'tanque_cheio', 'posto', 'movimentacao_financeira_id', 'user_id', 'comprovante_public_id', 'comprovante_resource_type', 'comprovante_url', 'comprovante_mime', 'comprovante_tamanho', 'comprovante_paginas'])]
+#[Fillable(['veiculo_id', 'data', 'km', 'litros', 'valor_total', 'combustivel', 'tanque_cheio', 'posto', 'movimentacao_financeira_id', 'user_id', 'client_uuid', 'comprovante_public_id', 'comprovante_resource_type', 'comprovante_url', 'comprovante_mime', 'comprovante_tamanho', 'comprovante_paginas'])]
 class Abastecimento extends Model
 {
     /** @use HasFactory<AbastecimentoFactory> */
@@ -122,12 +122,16 @@ class Abastecimento extends Model
 
     /**
      * Representação do abastecimento para o próprio motorista: sem o lançamento financeiro que a
-     * frota/financeiro venha a vincular depois.
+     * frota/financeiro venha a vincular depois. O `client_uuid` deixa o app casar o item com o
+     * registro que ele fez offline.
      *
      * @return array<string, mixed>
      */
     public function toMotoristaPayload(): array
     {
-        return Arr::except($this->toApiPayload(), ['consumo', 'financeiro']);
+        return [
+            ...Arr::except($this->toApiPayload(), ['consumo', 'financeiro']),
+            'client_uuid' => $this->client_uuid,
+        ];
     }
 }
