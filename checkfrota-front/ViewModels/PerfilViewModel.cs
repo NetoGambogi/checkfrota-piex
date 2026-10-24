@@ -7,6 +7,7 @@ namespace checkfrota_front.ViewModels;
 public partial class PerfilViewModel : ObservableObject
 {
     private readonly ApiAuthService _apiAuth;
+    private readonly FilaOffline _fila;
 
     [ObservableProperty]
     private string? userName;
@@ -28,9 +29,10 @@ public partial class PerfilViewModel : ObservableObject
 
     public string AppVersion => $"Versão {AppInfo.Current.VersionString} ({AppInfo.Current.BuildString})";
 
-    public PerfilViewModel(ApiAuthService apiAuth)
+    public PerfilViewModel(ApiAuthService apiAuth, FilaOffline fila)
     {
         _apiAuth = apiAuth;
+        _fila = fila;
     }
 
     [RelayCommand]
@@ -47,6 +49,21 @@ public partial class PerfilViewModel : ObservableObject
     [RelayCommand]
     private async Task LogoutAsync()
     {
+        // Sair apaga o que o motorista registrou sem rede e ainda não foi enviado.
+        var pendentes = (await _fila.ListarAsync()).Count;
+        if (pendentes > 0)
+        {
+            var sair = await Shell.Current.DisplayAlertAsync(
+                "Registros não enviados",
+                pendentes == 1
+                    ? "Há 1 registro salvo no aparelho que ainda não foi enviado. Se sair agora, ele será perdido."
+                    : $"Há {pendentes} registros salvos no aparelho que ainda não foram enviados. Se sair agora, eles serão perdidos.",
+                "Sair mesmo assim",
+                "Cancelar");
+
+            if (!sair) return;
+        }
+
         await _apiAuth.LogoutAsync();
         await Shell.Current.GoToAsync("//login");
     }

@@ -2581,8 +2581,23 @@
           "Motorista"
         ],
         "summary": "Registrar abastecimento",
-        "description": "Registra o abastecimento com o comprovante (**sempre obrigatório**), enviado ao Cloudinary. Não gera\ndespesa: o financeiro lança depois, conferindo pelo comprovante. Atualiza o km do veículo e notifica\nadmin, frota e financeiro. Se o upload falhar, nada é gravado (502).\n\n**Roles:** motorista.",
+        "description": "Registra o abastecimento com o comprovante (**sempre obrigatório**), enviado ao Cloudinary. Não gera\ndespesa: o financeiro lança depois, conferindo pelo comprovante. Atualiza o km do veículo e notifica\nadmin, frota e financeiro. Se o upload falhar, nada é gravado (502).\n\nIdempotente pelo `client_uuid`: o reenvio de um registro feito offline devolve o abastecimento já\ngravado (200), sem duplicar nem notificar de novo.\n\n**Roles:** motorista.",
         "responses": {
+          "200": {
+            "description": "Já registrado com este client_uuid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "abastecimento": {
+                      "$ref": "#/components/schemas/AbastecimentoMotorista"
+                    }
+                  }
+                }
+              }
+            }
+          },
           "201": {
             "description": "Criado.",
             "content": {
@@ -2618,6 +2633,12 @@
               "schema": {
                 "type": "object",
                 "properties": {
+                  "client_uuid": {
+                    "type": "string",
+                    "format": "uuid",
+                    "nullable": true,
+                    "description": "Gerado pelo app para a operação; reenvios com o mesmo valor não duplicam o registro."
+                  },
                   "veiculo_id": {
                     "type": "integer"
                   },
@@ -6141,6 +6162,11 @@
         "properties": {
           "id": {
             "type": "integer"
+          },
+          "client_uuid": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
           },
           "veiculo": {
             "$ref": "#/components/schemas/VeiculoResumo",

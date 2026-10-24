@@ -24,6 +24,11 @@ namespace checkfrota_front.Models
     public class AbastecimentoListItem
     {
         public int Id { get; set; }
+
+        /// <summary>Gerado pelo app ao registrar (vai como client_uuid); casa o item com a fila offline.</summary>
+        [JsonPropertyName("client_uuid")]
+        public string? ClientUuid { get; set; }
+
         public VeiculoResumo? Veiculo { get; set; }
         public string? Data { get; set; }
         public int Km { get; set; }

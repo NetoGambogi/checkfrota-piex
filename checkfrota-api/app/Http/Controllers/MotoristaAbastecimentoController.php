@@ -41,10 +41,24 @@ class MotoristaAbastecimentoController extends Controller
      * Registra um abastecimento feito pelo motorista. É um registro operacional de consumo:
      * não gera lançamento financeiro — a despesa é lançada depois pela frota/financeiro, que
      * confere o valor pelo comprovante (foto ou PDF da nota), obrigatório aqui.
+     *
+     * O app registra offline e reenvia quando volta a conexão, com o mesmo `client_uuid`: se a
+     * resposta do primeiro envio se perdeu, o reenvio devolve o abastecimento já gravado (200)
+     * em vez de duplicá-lo e notificar de novo.
      */
     public function store(Request $request, CloudinaryService $cloudinary): JsonResponse
     {
+        $request->validate(['client_uuid' => ['nullable', 'uuid']]);
+
+        $jaRegistrado = $this->abastecimentoJaRegistrado($request);
+        if ($jaRegistrado) {
+            return response()->json([
+                'abastecimento' => $jaRegistrado->load('veiculo')->toMotoristaPayload(),
+            ]);
+        }
+
         $validated = $request->validate([
+            'client_uuid' => ['nullable', 'uuid', Rule::unique('abastecimentos', 'client_uuid')],
             'veiculo_id' => ['required', 'integer', Rule::exists('veiculos', 'id')->whereNull('deleted_at')],
             'data' => ['required', 'date'],
             'km' => ['required', 'integer', 'min:0'],
@@ -97,5 +111,20 @@ class MotoristaAbastecimentoController extends Controller
         return response()->json([
             'abastecimento' => $abastecimento->toMotoristaPayload(),
         ], 201);
+    }
+
+    /**
+     * Abastecimento do motorista gravado num envio anterior da mesma operação do app.
+     */
+    private function abastecimentoJaRegistrado(Request $request): ?Abastecimento
+    {
+        if (! $request->filled('client_uuid')) {
+            return null;
+        }
+
+        return Abastecimento::query()
+            ->where('client_uuid', $request->input('client_uuid'))
+            ->where('user_id', $request->user()->id)
+            ->first();
     }
 }

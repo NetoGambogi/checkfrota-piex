@@ -25,6 +25,14 @@
                    FontAttributes="Bold"
                    FontSize="20" />
 
+            <Border StrokeShape="RoundRectangle 10" Stroke="Transparent" Padding="12,8"
+                    BackgroundColor="{DynamicResource WarningBg}"
+                    IsVisible="{Binding IsOffline}">
+                <Label Text="Sem conexão: mostrando os dados salvos no aparelho. Novos registros serão enviados quando a internet voltar."
+                       TextColor="{DynamicResource Warning}"
+                       FontSize="12" />
+            </Border>
+
             <Label Text="{Binding ErrorMessage}"
                    TextColor="{DynamicResource Danger}"
                    FontSize="13" />
@@ -103,6 +111,18 @@
                                                 BackgroundColor="{DynamicResource WarningBg}"
                                                 IsVisible="{Binding IsParcial}">
                                             <Label Text="Parcial" FontSize="11" FontAttributes="Bold" TextColor="{DynamicResource Warning}" />
+                                        </Border>
+
+                                        <Border StrokeShape="RoundRectangle 8" Stroke="Transparent" Padding="8,3" HorizontalOptions="End"
+                                                BackgroundColor="{DynamicResource WarningBg}"
+                                                IsVisible="{Binding IsAguardandoEnvio}">
+                                            <Label Text="Aguardando envio" FontSize="11" FontAttributes="Bold" TextColor="{DynamicResource Warning}" />
+                                        </Border>
+
+                                        <Border StrokeShape="RoundRectangle 8" Stroke="Transparent" Padding="8,3" HorizontalOptions="End"
+                                                BackgroundColor="{DynamicResource DangerSoftBg}"
+                                                IsVisible="{Binding IsRecusado}">
+                                            <Label Text="Não enviado" FontSize="11" FontAttributes="Bold" TextColor="{DynamicResource DangerSoftFg}" />
                                         </Border>
                                     </VerticalStackLayout>
 

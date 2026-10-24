@@ -57,7 +57,8 @@ public sealed class FormularioMultipart : IAsyncDisposable
     /// Envia como POST. Na edição (<paramref name="atualizar"/>), o PUT vai em "_method": o PHP só
     /// lê arquivos de requisições POST.
     /// </summary>
-    public async Task<HttpResponseMessage> EnviarAsync(HttpClient client, string caminho, bool atualizar = false)
+    public async Task<HttpResponseMessage> EnviarAsync(
+        HttpClient client, string caminho, bool atualizar = false, CancellationToken cancelamento = default)
     {
         if (atualizar)
         {
@@ -67,7 +68,7 @@ public sealed class FormularioMultipart : IAsyncDisposable
         using var request = new HttpRequestMessage(HttpMethod.Post, caminho) { Content = _form };
         // Sem Accept: application/json o Laravel responde erros de validação com redirect em vez de 422.
         request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-        return await client.SendAsync(request);
+        return await client.SendAsync(request, cancelamento);
     }
 
     public async ValueTask DisposeAsync()

@@ -155,8 +155,16 @@ public partial class MotoristaAbastecimentoFormViewModel : AdminSectionViewModel
             IsBusy = true;
             ErrorMessage = null;
 
-            var resultado = await _motoristaService.RegistrarAbastecimentoAsync(
-                SelectedVeiculo.Id,
+            var veiculo = new VeiculoResumo
+            {
+                Id = SelectedVeiculo.Id,
+                Placa = SelectedVeiculo.Placa,
+                Marca = SelectedVeiculo.Marca,
+                Modelo = SelectedVeiculo.Modelo,
+            };
+
+            var (resultado, erro) = await _motoristaService.RegistrarAbastecimentoAsync(
+                veiculo,
                 Data,
                 kmInt,
                 litrosDecimal,
@@ -166,10 +174,18 @@ public partial class MotoristaAbastecimentoFormViewModel : AdminSectionViewModel
                 string.IsNullOrWhiteSpace(Posto) ? null : Posto.Trim(),
                 _comprovante);
 
-            if (!resultado.Sucesso)
+            if (resultado == ResultadoEnvio.Recusada)
             {
-                ErrorMessage = resultado.Erro ?? "Não foi possível registrar o abastecimento.";
+                ErrorMessage = erro ?? "Não foi possível registrar o abastecimento.";
                 return;
+            }
+
+            if (resultado == ResultadoEnvio.Pendente)
+            {
+                await Shell.Current.DisplayAlertAsync(
+                    "Salvo no aparelho",
+                    "Sem conexão com o servidor agora. O abastecimento será enviado automaticamente quando a internet voltar.",
+                    "OK");
             }
 
             await Shell.Current.GoToAsync("..");
