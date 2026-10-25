@@ -40,6 +40,17 @@ public class ApiAuthService
         return $"http://{host}:8000/api/";
     }
 
+    /// <summary>
+    /// Dias sem abrir o app até a sessão expirar; o mesmo prazo da API (RenovarExpiracaoToken), que
+    /// renova o token a cada requisição.
+    /// </summary>
+    public const int DiasInatividade = 7;
+
+    private const string PreferenciaUltimoUso = "sessao_ultimo_uso";
+
+    private static readonly string[] ChavesSessao =
+        ["auth_token", "user_role", "user_name", "user_avatar", "user_created_at"];
+
     private readonly CacheLocal _cache;
     private readonly FilaOffline _fila;
 
@@ -77,11 +88,89 @@ public class ApiAuthService
 
     public async Task SaveSessionAsync(LoginResponse login)
     {
+        // Cache e fila offline ficam guardados quando a sessão expira, para o mesmo usuário enviar
+        // o que registrou sem rede ao entrar de novo. Se quem entra é outra pessoa, são descartados.
+        var usuarioAnterior = await SecureStorage.GetAsync("user_id");
+        if (usuarioAnterior is not null && usuarioAnterior != login.User.Id.ToString())
+        {
+            _cache.Limpar();
+            await _fila.LimparAsync();
+        }
+
+        await SecureStorage.SetAsync("user_id", login.User.Id.ToString());
         await SecureStorage.SetAsync("auth_token", login.Token);
         await SecureStorage.SetAsync("user_role", login.User.Role);
         await SecureStorage.SetAsync("user_name", login.User.Name);
         await SecureStorage.SetAsync("user_avatar", login.User.Avatar ?? string.Empty);
         await SecureStorage.SetAsync("user_created_at", login.User.CreatedAt ?? string.Empty);
+
+        SessaoExpiradaHandler.Rearmar();
+        RegistrarUso();
+    }
+
+    /// <summary>Marca o app como usado agora: a sessão expira <see cref="DiasInatividade"/> dias depois disso.</summary>
+    public static void RegistrarUso() => Preferences.Set(PreferenciaUltimoUso, DateTime.UtcNow);
+
+    /// <summary>Passou do prazo de inatividade desde o último uso do app.</summary>
+    public static bool InatividadeExcedida() =>
+        DateTime.UtcNow - Preferences.Get(PreferenciaUltimoUso, DateTime.MinValue) > TimeSpan.FromDays(DiasInatividade);
+
+    /// <summary>
+    /// Sessão salva ao abrir o app: devolve a role para entrar direto, ou null se é preciso fazer
+    /// login (sem sessão, inativo há mais de <see cref="DiasInatividade"/> dias ou token recusado
+    /// pela API). Sem rede, confia na sessão salva para o motorista seguir usando o app offline.
+    /// </summary>
+    public async Task<string?> RestaurarSessaoAsync()
+    {
+        if (string.IsNullOrEmpty(await GetTokenAsync())) return null;
+
+        if (InatividadeExcedida())
+        {
+            EncerrarSessaoExpirada();
+            return null;
+        }
+
+        if (Connectivity.Current.NetworkAccess == NetworkAccess.Internet)
+        {
+            try
+            {
+                // Atualiza a role (ex: cadastro pendente aprovado enquanto o app estava fechado).
+                using var tempoLimite = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+                var client = await GetAuthenticatedClientAsync();
+                var resposta = await client.GetAsync("me", tempoLimite.Token);
+
+                if (resposta.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                {
+                    EncerrarSessaoExpirada();
+                    return null;
+                }
+
+                if (resposta.IsSuccessStatusCode && await resposta.Content.ReadFromJsonAsync<UserModel>() is { } usuario)
+                {
+                    await SecureStorage.SetAsync("user_role", usuario.Role);
+                    await SecureStorage.SetAsync("user_name", usuario.Name);
+                    await SecureStorage.SetAsync("user_avatar", usuario.Avatar ?? string.Empty);
+                }
+            }
+            catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+            {
+                // Servidor fora do ar ou sinal fraco: segue com os dados salvos.
+                System.Diagnostics.Debug.WriteLine(ex);
+            }
+        }
+
+        RegistrarUso();
+        return await GetRoleAsync();
+    }
+
+    /// <summary>
+    /// Sessão expirada: apaga as credenciais, mas mantém o cache e a fila offline do usuário
+    /// (ver <see cref="SaveSessionAsync"/>). O "Sair" explícito usa <see cref="LogoutAsync"/>.
+    /// </summary>
+    public static void EncerrarSessaoExpirada()
+    {
+        foreach (var chave in ChavesSessao)
+            SecureStorage.Remove(chave);
     }
 
     public async Task<string?> GetTokenAsync() => await SecureStorage.GetAsync("auth_token");
@@ -118,11 +207,8 @@ public class ApiAuthService
         }
         finally
         {
-            SecureStorage.Remove("auth_token");
-            SecureStorage.Remove("user_role");
-            SecureStorage.Remove("user_name");
-            SecureStorage.Remove("user_avatar");
-            SecureStorage.Remove("user_created_at");
+            EncerrarSessaoExpirada();
+            SecureStorage.Remove("user_id");
 
             // Dados offline são do usuário que saiu (quem chamou já confirmou o descarte das pendências).
             _cache.Limpar();

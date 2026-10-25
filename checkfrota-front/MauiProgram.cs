@@ -21,7 +21,9 @@ namespace checkfrota_front
 #if DEBUG
     		builder.Logging.AddDebug();
 #endif
-            builder.Services.AddHttpClient<ApiAuthService>();
+            builder.Services.AddTransient<SessaoExpiradaHandler>();
+            builder.Services.AddHttpClient<ApiAuthService>()
+                .AddHttpMessageHandler<SessaoExpiradaHandler>();
 
             // Modo offline do motorista: cache das consultas e fila dos registros feitos sem rede.
             builder.Services.AddSingleton<CacheLocal>();

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Middleware\RenovarExpiracaoToken;
 use App\Models\User;
 use App\Notifications\UsuarioAguardandoAprovacao;
 use Illuminate\Http\Client\Response as HttpResponse;
@@ -90,7 +91,11 @@ class AuthController extends Controller
         }
 
         return [
-            'token' => $user->createToken($tokenName)->plainTextToken,
+            'token' => $user->createToken(
+                $tokenName,
+                ['*'],
+                now()->addDays(RenovarExpiracaoToken::DIAS_INATIVIDADE),
+            )->plainTextToken,
             'user' => $user->toApiPayload(),
         ];
     }

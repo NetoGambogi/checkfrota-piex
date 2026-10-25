@@ -30,11 +30,27 @@ namespace checkfrota_front
             // e o que foi registrado sem rede é enviado.
             window.Resumed += async (_, _) =>
             {
+                // App ficou em segundo plano além do prazo de inatividade: pede login de novo.
+                if (await SecureStorage.GetAsync("auth_token") is not null && ApiAuthService.InatividadeExcedida())
+                {
+                    ApiAuthService.EncerrarSessaoExpirada();
+                    await Shell.Current.GoToAsync("//login");
+                    return;
+                }
+
+                ApiAuthService.RegistrarUso();
                 sincronizacao?.Disparar();
 
                 var notificacoes = IPlatformApplication.Current?.Services.GetService<NotificacaoService>();
                 if (notificacoes is not null)
                     await notificacoes.AtualizarContadorAsync();
+            };
+
+            // O prazo de inatividade conta a partir da última vez que o app esteve aberto.
+            window.Stopped += async (_, _) =>
+            {
+                if (await SecureStorage.GetAsync("auth_token") is not null)
+                    ApiAuthService.RegistrarUso();
             };
 
             return window;

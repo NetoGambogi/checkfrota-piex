@@ -25,7 +25,7 @@ use Illuminate\Support\Facades\Route;
 Route::post('/auth/google', [AuthController::class, 'loginWithGoogle']);
 Route::post('/auth/google/desktop', [AuthController::class, 'loginWithGoogleDesktop']);
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'renovar.token'])->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
     Route::post('/logout', [AuthController::class, 'logout']);
 

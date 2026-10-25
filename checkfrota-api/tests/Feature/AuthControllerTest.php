@@ -89,3 +89,42 @@ test('me returns the authenticated user', function () {
 test('me requires authentication', function () {
     $this->getJson('/api/me')->assertUnauthorized();
 });
+
+test('issues a token that expires after 7 days without use', function () {
+    fakeGoogleTokenInfo('google-sessao', 'sessao@example.com', 'Sessão');
+
+    $this->postJson('/api/auth/google', ['id_token' => 'valid-token'])->assertOk();
+
+    $token = User::where('email', 'sessao@example.com')->first()->tokens()->first();
+
+    expect($token->expires_at->toDateString())->toBe(now()->addDays(7)->toDateString());
+});
+
+test('each authenticated request pushes the token expiration 7 days ahead', function () {
+    $user = User::factory()->create();
+    $plain = $user->createToken('mobile', ['*'], now()->addDays(7))->plainTextToken;
+
+    $this->travel(5)->days();
+
+    $this->withToken($plain)->getJson('/api/me')->assertOk();
+
+    expect($user->tokens()->first()->expires_at->toDateString())->toBe(now()->addDays(7)->toDateString());
+});
+
+test('rejects a token after 7 days without use', function () {
+    $user = User::factory()->create();
+    $plain = $user->createToken('mobile', ['*'], now()->addDays(7))->plainTextToken;
+
+    $this->travel(8)->days();
+
+    $this->withToken($plain)->getJson('/api/me')->assertUnauthorized();
+});
+
+test('starts expiring legacy tokens without expiration on their next use', function () {
+    $user = User::factory()->create();
+    $plain = $user->createToken('mobile')->plainTextToken;
+
+    $this->withToken($plain)->getJson('/api/me')->assertOk();
+
+    expect($user->tokens()->first()->expires_at)->not->toBeNull();
+});
