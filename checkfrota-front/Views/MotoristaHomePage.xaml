@@ -58,6 +58,10 @@
                    TextColor="{DynamicResource Danger}"
                    FontSize="13" />
 
+            <shared:LoadingState IsBusy="{Binding ShowLoadingViagem}"
+                                 Message="Carregando sua viagem…"
+                                 Margin="0,24" />
+
             <!-- Viagem em andamento -->
             <Border BackgroundColor="{DynamicResource HeaderBg}"
                     Stroke="Transparent"

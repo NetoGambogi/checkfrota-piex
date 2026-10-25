@@ -96,6 +96,9 @@ public partial class MotoristaAbastecimentoFormViewModel : AdminSectionViewModel
 
         try
         {
+            BusyMessage = "Carregando…";
+            IsBusy = true;
+
             Veiculos = new ObservableCollection<VeiculoListItem>(await _motoristaService.GetVeiculosAsync());
             SelectedVeiculo = await VeiculoDaViagemAtualAsync() ?? (Veiculos.Count == 1 ? Veiculos[0] : null);
             _opcoesCarregadas = true;
@@ -104,6 +107,10 @@ public partial class MotoristaAbastecimentoFormViewModel : AdminSectionViewModel
         {
             ErrorMessage = "Não foi possível carregar os veículos.";
             System.Diagnostics.Debug.WriteLine(ex);
+        }
+        finally
+        {
+            IsBusy = false;
         }
     }
 
@@ -152,6 +159,7 @@ public partial class MotoristaAbastecimentoFormViewModel : AdminSectionViewModel
 
         try
         {
+            BusyMessage = "Enviando abastecimento…";
             IsBusy = true;
             ErrorMessage = null;
 

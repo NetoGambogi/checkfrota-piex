@@ -27,6 +27,9 @@ public partial class PerfilViewModel : ObservableObject
 
     public bool NoAvatar => !HasAvatar;
 
+    [ObservableProperty]
+    private bool isBusy;
+
     public string AppVersion => $"Versão {AppInfo.Current.VersionString} ({AppInfo.Current.BuildString})";
 
     public PerfilViewModel(ApiAuthService apiAuth, FilaOffline fila)
@@ -64,8 +67,18 @@ public partial class PerfilViewModel : ObservableObject
             if (!sair) return;
         }
 
-        await _apiAuth.LogoutAsync();
-        await Shell.Current.GoToAsync("//login");
+        if (IsBusy) return;
+
+        try
+        {
+            IsBusy = true;
+            await _apiAuth.LogoutAsync();
+            await Shell.Current.GoToAsync("//login");
+        }
+        finally
+        {
+            IsBusy = false;
+        }
     }
 
     private static string FormatRole(string? role)

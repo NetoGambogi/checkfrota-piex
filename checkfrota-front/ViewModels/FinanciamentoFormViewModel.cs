@@ -67,15 +67,30 @@ public partial class FinanciamentoFormViewModel : AdminSectionViewModelBase
     {
         await LoadAvatarAsync();
 
-        var categoriasDespesa = await _categoriaService.GetCategoriasAsync("despesa");
-        Categorias = new ObservableCollection<CategoriaFinanceiraListItem>(categoriasDespesa);
-        SelectedCategoria = Categorias.FirstOrDefault();
+        try
+        {
+            BusyMessage = "Carregando…";
+            IsBusy = true;
 
-        var formas = await _formaPagamentoService.GetFormasAsync();
-        var options = new List<FormaPagamentoListItem> { NenhumaForma };
-        options.AddRange(formas);
-        FormasPagamento = options;
-        SelectedFormaPagamento = NenhumaForma;
+            var categoriasDespesa = await _categoriaService.GetCategoriasAsync("despesa");
+            Categorias = new ObservableCollection<CategoriaFinanceiraListItem>(categoriasDespesa);
+            SelectedCategoria = Categorias.FirstOrDefault();
+
+            var formas = await _formaPagamentoService.GetFormasAsync();
+            var options = new List<FormaPagamentoListItem> { NenhumaForma };
+            options.AddRange(formas);
+            FormasPagamento = options;
+            SelectedFormaPagamento = NenhumaForma;
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = "Não foi possível carregar categorias e formas de pagamento.";
+            System.Diagnostics.Debug.WriteLine(ex);
+        }
+        finally
+        {
+            IsBusy = false;
+        }
     }
 
     [RelayCommand]
@@ -115,6 +130,7 @@ public partial class FinanciamentoFormViewModel : AdminSectionViewModelBase
 
         try
         {
+            BusyMessage = "Salvando…";
             IsBusy = true;
             ErrorMessage = null;
 

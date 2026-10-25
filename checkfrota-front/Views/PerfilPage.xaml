@@ -86,6 +86,10 @@
 
         </Grid>
 
+        <shared:LoadingOverlay Grid.RowSpan="2"
+                               IsBusy="{Binding IsBusy}"
+                               Message="Saindo…" />
+
     </Grid>
 
 </ContentPage>

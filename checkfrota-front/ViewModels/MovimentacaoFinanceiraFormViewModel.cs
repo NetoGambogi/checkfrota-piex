@@ -148,8 +148,24 @@ public partial class MovimentacaoFinanceiraFormViewModel : AdminSectionViewModel
     private async Task AppearingAsync()
     {
         await LoadAvatarAsync();
-        await LoadFormasPagamentoAsync();
-        await LoadCategoriasAsync();
+
+        try
+        {
+            BusyMessage = "Carregando…";
+            IsBusy = true;
+
+            await LoadFormasPagamentoAsync();
+            await LoadCategoriasAsync();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = "Não foi possível carregar categorias e formas de pagamento.";
+            System.Diagnostics.Debug.WriteLine(ex);
+        }
+        finally
+        {
+            IsBusy = false;
+        }
     }
 
     private async Task LoadFormasPagamentoAsync()
@@ -178,17 +194,32 @@ public partial class MovimentacaoFinanceiraFormViewModel : AdminSectionViewModel
     }
 
     [RelayCommand]
-    private async Task SelectEntradaAsync()
-    {
-        Tipo = "entrada";
-        await LoadCategoriasAsync();
-    }
+    private Task SelectEntradaAsync() => TrocarTipoAsync("entrada");
 
     [RelayCommand]
-    private async Task SelectSaidaAsync()
+    private Task SelectSaidaAsync() => TrocarTipoAsync("saida");
+
+    private async Task TrocarTipoAsync(string novoTipo)
     {
-        Tipo = "saida";
-        await LoadCategoriasAsync();
+        if (IsBusy || Tipo == novoTipo) return;
+
+        try
+        {
+            Tipo = novoTipo;
+            BusyMessage = "Carregando categorias…";
+            IsBusy = true;
+
+            await LoadCategoriasAsync();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = "Não foi possível carregar as categorias.";
+            System.Diagnostics.Debug.WriteLine(ex);
+        }
+        finally
+        {
+            IsBusy = false;
+        }
     }
 
     [RelayCommand]
@@ -222,6 +253,7 @@ public partial class MovimentacaoFinanceiraFormViewModel : AdminSectionViewModel
 
         try
         {
+            BusyMessage = "Salvando…";
             IsBusy = true;
             ErrorMessage = null;
 
@@ -377,6 +409,7 @@ public partial class MovimentacaoFinanceiraFormViewModel : AdminSectionViewModel
 
         try
         {
+            BusyMessage = "Registrando pagamento…";
             IsBusy = true;
             ErrorMessage = null;
 
@@ -416,6 +449,7 @@ public partial class MovimentacaoFinanceiraFormViewModel : AdminSectionViewModel
 
         try
         {
+            BusyMessage = "Excluindo…";
             IsBusy = true;
             var ok = await _movimentacaoService.DeleteAsync(id);
             if (!ok)

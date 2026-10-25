@@ -13,6 +13,10 @@ public abstract partial class AdminSectionViewModelBase : ObservableObject
     [ObservableProperty]
     private bool hasAvatar;
 
+    /// <summary>Texto do <c>LoadingOverlay</c> enquanto a tela está ocupada, ex: "Salvando…".</summary>
+    [ObservableProperty]
+    private string busyMessage = "Carregando…";
+
     protected AdminSectionViewModelBase(ApiAuthService apiAuth)
     {
         _apiAuth = apiAuth;

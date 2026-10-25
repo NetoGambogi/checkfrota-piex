@@ -56,11 +56,10 @@
 
         <Grid Grid.Row="2">
 
-            <Label Text="Carregando notificações…"
-                   IsVisible="{Binding ShowInitialLoading}"
-                   TextColor="{DynamicResource TextSecondary}"
-                   HorizontalOptions="Center"
-                   VerticalOptions="Center" />
+            <shared:LoadingState Message="Carregando notificações…"
+                                 IsBusy="{Binding ShowInitialLoading}"
+                                 HorizontalOptions="Center"
+                                 VerticalOptions="Center" />
 
             <Label Text="Nenhuma notificação por aqui."
                    IsVisible="{Binding ShowEmptyState}"
@@ -140,6 +139,10 @@
             </RefreshView>
 
         </Grid>
+
+        <shared:LoadingOverlay Grid.RowSpan="3"
+                               IsBusy="{Binding IsProcessando}"
+                               Message="{Binding BusyMessage}" />
 
     </Grid>
 

@@ -21,16 +21,21 @@ public partial class MotoristaHomeViewModel : AdminSectionViewModelBase
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasViagemAtual))]
     [NotifyPropertyChangedFor(nameof(SemViagemAtual))]
+    [NotifyPropertyChangedFor(nameof(ShowLoadingViagem))]
     private ViagemRowViewModel? viagemAtual;
 
     public bool HasViagemAtual => ViagemAtual is not null;
     public bool SemViagemAtual => ViagemAtual is null && !IsLoading;
+
+    /// <summary>Primeiro carregamento: ainda não há card de viagem para mostrar.</summary>
+    public bool ShowLoadingViagem => ViagemAtual is null && IsLoading;
 
     [ObservableProperty]
     private string? outrasViagensLabel;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(SemViagemAtual))]
+    [NotifyPropertyChangedFor(nameof(ShowLoadingViagem))]
     private bool isLoading;
 
     [ObservableProperty]

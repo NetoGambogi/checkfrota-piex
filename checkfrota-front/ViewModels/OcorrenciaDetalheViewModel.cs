@@ -106,6 +106,7 @@ public partial class OcorrenciaDetalheViewModel : AdminSectionViewModelBase, IQu
 
         try
         {
+            BusyMessage = "Resolvendo ocorrência…";
             IsBusy = true;
             ErrorMessage = null;
 
@@ -147,6 +148,7 @@ public partial class OcorrenciaDetalheViewModel : AdminSectionViewModelBase, IQu
 
         try
         {
+            BusyMessage = "Reabrindo ocorrência…";
             IsBusy = true;
             ErrorMessage = null;
 

@@ -143,6 +143,9 @@ public partial class ViagemFormViewModel : AdminSectionViewModelBase, IQueryAttr
 
         try
         {
+            BusyMessage = "Carregando…";
+            IsBusy = true;
+
             var rotasAtivas = await _rotaService.GetRotasAsync();
             Rotas = new ObservableCollection<RotaListItem>(rotasAtivas);
             SelectedRota = Rotas.FirstOrDefault(r => r.Id == _original?.Rota?.Id);
@@ -166,6 +169,10 @@ public partial class ViagemFormViewModel : AdminSectionViewModelBase, IQueryAttr
         {
             ErrorMessage = "Não foi possível carregar rotas, veículos e categorias.";
             System.Diagnostics.Debug.WriteLine(ex);
+        }
+        finally
+        {
+            IsBusy = false;
         }
     }
 
@@ -224,6 +231,7 @@ public partial class ViagemFormViewModel : AdminSectionViewModelBase, IQueryAttr
 
         try
         {
+            BusyMessage = "Salvando…";
             IsBusy = true;
             ErrorMessage = null;
 
@@ -281,6 +289,7 @@ public partial class ViagemFormViewModel : AdminSectionViewModelBase, IQueryAttr
 
         try
         {
+            BusyMessage = "Excluindo…";
             IsBusy = true;
             var ok = await _viagemService.DeleteAsync(_original.Id);
             if (!ok)

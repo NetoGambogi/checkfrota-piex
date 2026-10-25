@@ -121,6 +121,9 @@ public partial class ManutencaoFormViewModel : AdminSectionViewModelBase, IQuery
 
         try
         {
+            BusyMessage = "Carregando…";
+            IsBusy = true;
+
             var veiculosAtivos = await _veiculoService.GetVeiculosAsync();
             Veiculos = new ObservableCollection<VeiculoListItem>(veiculosAtivos);
             SelectedVeiculo = _original is not null
@@ -136,6 +139,10 @@ public partial class ManutencaoFormViewModel : AdminSectionViewModelBase, IQuery
         {
             ErrorMessage = "Não foi possível carregar veículos e categorias.";
             System.Diagnostics.Debug.WriteLine(ex);
+        }
+        finally
+        {
+            IsBusy = false;
         }
     }
 
@@ -188,6 +195,7 @@ public partial class ManutencaoFormViewModel : AdminSectionViewModelBase, IQuery
 
         try
         {
+            BusyMessage = "Salvando…";
             IsBusy = true;
             ErrorMessage = null;
 
@@ -242,6 +250,7 @@ public partial class ManutencaoFormViewModel : AdminSectionViewModelBase, IQuery
 
         try
         {
+            BusyMessage = "Excluindo…";
             IsBusy = true;
             var ok = await _manutencaoService.DeleteAsync(_original.Id);
             if (!ok)

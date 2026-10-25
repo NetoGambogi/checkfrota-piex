@@ -35,6 +35,12 @@
                                TextColor="#9CA3AF"
                                FontSize="13"
                                VerticalOptions="Center" />
+                        <ActivityIndicator IsRunning="{Binding IsLoading}"
+                                           IsVisible="{Binding IsLoading}"
+                                           Color="White"
+                                           WidthRequest="16"
+                                           HeightRequest="16"
+                                           VerticalOptions="Center" />
                     </HorizontalStackLayout>
                     <Label Text="{Binding SaldoAtualFormatado}"
                            TextColor="White"

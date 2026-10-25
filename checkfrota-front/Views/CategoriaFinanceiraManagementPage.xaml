@@ -85,11 +85,10 @@
 
         <Grid Grid.Row="2">
 
-            <Label Text="Carregando categorias…"
-                   IsVisible="{Binding ShowInitialLoading}"
-                   TextColor="{DynamicResource TextSecondary}"
-                   HorizontalOptions="Center"
-                   VerticalOptions="Center" />
+            <shared:LoadingState Message="Carregando categorias…"
+                                 IsBusy="{Binding ShowInitialLoading}"
+                                 HorizontalOptions="Center"
+                                 VerticalOptions="Center" />
 
             <Label Text="Nenhuma categoria encontrada."
                    IsVisible="{Binding ShowEmptyState}"

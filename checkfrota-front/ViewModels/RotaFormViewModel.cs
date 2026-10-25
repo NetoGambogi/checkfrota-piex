@@ -88,6 +88,7 @@ public partial class RotaFormViewModel : AdminSectionViewModelBase, IQueryAttrib
 
         try
         {
+            BusyMessage = "Salvando…";
             IsBusy = true;
             ErrorMessage = null;
 
@@ -133,6 +134,7 @@ public partial class RotaFormViewModel : AdminSectionViewModelBase, IQueryAttrib
 
         try
         {
+            BusyMessage = "Excluindo…";
             IsBusy = true;
             var ok = await _rotaService.DeleteAsync(id);
             if (!ok)

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="checkfrota_front.Views.Shared.LoadingState"
+             IsVisible="False">
+
+    <VerticalStackLayout Spacing="10" HorizontalOptions="Center" VerticalOptions="Center">
+        <ActivityIndicator x:Name="Indicador"
+                           Color="{DynamicResource Accent}"
+                           WidthRequest="32"
+                           HeightRequest="32"
+                           HorizontalOptions="Center" />
+
+        <Label x:Name="MensagemLabel"
+               TextColor="{DynamicResource TextSecondary}"
+               FontSize="13"
+               HorizontalTextAlignment="Center" />
+    </VerticalStackLayout>
+
+</ContentView>

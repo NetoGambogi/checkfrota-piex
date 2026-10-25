@@ -132,11 +132,10 @@
                                 </VerticalStackLayout>
                             </Border>
 
-                            <Label Text="Carregando abastecimentos…"
-                                   IsVisible="{Binding ShowInitialLoading}"
-                                   TextColor="{DynamicResource TextSecondary}"
-                                   HorizontalOptions="Center"
-                                   Margin="0,16,0,0" />
+                            <shared:LoadingState Message="Carregando abastecimentos…"
+                                                 IsBusy="{Binding ShowInitialLoading}"
+                                                 HorizontalOptions="Center"
+                                                 Margin="0,16,0,0" />
 
                             <Label Text="Nenhum abastecimento no período."
                                    IsVisible="{Binding ShowEmptyState}"

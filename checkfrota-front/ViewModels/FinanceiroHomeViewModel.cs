@@ -18,6 +18,9 @@ public partial class FinanceiroHomeViewModel : AdminSectionViewModelBase
     [ObservableProperty]
     private string saldoPrevistoFormatado = "—";
 
+    [ObservableProperty]
+    private bool isLoading;
+
     public FinanceiroHomeViewModel(MovimentacaoFinanceiraService movimentacaoService, ApiAuthService apiAuth) : base(apiAuth)
     {
         _movimentacaoService = movimentacaoService;
@@ -34,6 +37,8 @@ public partial class FinanceiroHomeViewModel : AdminSectionViewModelBase
     {
         try
         {
+            IsLoading = true;
+
             var resumo = await _movimentacaoService.GetResumoAsync();
             if (resumo is null) return;
 
@@ -43,6 +48,10 @@ public partial class FinanceiroHomeViewModel : AdminSectionViewModelBase
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine(ex);
+        }
+        finally
+        {
+            IsLoading = false;
         }
     }
 

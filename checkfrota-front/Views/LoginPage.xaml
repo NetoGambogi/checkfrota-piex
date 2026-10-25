@@ -56,11 +56,18 @@
                         HeightRequest="56"
                         HorizontalOptions="Fill" />
 
-                <ActivityIndicator IsRunning="{Binding IsBusy}"
-                                    IsVisible="{Binding IsBusy}"
-                                    Color="White"
-                                    HorizontalOptions="Center"
-                                    Margin="0,16,0,0" />
+                <VerticalStackLayout IsVisible="{Binding IsBusy}"
+                                     Spacing="8"
+                                     HorizontalOptions="Center"
+                                     Margin="0,16,0,0">
+                    <ActivityIndicator IsRunning="{Binding IsBusy}"
+                                       Color="White"
+                                       HorizontalOptions="Center" />
+                    <Label Text="Entrando…"
+                           TextColor="White"
+                           FontSize="13"
+                           HorizontalOptions="Center" />
+                </VerticalStackLayout>
 
                 <Label Text="{Binding ErrorMessage}"
                        TextColor="#FF8A80"

@@ -195,6 +195,7 @@ public partial class MotoristaOcorrenciaFormViewModel : AdminSectionViewModelBas
 
         try
         {
+            BusyMessage = "Enviando ocorrência…";
             IsBusy = true;
             ErrorMessage = null;
 

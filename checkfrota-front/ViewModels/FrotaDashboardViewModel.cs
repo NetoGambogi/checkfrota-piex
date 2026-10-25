@@ -33,6 +33,15 @@ public partial class FrotaDashboardViewModel : ObservableObject
     [ObservableProperty]
     private bool isLoading;
 
+    /// <summary>Recarregando com dados já na tela (ex.: troca de período): aviso discreto no topo.</summary>
+    [ObservableProperty]
+    private bool isAtualizando;
+
+    private bool _carregando;
+
+    // Período trocado durante um carregamento: recarrega quando ele terminar, para não mostrar o anterior.
+    private bool _recarregarAoTerminar;
+
     [ObservableProperty]
     private bool isRefreshing;
 
@@ -126,11 +135,17 @@ public partial class FrotaDashboardViewModel : ObservableObject
 
     public async Task CarregarAsync()
     {
-        if (IsLoading) return;
+        if (_carregando)
+        {
+            _recarregarAoTerminar = true;
+            return;
+        }
 
         try
         {
+            _carregando = true;
             IsLoading = !HasData;
+            IsAtualizando = HasData;
             ErrorMessage = null;
 
             var dados = await _dashboardService.GetFrotaAsync(Meses);
@@ -150,7 +165,15 @@ public partial class FrotaDashboardViewModel : ObservableObject
         finally
         {
             IsLoading = false;
+            IsAtualizando = false;
             IsRefreshing = false;
+            _carregando = false;
+        }
+
+        if (_recarregarAoTerminar)
+        {
+            _recarregarAoTerminar = false;
+            await CarregarAsync();
         }
     }
 

@@ -133,6 +133,7 @@ public partial class VeiculoFormViewModel : AdminSectionViewModelBase, IQueryAtt
 
         try
         {
+            BusyMessage = "Salvando…";
             IsBusy = true;
             ErrorMessage = null;
 
@@ -182,6 +183,7 @@ public partial class VeiculoFormViewModel : AdminSectionViewModelBase, IQueryAtt
 
         try
         {
+            BusyMessage = "Excluindo…";
             IsBusy = true;
             var ok = await _veiculoService.DeleteAsync(id);
             if (!ok)

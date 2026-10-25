@@ -87,11 +87,10 @@
         <!-- Lista -->
         <Grid Grid.Row="2">
 
-            <Label Text="Carregando usuários…"
-                   IsVisible="{Binding ShowInitialLoading}"
-                   TextColor="{DynamicResource TextSecondary}"
-                   HorizontalOptions="Center"
-                   VerticalOptions="Center" />
+            <shared:LoadingState Message="Carregando usuários…"
+                                 IsBusy="{Binding ShowInitialLoading}"
+                                 HorizontalOptions="Center"
+                                 VerticalOptions="Center" />
 
             <Label Text="Nenhum usuário encontrado."
                    IsVisible="{Binding ShowEmptyState}"

@@ -185,6 +185,10 @@
             </VerticalStackLayout>
         </ScrollView>
 
+        <shared:LoadingOverlay Grid.RowSpan="2"
+                               IsBusy="{Binding IsBusy}"
+                               Message="{Binding BusyMessage}" />
+
     </Grid>
 
 </ContentPage>

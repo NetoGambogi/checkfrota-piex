@@ -63,6 +63,7 @@ public partial class FormaPagamentoFormViewModel : AdminSectionViewModelBase, IQ
 
         try
         {
+            BusyMessage = "Salvando…";
             IsBusy = true;
             ErrorMessage = null;
 
@@ -104,6 +105,7 @@ public partial class FormaPagamentoFormViewModel : AdminSectionViewModelBase, IQ
 
         try
         {
+            BusyMessage = "Excluindo…";
             IsBusy = true;
             var ok = await _formaService.DeleteAsync(id);
             if (!ok)

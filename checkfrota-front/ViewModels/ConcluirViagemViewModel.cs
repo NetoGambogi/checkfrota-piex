@@ -103,6 +103,7 @@ public partial class ConcluirViagemViewModel : AdminSectionViewModelBase, IQuery
 
         try
         {
+            BusyMessage = "Concluindo viagem…";
             IsBusy = true;
             ErrorMessage = null;
 

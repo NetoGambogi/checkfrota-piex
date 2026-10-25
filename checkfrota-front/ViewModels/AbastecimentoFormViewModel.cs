@@ -173,6 +173,9 @@ public partial class AbastecimentoFormViewModel : AdminSectionViewModelBase, IQu
 
         try
         {
+            BusyMessage = "Carregando…";
+            IsBusy = true;
+
             var veiculosAtivos = await _veiculoService.GetVeiculosAsync();
             Veiculos = new ObservableCollection<VeiculoListItem>(veiculosAtivos);
 
@@ -190,6 +193,10 @@ public partial class AbastecimentoFormViewModel : AdminSectionViewModelBase, IQu
         {
             ErrorMessage = "Não foi possível carregar veículos e categorias.";
             System.Diagnostics.Debug.WriteLine(ex);
+        }
+        finally
+        {
+            IsBusy = false;
         }
     }
 
@@ -236,6 +243,7 @@ public partial class AbastecimentoFormViewModel : AdminSectionViewModelBase, IQu
 
         try
         {
+            BusyMessage = "Salvando…";
             IsBusy = true;
             ErrorMessage = null;
 
@@ -302,6 +310,7 @@ public partial class AbastecimentoFormViewModel : AdminSectionViewModelBase, IQu
 
         try
         {
+            BusyMessage = "Excluindo…";
             IsBusy = true;
             var ok = await _abastecimentoService.DeleteAsync(_original.Id);
             if (!ok)

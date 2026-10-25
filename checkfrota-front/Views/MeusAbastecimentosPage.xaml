@@ -41,11 +41,10 @@
 
         <Grid Grid.Row="2">
 
-            <Label Text="Carregando abastecimentos…"
-                   IsVisible="{Binding ShowInitialLoading}"
-                   TextColor="{DynamicResource TextSecondary}"
-                   HorizontalOptions="Center"
-                   VerticalOptions="Center" />
+            <shared:LoadingState Message="Carregando abastecimentos…"
+                                 IsBusy="{Binding ShowInitialLoading}"
+                                 HorizontalOptions="Center"
+                                 VerticalOptions="Center" />
 
             <Label Text="Você ainda não registrou abastecimentos."
                    IsVisible="{Binding ShowEmptyState}"

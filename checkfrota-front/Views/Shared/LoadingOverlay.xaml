@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="checkfrota_front.Views.Shared.LoadingOverlay"
+             IsVisible="False">
+
+    <!-- Fundo escurecido que cobre a tela inteira e engole os toques enquanto a ação roda -->
+    <Grid BackgroundColor="#66000000">
+        <Grid.GestureRecognizers>
+            <TapGestureRecognizer />
+        </Grid.GestureRecognizers>
+
+        <Border BackgroundColor="{DynamicResource PageBg}"
+                Stroke="Transparent"
+                StrokeShape="RoundRectangle 16"
+                Padding="28,22"
+                MinimumWidthRequest="180"
+                HorizontalOptions="Center"
+                VerticalOptions="Center">
+
+            <Border.Shadow>
+                <Shadow Brush="Black" Opacity="0.25" Radius="12" Offset="0,4" />
+            </Border.Shadow>
+
+            <VerticalStackLayout Spacing="14">
+                <ActivityIndicator x:Name="Indicador"
+                                   Color="{DynamicResource Accent}"
+                                   WidthRequest="40"
+                                   HeightRequest="40"
+                                   HorizontalOptions="Center" />
+
+                <Label x:Name="MensagemLabel"
+                       TextColor="{DynamicResource TextPrimary}"
+                       FontSize="14"
+                       FontAttributes="Bold"
+                       HorizontalTextAlignment="Center" />
+            </VerticalStackLayout>
+        </Border>
+    </Grid>
+
+</ContentView>

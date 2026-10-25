@@ -27,6 +27,10 @@ public partial class NotificacoesViewModel : AdminSectionViewModelBase
     [ObservableProperty]
     private string? errorMessage;
 
+    /// <summary>Abrindo uma notificação ou marcando todas como lidas (o IsBusy é do carregamento da lista).</summary>
+    [ObservableProperty]
+    private bool isProcessando;
+
     public bool ShowEmptyState => HasNoResults && !IsBusy;
     public bool ShowInitialLoading => IsBusy && Notificacoes.Count == 0;
 
@@ -74,10 +78,13 @@ public partial class NotificacoesViewModel : AdminSectionViewModelBase
     [RelayCommand]
     private async Task AbrirAsync(NotificacaoRowViewModel? row)
     {
-        if (row is null) return;
+        if (row is null || IsProcessando) return;
 
         try
         {
+            BusyMessage = "Abrindo…";
+            IsProcessando = true;
+
             if (row.NaoLida)
             {
                 row.Lida = true;
@@ -91,13 +98,22 @@ public partial class NotificacoesViewModel : AdminSectionViewModelBase
             ErrorMessage = "Não foi possível abrir a notificação.";
             System.Diagnostics.Debug.WriteLine(ex);
         }
+        finally
+        {
+            IsProcessando = false;
+        }
     }
 
     [RelayCommand]
     private async Task MarcarTodasComoLidasAsync()
     {
+        if (IsProcessando) return;
+
         try
         {
+            BusyMessage = "Marcando como lidas…";
+            IsProcessando = true;
+
             await _notificacaoService.MarcarTodasComoLidasAsync();
 
             foreach (var row in Notificacoes)
@@ -107,6 +123,10 @@ public partial class NotificacoesViewModel : AdminSectionViewModelBase
         {
             ErrorMessage = "Não foi possível marcar as notificações como lidas.";
             System.Diagnostics.Debug.WriteLine(ex);
+        }
+        finally
+        {
+            IsProcessando = false;
         }
     }
 }

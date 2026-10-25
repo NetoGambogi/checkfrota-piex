@@ -18,6 +18,9 @@ public partial class PendingApprovalViewModel : ObservableObject
     [ObservableProperty]
     private bool hasAvatar;
 
+    [ObservableProperty]
+    private bool isBusy;
+
     public PendingApprovalViewModel(ApiAuthService apiAuth)
     {
         _apiAuth = apiAuth;
@@ -39,7 +42,17 @@ public partial class PendingApprovalViewModel : ObservableObject
     [RelayCommand]
     private async Task VoltarParaLoginAsync()
     {
-        await _apiAuth.LogoutAsync();
-        await Shell.Current.GoToAsync("//login");
+        if (IsBusy) return;
+
+        try
+        {
+            IsBusy = true;
+            await _apiAuth.LogoutAsync();
+            await Shell.Current.GoToAsync("//login");
+        }
+        finally
+        {
+            IsBusy = false;
+        }
     }
 }

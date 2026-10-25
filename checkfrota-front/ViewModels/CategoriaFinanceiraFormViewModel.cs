@@ -102,6 +102,7 @@ public partial class CategoriaFinanceiraFormViewModel : AdminSectionViewModelBas
 
         try
         {
+            BusyMessage = "Salvando…";
             IsBusy = true;
             ErrorMessage = null;
 
@@ -143,6 +144,7 @@ public partial class CategoriaFinanceiraFormViewModel : AdminSectionViewModelBas
 
         try
         {
+            BusyMessage = "Excluindo…";
             IsBusy = true;
             var ok = await _categoriaService.DeleteAsync(id);
             if (!ok)

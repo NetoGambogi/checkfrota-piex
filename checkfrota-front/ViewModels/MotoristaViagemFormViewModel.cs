@@ -134,6 +134,9 @@ public partial class MotoristaViagemFormViewModel : AdminSectionViewModelBase, I
 
         try
         {
+            BusyMessage = "Carregando…";
+            IsBusy = true;
+
             Rotas = new ObservableCollection<RotaListItem>(await _motoristaService.GetRotasAsync());
             SelectedRota = Rotas.FirstOrDefault(r => r.Id == _original?.Rota?.Id);
 
@@ -153,6 +156,10 @@ public partial class MotoristaViagemFormViewModel : AdminSectionViewModelBase, I
         {
             ErrorMessage = "Não foi possível carregar rotas e veículos.";
             System.Diagnostics.Debug.WriteLine(ex);
+        }
+        finally
+        {
+            IsBusy = false;
         }
     }
 
@@ -187,6 +194,7 @@ public partial class MotoristaViagemFormViewModel : AdminSectionViewModelBase, I
 
         try
         {
+            BusyMessage = "Salvando…";
             IsBusy = true;
             ErrorMessage = null;
 
@@ -245,6 +253,7 @@ public partial class MotoristaViagemFormViewModel : AdminSectionViewModelBase, I
 
         try
         {
+            BusyMessage = "Excluindo…";
             IsBusy = true;
             var ok = await _motoristaService.DeleteViagemAsync(_original.Id);
             if (!ok)

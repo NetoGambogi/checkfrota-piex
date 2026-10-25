@@ -76,11 +76,10 @@
 
         <Grid Grid.Row="2">
 
-            <Label Text="Carregando viagens…"
-                   IsVisible="{Binding ShowInitialLoading}"
-                   TextColor="{DynamicResource TextSecondary}"
-                   HorizontalOptions="Center"
-                   VerticalOptions="Center" />
+            <shared:LoadingState Message="Carregando viagens…"
+                                 IsBusy="{Binding ShowInitialLoading}"
+                                 HorizontalOptions="Center"
+                                 VerticalOptions="Center" />
 
             <Label Text="{Binding EmptyMessage}"
                    IsVisible="{Binding ShowEmptyState}"
@@ -177,12 +176,10 @@
                     </CollectionView.ItemTemplate>
 
                     <CollectionView.Footer>
-                        <Label Text="Carregando mais…"
-                               IsVisible="{Binding IsLoadingMore}"
-                               TextColor="{DynamicResource TextSecondary}"
-                               FontSize="12"
-                               HorizontalOptions="Center"
-                               Margin="0,12" />
+                        <shared:LoadingState Message="Carregando mais…"
+                                             IsBusy="{Binding IsLoadingMore}"
+                                             HorizontalOptions="Center"
+                                             Margin="0,12" />
                     </CollectionView.Footer>
 
                 </CollectionView>
