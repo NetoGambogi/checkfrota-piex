@@ -26,6 +26,27 @@
                        FontSize="13" />
 
                 <VerticalStackLayout Spacing="6">
+                    <Label Text="Motorista" TextColor="{DynamicResource TextSecondary}" FontSize="12" />
+                    <Border BackgroundColor="{DynamicResource FieldBg}"
+                            Stroke="{DynamicResource FieldBorder}"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 10"
+                            HeightRequest="48"
+                            Padding="12,0">
+                        <Picker ItemsSource="{Binding Motoristas}"
+                                ItemDisplayBinding="{Binding Rotulo}"
+                                SelectedItem="{Binding SelectedMotorista}"
+                                Title="Selecione o motorista"
+                                TextColor="{DynamicResource TextPrimary}"
+                                BackgroundColor="Transparent"
+                                VerticalOptions="Center" />
+                    </Border>
+                    <Label Text="O motorista recebe a viagem no app e registra a chegada."
+                           TextColor="{DynamicResource TextSecondary}"
+                           FontSize="12" />
+                </VerticalStackLayout>
+
+                <VerticalStackLayout Spacing="6">
                     <Label Text="Rota" TextColor="{DynamicResource TextSecondary}" FontSize="12" />
                     <Border BackgroundColor="{DynamicResource FieldBg}"
                             Stroke="{DynamicResource FieldBorder}"

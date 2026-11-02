@@ -162,6 +162,7 @@ public partial class NotificacaoService : ObservableObject
             "ocorrencias" when role is "admin" or "frota" => nameof(OcorrenciaManagementPage),
             "abastecimentos" when role is "admin" or "frota" => nameof(AbastecimentoManagementPage),
             "minhas-ocorrencias" when role is "motorista" => nameof(MinhasOcorrenciasPage),
+            "minhas-viagens" when role is "motorista" => "//motorista/viagens",
             "usuarios" when role is "admin" => "//admin/usuarios",
             _ => null,
         };

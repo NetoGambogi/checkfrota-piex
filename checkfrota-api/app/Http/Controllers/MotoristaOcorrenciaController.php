@@ -44,8 +44,8 @@ class MotoristaOcorrenciaController extends Controller
      */
     public function store(Request $request, Viagem $viagem, CloudinaryService $cloudinary): JsonResponse
     {
-        if ($viagem->user_id !== $request->user()->id) {
-            abort(403, 'Esta viagem não pertence a você.');
+        if ($viagem->motorista_id !== $request->user()->id) {
+            abort(403, 'Esta viagem não foi atribuída a você.');
         }
 
         $validated = $request->validate([

@@ -24,6 +24,7 @@ function dadosViagem(array $overrides = []): array
     return [
         'rota_id' => Rota::factory()->create(['nome' => 'Curitiba x Joinville', 'origem' => 'Curitiba/PR', 'destino' => 'Joinville/SC'])->id,
         'veiculo_id' => Veiculo::factory()->create(['placa' => 'ABC1D23', 'km_atual' => 50000])->id,
+        'motorista_id' => User::factory()->create(['role' => 'motorista'])->id,
         'data_saida' => '2026-10-01',
         'cliente' => 'Mercado Bom',
         ...$overrides,
@@ -148,6 +149,7 @@ test('informar a chegada ao editar a viagem avisa a conclusao uma unica vez', fu
     $dados = [
         'rota_id' => $viagem->rota_id,
         'veiculo_id' => $viagem->veiculo_id,
+        'motorista_id' => $viagem->motorista_id,
         'data_saida' => '2026-10-01',
         'data_chegada' => '2026-10-03',
     ];

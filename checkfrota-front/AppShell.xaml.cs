@@ -4,9 +4,20 @@ namespace checkfrota_front
 {
     public partial class AppShell : Shell
     {
-        public AppShell()
+        /// <param name="rotaInicial">
+        /// Rota da role com sessão salva (ex: "motorista"), para o app abrir direto nela; sem
+        /// sessão, abre no login.
+        /// </param>
+        public AppShell(string? rotaInicial = null)
         {
             InitializeComponent();
+
+            if (rotaInicial is not null
+                && Items.FirstOrDefault(item => item.Route == rotaInicial || item.CurrentItem?.CurrentItem?.Route == rotaInicial) is { } inicial)
+            {
+                CurrentItem = inicial;
+            }
+
             Routing.RegisterRoute(nameof(PerfilPage), typeof(PerfilPage));
             Routing.RegisterRoute(nameof(NotificacoesPage), typeof(NotificacoesPage));
             Routing.RegisterRoute(nameof(CategoriaFinanceiraManagementPage), typeof(CategoriaFinanceiraManagementPage));
@@ -29,7 +40,6 @@ namespace checkfrota_front
             Routing.RegisterRoute(nameof(ViagemFormPage), typeof(ViagemFormPage));
             Routing.RegisterRoute(nameof(AbastecimentoManagementPage), typeof(AbastecimentoManagementPage));
             Routing.RegisterRoute(nameof(AbastecimentoFormPage), typeof(AbastecimentoFormPage));
-            Routing.RegisterRoute(nameof(MotoristaViagemFormPage), typeof(MotoristaViagemFormPage));
             Routing.RegisterRoute(nameof(ConcluirViagemPage), typeof(ConcluirViagemPage));
             Routing.RegisterRoute(nameof(MeusAbastecimentosPage), typeof(MeusAbastecimentosPage));
             Routing.RegisterRoute(nameof(MotoristaAbastecimentoFormPage), typeof(MotoristaAbastecimentoFormPage));

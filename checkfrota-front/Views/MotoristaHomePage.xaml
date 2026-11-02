@@ -103,26 +103,14 @@
                            Opacity="0.7"
                            FontSize="13" />
 
-                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10" Margin="0,14,0,0">
-                        <Button Grid.Column="0"
-                                Text="Concluir viagem"
-                                Command="{Binding ConcluirViagemAtualCommand}"
-                                BackgroundColor="{DynamicResource Accent}"
-                                TextColor="White"
-                                FontAttributes="Bold"
-                                CornerRadius="10"
-                                HeightRequest="46" />
-                        <Button Grid.Column="1"
-                                Text="Editar"
-                                Command="{Binding EditarViagemAtualCommand}"
-                                BackgroundColor="Transparent"
-                                TextColor="White"
-                                BorderColor="White"
-                                BorderWidth="1"
-                                CornerRadius="10"
-                                HeightRequest="46"
-                                Padding="18,0" />
-                    </Grid>
+                    <Button Text="Concluir viagem"
+                            Command="{Binding ConcluirViagemAtualCommand}"
+                            BackgroundColor="{DynamicResource Accent}"
+                            TextColor="White"
+                            FontAttributes="Bold"
+                            CornerRadius="10"
+                            HeightRequest="46"
+                            Margin="0,14,0,0" />
 
                     <Button Text="Reportar problema na viagem"
                             Command="{Binding RegistrarOcorrenciaCommand}"
@@ -156,18 +144,10 @@
                            TextColor="White"
                            FontAttributes="Bold"
                            FontSize="18" />
-                    <Label Text="Ao sair para uma entrega, inicie a viagem e informe o km do hodômetro."
+                    <Label Text="Quando a gestão da frota atribuir uma viagem a você, ela aparece aqui."
                            TextColor="White"
                            Opacity="0.7"
                            FontSize="13" />
-                    <Button Text="Iniciar viagem"
-                            Command="{Binding IniciarViagemCommand}"
-                            BackgroundColor="{DynamicResource Accent}"
-                            TextColor="White"
-                            FontAttributes="Bold"
-                            CornerRadius="10"
-                            HeightRequest="46"
-                            Margin="0,14,0,0" />
                 </VerticalStackLayout>
             </Border>
 
@@ -176,53 +156,6 @@
                    FontAttributes="Bold"
                    FontSize="20"
                    Margin="0,8,0,0" />
-
-            <Border BackgroundColor="{DynamicResource CardBg}"
-                    Stroke="Transparent"
-                    StrokeShape="RoundRectangle 16"
-                    Padding="16"
-                    IsVisible="{Binding HasViagemAtual}">
-
-                <Border.GestureRecognizers>
-                    <TapGestureRecognizer Command="{Binding IniciarViagemCommand}" />
-                </Border.GestureRecognizers>
-
-                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
-
-                    <Border Grid.Column="0"
-                            WidthRequest="46"
-                            HeightRequest="46"
-                            StrokeShape="Ellipse"
-                            Stroke="Transparent"
-                            Padding="0"
-                            BackgroundColor="{DynamicResource AccentSoftBg}">
-                        <Label Text="{x:Static helpers:IconFont.Rota}"
-                               FontFamily="FontAwesomeSolid"
-                               TextColor="{DynamicResource Accent}"
-                               FontSize="18"
-                               HorizontalOptions="Center"
-                               VerticalOptions="Center" />
-                    </Border>
-
-                    <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
-                        <Label Text="Iniciar outra viagem"
-                               TextColor="{DynamicResource TextPrimary}"
-                               FontAttributes="Bold"
-                               FontSize="16" />
-                        <Label Text="Rota, veículo e km de saída"
-                               TextColor="{DynamicResource TextSecondary}"
-                               FontSize="13" />
-                    </VerticalStackLayout>
-
-                    <Label Grid.Column="2"
-                           Text="{x:Static helpers:IconFont.ChevronDireita}"
-                           FontFamily="FontAwesomeSolid"
-                           TextColor="{DynamicResource TextSecondary}"
-                           FontSize="14"
-                           VerticalOptions="Center" />
-
-                </Grid>
-            </Border>
 
             <Border BackgroundColor="{DynamicResource CardBg}"
                     Stroke="Transparent"

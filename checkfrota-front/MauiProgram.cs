@@ -134,8 +134,6 @@ namespace checkfrota_front
 
             builder.Services.AddTransient<MinhasViagensViewModel>();
             builder.Services.AddTransient<Views.MinhasViagensPage>();
-            builder.Services.AddTransient<MotoristaViagemFormViewModel>();
-            builder.Services.AddTransient<Views.MotoristaViagemFormPage>();
             builder.Services.AddTransient<ConcluirViagemViewModel>();
             builder.Services.AddTransient<Views.ConcluirViagemPage>();
             builder.Services.AddTransient<MeusAbastecimentosViewModel>();

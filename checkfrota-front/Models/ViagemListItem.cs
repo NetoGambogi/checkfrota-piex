@@ -13,11 +13,38 @@ namespace checkfrota_front.Models
         public int KmAproximado { get; set; }
     }
 
+    /// <summary>Motorista a quem a viagem foi atribuída pela gestão da frota.</summary>
+    public class MotoristaResumo
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+    }
+
+    /// <summary>Motorista disponível para atribuir uma viagem (GET /viagens/motoristas).</summary>
+    public class MotoristaOpcao
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+
+        /// <summary>Placa do veículo, quando o motorista já está numa viagem em andamento.</summary>
+        [JsonPropertyName("viagem_em_andamento")]
+        public string? ViagemEmAndamento { get; set; }
+
+        [JsonIgnore]
+        public string Rotulo => ViagemEmAndamento is null ? Name : $"{Name} (em viagem · {ViagemEmAndamento})";
+    }
+
+    public class MotoristaOpcaoListResponse
+    {
+        public List<MotoristaOpcao> Motoristas { get; set; } = new();
+    }
+
     public class ViagemListItem
     {
         public int Id { get; set; }
         public RotaResumo? Rota { get; set; }
         public VeiculoResumo? Veiculo { get; set; }
+        public MotoristaResumo? Motorista { get; set; }
 
         [JsonPropertyName("data_saida")]
         public string? DataSaida { get; set; }

@@ -20,12 +20,22 @@ public class ViagemService
         return response?.Viagens ?? new List<ViagemListItem>();
     }
 
+    /// <summary>Motoristas ativos para atribuir a viagem, indicando quem já está em viagem.</summary>
+    public async Task<List<MotoristaOpcao>> GetMotoristasAsync()
+    {
+        var client = await _apiAuth.GetAuthenticatedClientAsync();
+        var response = await client.GetFromJsonAsync<MotoristaOpcaoListResponse>("viagens/motoristas");
+        return response?.Motoristas ?? new List<MotoristaOpcao>();
+    }
+
     /// <summary>
-    /// Cria (id nulo) ou atualiza a viagem. Com <paramref name="valorFrete"/> informado, a API lança
+    /// Inicia (id nulo) ou atualiza a viagem atribuída a <paramref name="motoristaId"/>, que é avisado.
+    ///  Com <paramref name="valorFrete"/> informado, a API lança
     /// (ou sincroniza) a receita no financeiro; sem ele, a receita pendente existente é excluída.
     /// </summary>
     public async Task<ApiSaveResult<ViagemListItem>> SaveAsync(
         int? id,
+        int motoristaId,
         int rotaId,
         int veiculoId,
         DateTime dataSaida,
@@ -40,6 +50,7 @@ public class ViagemService
         var client = await _apiAuth.GetAuthenticatedClientAsync();
         var payload = new
         {
+            motorista_id = motoristaId,
             rota_id = rotaId,
             veiculo_id = veiculoId,
             data_saida = dataSaida.ToString("yyyy-MM-dd"),

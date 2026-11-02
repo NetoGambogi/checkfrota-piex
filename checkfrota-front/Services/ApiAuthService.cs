@@ -48,6 +48,10 @@ public class ApiAuthService
 
     private const string PreferenciaUltimoUso = "sessao_ultimo_uso";
 
+    // Role também fora do SecureStorage (que é assíncrono) para escolher a tela inicial já ao
+    // criar a janela, sem passar pelo login. Não é segredo: o acesso continua dependendo do token.
+    private const string PreferenciaRole = "sessao_role";
+
     private static readonly string[] ChavesSessao =
         ["auth_token", "user_role", "user_name", "user_avatar", "user_created_at"];
 
@@ -104,6 +108,8 @@ public class ApiAuthService
         await SecureStorage.SetAsync("user_avatar", login.User.Avatar ?? string.Empty);
         await SecureStorage.SetAsync("user_created_at", login.User.CreatedAt ?? string.Empty);
 
+        Preferences.Set(PreferenciaRole, login.User.Role);
+
         SessaoExpiradaHandler.Rearmar();
         RegistrarUso();
     }
@@ -116,13 +122,14 @@ public class ApiAuthService
         DateTime.UtcNow - Preferences.Get(PreferenciaUltimoUso, DateTime.MinValue) > TimeSpan.FromDays(DiasInatividade);
 
     /// <summary>
-    /// Sessão salva ao abrir o app: devolve a role para entrar direto, ou null se é preciso fazer
-    /// login (sem sessão, inativo há mais de <see cref="DiasInatividade"/> dias ou token recusado
-    /// pela API). Sem rede, confia na sessão salva para o motorista seguir usando o app offline.
+    /// Role da sessão salva, para o app abrir direto na tela dela; null se é preciso fazer login
+    /// (sem sessão ou inativo há mais de <see cref="DiasInatividade"/> dias). Não consulta a API:
+    /// isso fica com <see cref="ValidarSessaoAsync"/>, já com a tela inicial aberta.
     /// </summary>
-    public async Task<string?> RestaurarSessaoAsync()
+    public static string? RoleDaSessaoSalva()
     {
-        if (string.IsNullOrEmpty(await GetTokenAsync())) return null;
+        var role = Preferences.Get(PreferenciaRole, null);
+        if (role is null) return null;
 
         if (InatividadeExcedida())
         {
@@ -130,11 +137,20 @@ public class ApiAuthService
             return null;
         }
 
+        return role;
+    }
+
+    /// <summary>
+    /// Confere o token na API e atualiza os dados do usuário (ex: cadastro pendente aprovado
+    /// enquanto o app estava fechado). Devolve a role atual, ou null se a API recusou o token.
+    /// Sem rede, confia na sessão salva para o motorista seguir usando o app offline.
+    /// </summary>
+    public async Task<string?> ValidarSessaoAsync()
+    {
         if (Connectivity.Current.NetworkAccess == NetworkAccess.Internet)
         {
             try
             {
-                // Atualiza a role (ex: cadastro pendente aprovado enquanto o app estava fechado).
                 using var tempoLimite = new CancellationTokenSource(TimeSpan.FromSeconds(10));
                 var client = await GetAuthenticatedClientAsync();
                 var resposta = await client.GetAsync("me", tempoLimite.Token);
@@ -148,6 +164,7 @@ public class ApiAuthService
                 if (resposta.IsSuccessStatusCode && await resposta.Content.ReadFromJsonAsync<UserModel>() is { } usuario)
                 {
                     await SecureStorage.SetAsync("user_role", usuario.Role);
+                    Preferences.Set(PreferenciaRole, usuario.Role);
                     await SecureStorage.SetAsync("user_name", usuario.Name);
                     await SecureStorage.SetAsync("user_avatar", usuario.Avatar ?? string.Empty);
                 }
@@ -159,7 +176,6 @@ public class ApiAuthService
             }
         }
 
-        RegistrarUso();
         return await GetRoleAsync();
     }
 
@@ -171,6 +187,8 @@ public class ApiAuthService
     {
         foreach (var chave in ChavesSessao)
             SecureStorage.Remove(chave);
+
+        Preferences.Remove(PreferenciaRole);
     }
 
     public async Task<string?> GetTokenAsync() => await SecureStorage.GetAsync("auth_token");

@@ -30,7 +30,7 @@ function viagemEmAndamento(User $motorista): Viagem
     $veiculo = Veiculo::factory()->create(['km_atual' => 50000]);
 
     return Viagem::factory()->create([
-        'user_id' => $motorista->id,
+        'motorista_id' => $motorista->id,
         'veiculo_id' => $veiculo->id,
         'km_saida' => 50000,
     ]);
@@ -115,7 +115,7 @@ test('km da ocorrencia nao pode ser menor que o km de saida da viagem', function
 test('km da ocorrencia nao pode passar do km de chegada da viagem concluida', function () {
     $motorista = User::factory()->create(['role' => 'motorista']);
     $viagem = Viagem::factory()->concluida()->create([
-        'user_id' => $motorista->id,
+        'motorista_id' => $motorista->id,
         'km_saida' => 50000,
         'km_chegada' => 50400,
     ]);

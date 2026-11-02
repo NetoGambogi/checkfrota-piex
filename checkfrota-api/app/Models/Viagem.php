@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Arr;
 
-#[Fillable(['rota_id', 'veiculo_id', 'data_saida', 'data_chegada', 'km_saida', 'km_chegada', 'cliente', 'valor_frete', 'observacoes', 'movimentacao_financeira_id', 'user_id'])]
+#[Fillable(['rota_id', 'veiculo_id', 'data_saida', 'data_chegada', 'km_saida', 'km_chegada', 'cliente', 'valor_frete', 'observacoes', 'movimentacao_financeira_id', 'user_id', 'motorista_id'])]
 class Viagem extends Model
 {
     /** @use HasFactory<ViagemFactory> */
@@ -68,9 +68,20 @@ class Viagem extends Model
         return $this->hasMany(OcorrenciaViagem::class);
     }
 
+    /**
+     * Quem registrou a viagem (gestão da frota).
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Motorista a quem a viagem foi atribuída: é ele quem a vê e conclui no app.
+     */
+    public function motorista(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'motorista_id')->withTrashed();
     }
 
     public function descricaoFinanceira(): string
@@ -120,6 +131,9 @@ class Viagem extends Model
                 : null,
             'veiculo' => $this->relationLoaded('veiculo') && $this->veiculo
                 ? $this->veiculo->only('id', 'placa', 'marca', 'modelo')
+                : null,
+            'motorista' => $this->relationLoaded('motorista') && $this->motorista
+                ? $this->motorista->only('id', 'name')
                 : null,
             'data_saida' => $this->data_saida?->toDateString(),
             'data_chegada' => $this->data_chegada?->toDateString(),

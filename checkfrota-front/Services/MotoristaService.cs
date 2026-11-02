@@ -16,6 +16,14 @@ public class MotoristaService
     // Quanto o formulário espera pelo envio antes de deixar o registro na fila.
     private static readonly TimeSpan LimiteEnvioImediato = TimeSpan.FromSeconds(20);
 
+    // Com sinal fraco o aparelho diz que tem internet, mas a resposta não chega: passado esse
+    // tempo, a consulta usa o que está salvo no aparelho em vez de esperar os 100s do HttpClient.
+    private static readonly TimeSpan LimiteConsulta = TimeSpan.FromSeconds(12);
+
+    // Intervalo mínimo entre dois pré-carregamentos do que o motorista usa offline.
+    private static readonly TimeSpan IntervaloPreCarregamento = TimeSpan.FromMinutes(10);
+    private static DateTime _ultimoPreCarregamento = DateTime.MinValue;
+
     private readonly ApiAuthService _apiAuth;
     private readonly CacheLocal _cache;
     private readonly FilaOffline _fila;
@@ -33,13 +41,14 @@ public class MotoristaService
     /// Consulta a API e guarda a resposta; sem rede, devolve a última resposta guardada (ou lança
     /// o erro, se nunca houve uma).
     /// </summary>
-    private async Task<T> ConsultarAsync<T>(string chave, Func<HttpClient, Task<T>> consulta)
+    private async Task<T> ConsultarAsync<T>(string chave, Func<HttpClient, CancellationToken, Task<T>> consulta)
     {
         if (Connectivity.Current.NetworkAccess == NetworkAccess.Internet)
         {
             try
             {
-                var resposta = await consulta(await _apiAuth.GetAuthenticatedClientAsync());
+                using var tempoLimite = new CancellationTokenSource(LimiteConsulta);
+                var resposta = await consulta(await _apiAuth.GetAuthenticatedClientAsync(), tempoLimite.Token);
                 await _cache.SalvarAsync(chave, resposta);
                 return resposta;
             }
@@ -53,54 +62,49 @@ public class MotoristaService
             ?? throw new HttpRequestException("Sem conexão e sem dados salvos no aparelho.");
     }
 
-    /// <summary>Rotas ativas para escolher ao iniciar uma viagem.</summary>
-    public async Task<List<RotaListItem>> GetRotasAsync()
+    /// <summary>
+    /// Baixa e guarda no aparelho o que os formulários do motorista precisam (veículos),
+    /// para eles funcionarem sem rede mesmo que nunca tenham sido abertos com internet. Roda em
+    /// segundo plano ao abrir o início; falhas são ignoradas, a tela segue com o que já tem.
+    /// </summary>
+    public async Task PreCarregarAsync()
     {
-        return await ConsultarAsync("motorista-rotas", async client =>
-            (await client.GetFromJsonAsync<RotaListResponse>("motorista/rotas"))?.Rotas ?? new List<RotaListItem>());
+        if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet
+            || DateTime.UtcNow - _ultimoPreCarregamento < IntervaloPreCarregamento)
+        {
+            return;
+        }
+
+        _ultimoPreCarregamento = DateTime.UtcNow;
+
+        try
+        {
+            await GetVeiculosAsync();
+        }
+        catch (Exception ex)
+        {
+            // Sem rede de verdade: tenta de novo na próxima abertura.
+            _ultimoPreCarregamento = DateTime.MinValue;
+            System.Diagnostics.Debug.WriteLine(ex);
+        }
     }
 
     /// <summary>Veículos ativos, com o km atual como referência para o hodômetro.</summary>
     public async Task<List<VeiculoListItem>> GetVeiculosAsync()
     {
-        return await ConsultarAsync("motorista-veiculos", async client =>
-            (await client.GetFromJsonAsync<VeiculoListResponse>("motorista/veiculos"))?.Veiculos ?? new List<VeiculoListItem>());
+        return await ConsultarAsync("motorista-veiculos", async (client, cancelamento) =>
+            (await client.GetFromJsonAsync<VeiculoListResponse>("motorista/veiculos", cancelamento))?.Veiculos ?? new List<VeiculoListItem>());
     }
 
-    /// <summary>Página de viagens do motorista; <paramref name="status"/> é "em_andamento" ou "concluida".</summary>
+    /// <summary>
+    /// Página das viagens atribuídas ao motorista pela gestão da frota; <paramref name="status"/> é
+    /// "em_andamento" ou "concluida".
+    /// </summary>
     public async Task<ViagemPaginadaResponse> GetViagensAsync(string status, int pagina = 1, int porPagina = 15)
     {
-        return await ConsultarAsync($"motorista-viagens-{status}-{pagina}-{porPagina}", async client =>
+        return await ConsultarAsync($"motorista-viagens-{status}-{pagina}-{porPagina}", async (client, cancelamento) =>
             await client.GetFromJsonAsync<ViagemPaginadaResponse>(
-                $"motorista/viagens?status={status}&page={pagina}&por_pagina={porPagina}") ?? new ViagemPaginadaResponse());
-    }
-
-    /// <summary>Inicia (id nulo) ou edita uma viagem em andamento.</summary>
-    public async Task<ApiSaveResult<ViagemListItem>> SaveViagemAsync(
-        int? id,
-        int rotaId,
-        int veiculoId,
-        DateTime dataSaida,
-        int? kmSaida,
-        string? cliente,
-        string? observacoes)
-    {
-        var client = await _apiAuth.GetAuthenticatedClientAsync();
-        var payload = new
-        {
-            rota_id = rotaId,
-            veiculo_id = veiculoId,
-            data_saida = dataSaida.ToString("yyyy-MM-dd"),
-            km_saida = kmSaida,
-            cliente,
-            observacoes,
-        };
-
-        var response = id is int viagemId
-            ? await client.PutAsJsonAsync($"motorista/viagens/{viagemId}", payload)
-            : await client.PostAsJsonAsync("motorista/viagens", payload);
-
-        return await ApiSaveResult<ViagemListItem>.FromResponseAsync<ViagemResponse>(response, r => r.Viagem);
+                $"motorista/viagens?status={status}&page={pagina}&por_pagina={porPagina}", cancelamento) ?? new ViagemPaginadaResponse());
     }
 
     /// <summary>Registra a chegada da viagem e, opcionalmente, o km final.</summary>
@@ -117,17 +121,10 @@ public class MotoristaService
         return await ApiSaveResult<ViagemListItem>.FromResponseAsync<ViagemResponse>(response, r => r.Viagem);
     }
 
-    public async Task<bool> DeleteViagemAsync(int id)
-    {
-        var client = await _apiAuth.GetAuthenticatedClientAsync();
-        var response = await client.DeleteAsync($"motorista/viagens/{id}");
-        return response.IsSuccessStatusCode;
-    }
-
     public async Task<List<AbastecimentoListItem>> GetAbastecimentosAsync()
     {
-        return await ConsultarAsync(CacheAbastecimentos, async client =>
-            (await client.GetFromJsonAsync<AbastecimentoListResponse>("motorista/abastecimentos"))?.Abastecimentos
+        return await ConsultarAsync(CacheAbastecimentos, async (client, cancelamento) =>
+            (await client.GetFromJsonAsync<AbastecimentoListResponse>("motorista/abastecimentos", cancelamento))?.Abastecimentos
                 ?? new List<AbastecimentoListItem>());
     }
 
@@ -213,8 +210,8 @@ public class MotoristaService
     /// <summary>Ocorrências relatadas pelo motorista, com o status do tratamento pela frota.</summary>
     public async Task<List<OcorrenciaItem>> GetOcorrenciasAsync()
     {
-        return await ConsultarAsync("motorista-ocorrencias", async client =>
-            (await client.GetFromJsonAsync<OcorrenciaListResponse>("motorista/ocorrencias"))?.Ocorrencias
+        return await ConsultarAsync("motorista-ocorrencias", async (client, cancelamento) =>
+            (await client.GetFromJsonAsync<OcorrenciaListResponse>("motorista/ocorrencias", cancelamento))?.Ocorrencias
                 ?? new List<OcorrenciaItem>());
     }
 

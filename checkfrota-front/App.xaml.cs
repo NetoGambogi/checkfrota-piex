@@ -21,7 +21,23 @@ namespace checkfrota_front
 
         protected override Window CreateWindow(IActivationState? activationState)
         {
-            var window = new Window(new AppShell());
+            // Sessão salva e dentro do prazo de inatividade: abre direto na tela inicial da role.
+            var role = ApiAuthService.RoleDaSessaoSalva();
+            var shell = new AppShell(role);
+            var window = new Window(shell);
+
+            if (role is not null)
+            {
+                ApiAuthService.RegistrarUso();
+
+                void AoCarregar(object? sender, EventArgs e)
+                {
+                    shell.Loaded -= AoCarregar;
+                    _ = ContinuarSessaoAsync(role);
+                }
+
+                shell.Loaded += AoCarregar;
+            }
 
             var sincronizacao = IPlatformApplication.Current?.Services.GetService<SincronizacaoService>();
             sincronizacao?.Iniciar();
@@ -54,6 +70,40 @@ namespace checkfrota_front
             };
 
             return window;
+        }
+
+        /// <summary>
+        /// Com a tela inicial já aberta, confere o token na API: recusado, volta ao login; role
+        /// alterada (ex: cadastro aprovado), troca de tela. Depois segue como após um login.
+        /// </summary>
+        private static async Task ContinuarSessaoAsync(string role)
+        {
+            try
+            {
+                var services = IPlatformApplication.Current!.Services;
+                var apiAuth = services.GetRequiredService<ApiAuthService>();
+                var notificacoes = services.GetRequiredService<NotificacaoService>();
+
+                var roleAtual = await apiAuth.ValidarSessaoAsync();
+                if (roleAtual is null)
+                {
+                    await Shell.Current.GoToAsync("//login");
+                    return;
+                }
+
+                if (roleAtual != role)
+                    await Shell.Current.GoToAsync($"//{roleAtual}");
+
+                // Em segundo plano para não segurar a tela (pode abrir o pedido de permissão).
+                _ = notificacoes.RegistrarDispositivoAsync();
+
+                // Se o app foi aberto pelo toque numa notificação, leva para a tela dela.
+                await notificacoes.AbrirToquePendenteAsync();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex);
+            }
         }
 
         // Troca a paleta (LightTheme/DarkTheme) seguindo o tema do sistema. As telas usam

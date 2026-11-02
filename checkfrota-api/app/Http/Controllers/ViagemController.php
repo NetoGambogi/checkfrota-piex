@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\Veiculo;
 use App\Models\Viagem;
 use App\Notifications\NotificacaoApp;
+use App\Notifications\ViagemAtribuida;
 use App\Notifications\ViagemConcluida;
 use App\Notifications\ViagemIniciada;
 use Illuminate\Http\JsonResponse;
@@ -26,9 +27,9 @@ class ViagemController extends Controller
 
     private const STATUSES = ['em_andamento', 'concluida'];
 
-    private const CAMPOS_VIAGEM = ['rota_id', 'veiculo_id', 'data_saida', 'data_chegada', 'km_saida', 'km_chegada', 'cliente', 'valor_frete', 'observacoes'];
+    private const CAMPOS_VIAGEM = ['motorista_id', 'rota_id', 'veiculo_id', 'data_saida', 'data_chegada', 'km_saida', 'km_chegada', 'cliente', 'valor_frete', 'observacoes'];
 
-    private const RELACOES = ['rota', 'veiculo', 'movimentacaoFinanceira.categoriaFinanceira', 'movimentacaoFinanceira.formaPagamento'];
+    private const RELACOES = ['rota', 'veiculo', 'motorista', 'movimentacaoFinanceira.categoriaFinanceira', 'movimentacaoFinanceira.formaPagamento'];
 
     public function index(Request $request): JsonResponse
     {
@@ -51,6 +52,10 @@ class ViagemController extends Controller
             ->when(
                 $request->filled('veiculo_id'),
                 fn ($query) => $query->where('veiculo_id', $request->integer('veiculo_id')),
+            )
+            ->when(
+                $request->filled('motorista_id'),
+                fn ($query) => $query->where('motorista_id', $request->integer('motorista_id')),
             )
             ->when(
                 $request->filled('rota_id'),
@@ -82,7 +87,31 @@ class ViagemController extends Controller
     }
 
     /**
-     * Registra a viagem e, se o valor do frete for informado, lança a receita no financeiro.
+     * Motoristas ativos para a gestão escolher a quem atribuir a viagem. Quem já está numa viagem em
+     * andamento traz a placa do veículo em "viagem_em_andamento", para evitar escala dupla.
+     */
+    public function motoristas(): JsonResponse
+    {
+        $motoristas = User::query()->where('role', 'motorista')->orderBy('name')->get();
+
+        $emAndamento = Viagem::emAndamento()
+            ->whereIn('motorista_id', $motoristas->modelKeys())
+            ->with('veiculo')
+            ->get()
+            ->keyBy('motorista_id');
+
+        return response()->json([
+            'motoristas' => $motoristas->map(fn (User $motorista) => [
+                'id' => $motorista->id,
+                'name' => $motorista->name,
+                'viagem_em_andamento' => $emAndamento->get($motorista->id)?->veiculo?->placa,
+            ]),
+        ]);
+    }
+
+    /**
+     * Inicia a viagem atribuindo-a a um motorista (que é avisado) e, se o valor do frete for
+     * informado, lança a receita no financeiro.
      */
     public function store(Request $request): JsonResponse
     {
@@ -93,6 +122,10 @@ class ViagemController extends Controller
         }
 
         $viagem = DB::transaction(function () use ($validated, $request) {
+            if (! isset($validated['data_chegada'])) {
+                $this->garantirVeiculoLivre((int) $validated['veiculo_id']);
+            }
+
             $viagem = Viagem::create([
                 ...Arr::only($validated, self::CAMPOS_VIAGEM),
                 'user_id' => $request->user()->id,
@@ -102,13 +135,17 @@ class ViagemController extends Controller
                 $viagem->lancarMovimentacaoFinanceira($this->dadosFinanceiros($validated, $this->dataReferencia($validated)));
             }
 
-            Veiculo::registrarLeituraKm($viagem->veiculo_id, $viagem->km_chegada);
+            Veiculo::registrarLeituraKm($viagem->veiculo_id, $viagem->km_chegada ?? $viagem->km_saida);
 
             return $viagem;
         });
 
         $viagem->load(self::RELACOES);
         $this->notificarFrota($viagem->data_chegada ? new ViagemConcluida($viagem) : new ViagemIniciada($viagem), $request->user());
+
+        if ($viagem->data_chegada === null) {
+            $this->notificarMotorista($viagem, $request->user());
+        }
 
         if ($viagem->possuiMovimentacaoAtiva()) {
             $this->notificarFinanceiro($viagem->movimentacaoFinanceira, $request->user());
@@ -128,6 +165,7 @@ class ViagemController extends Controller
         $validated = $this->validar($request);
         $possuiReceita = $viagem->possuiMovimentacaoAtiva();
         $estavaEmAndamento = $viagem->data_chegada === null;
+        $motoristaAnterior = $viagem->motorista_id;
 
         if (isset($validated['valor_frete'])) {
             // O status só vale ao criar a receita; depois, o recebimento é registrado pelo financeiro.
@@ -139,6 +177,10 @@ class ViagemController extends Controller
         }
 
         DB::transaction(function () use ($validated, $viagem, $possuiReceita) {
+            if (! isset($validated['data_chegada'])) {
+                $this->garantirVeiculoLivre((int) $validated['veiculo_id'], $viagem);
+            }
+
             $viagem->update(Arr::only($validated, self::CAMPOS_VIAGEM));
             $viagem->load(['rota', 'veiculo']);
 
@@ -155,13 +197,17 @@ class ViagemController extends Controller
                 $viagem->movimentacaoFinanceira()->dissociate()->save();
             }
 
-            Veiculo::registrarLeituraKm($viagem->veiculo_id, $viagem->km_chegada);
+            Veiculo::registrarLeituraKm($viagem->veiculo_id, $viagem->km_chegada ?? $viagem->km_saida);
         });
 
         $viagem->load(self::RELACOES);
 
         if ($estavaEmAndamento && $viagem->data_chegada) {
             $this->notificarFrota(new ViagemConcluida($viagem), $request->user());
+        }
+
+        if ($viagem->data_chegada === null && $viagem->motorista_id !== $motoristaAnterior) {
+            $this->notificarMotorista($viagem, $request->user());
         }
 
         if (! $possuiReceita && $viagem->possuiMovimentacaoAtiva()) {
@@ -204,6 +250,7 @@ class ViagemController extends Controller
     private function validar(Request $request): array
     {
         $validated = $request->validate([
+            'motorista_id' => ['required', 'integer', Rule::exists('users', 'id')->where('role', 'motorista')->whereNull('deleted_at')],
             'rota_id' => ['required', 'integer', Rule::exists('rotas', 'id')->whereNull('deleted_at')],
             'veiculo_id' => ['required', 'integer', Rule::exists('veiculos', 'id')->whereNull('deleted_at')],
             'data_saida' => ['required', 'date'],
@@ -217,6 +264,8 @@ class ViagemController extends Controller
         ], [
             'data_chegada.after_or_equal' => 'A data de chegada não pode ser anterior à data de saída.',
             'categoria_financeira_id.required_with' => 'Selecione a categoria de receita para lançar o frete.',
+            'motorista_id.required' => 'Selecione o motorista da viagem.',
+            'motorista_id.exists' => 'Selecione um motorista ativo.',
         ]);
 
         if (isset($validated['km_saida'], $validated['km_chegada']) && $validated['km_chegada'] < $validated['km_saida']) {
@@ -226,6 +275,41 @@ class ViagemController extends Controller
         }
 
         return $validated;
+    }
+
+    /**
+     * Um veículo só pode estar em uma viagem em andamento por vez. O lock na linha do veículo
+     * serializa duas viagens sendo iniciadas com ele ao mesmo tempo.
+     */
+    private function garantirVeiculoLivre(int $veiculoId, ?Viagem $ignorar = null): void
+    {
+        $veiculo = Veiculo::whereKey($veiculoId)->lockForUpdate()->first();
+
+        $emUso = Viagem::emAndamento()
+            ->where('veiculo_id', $veiculoId)
+            ->when($ignorar, fn ($query) => $query->whereKeyNot($ignorar->id))
+            ->with('motorista')
+            ->first();
+
+        if ($emUso === null) {
+            return;
+        }
+
+        $com = $emUso->motorista ? " com {$emUso->motorista->name}" : '';
+
+        throw ValidationException::withMessages([
+            'veiculo_id' => "O veículo {$veiculo->placa} está em uma viagem em andamento{$com} desde {$emUso->data_saida->format('d/m/Y')}. Conclua-a antes de iniciar outra.",
+        ]);
+    }
+
+    /**
+     * Avisa o motorista de que uma viagem foi atribuída a ele.
+     */
+    private function notificarMotorista(Viagem $viagem, User $autor): void
+    {
+        if ($viagem->motorista && ! $viagem->motorista->is($autor)) {
+            $viagem->motorista->notify(new ViagemAtribuida($viagem));
+        }
     }
 
     /**

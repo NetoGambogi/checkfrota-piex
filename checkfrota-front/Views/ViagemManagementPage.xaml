@@ -101,6 +101,11 @@
                                                TextColor="{DynamicResource TextSecondary}"
                                                FontSize="13"
                                                LineBreakMode="TailTruncation" />
+                                        <Label Text="{Binding MotoristaNome, StringFormat='Motorista: {0}'}"
+                                               IsVisible="{Binding HasMotorista}"
+                                               TextColor="{DynamicResource TextSecondary}"
+                                               FontSize="12"
+                                               LineBreakMode="TailTruncation" />
                                         <Label Text="{Binding PeriodoLabel}"
                                                TextColor="{DynamicResource TextSecondary}"
                                                FontSize="12" />

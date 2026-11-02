@@ -25,32 +25,6 @@ public partial class LoginViewModel : ObservableObject
         _sincronizacao = sincronizacao;
     }
 
-    /// <summary>Ao abrir o app, entra direto com a sessão salva (até 7 dias sem uso).</summary>
-    [RelayCommand]
-    private async Task AppearingAsync()
-    {
-        if (IsBusy) return;
-
-        try
-        {
-            IsBusy = true;
-
-            var role = await _apiAuth.RestaurarSessaoAsync();
-            if (role is not null)
-            {
-                await EntrarAsync(role);
-            }
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine(ex);
-        }
-        finally
-        {
-            IsBusy = false;
-        }
-    }
-
     [RelayCommand]
     private async Task LoginAsync()
     {

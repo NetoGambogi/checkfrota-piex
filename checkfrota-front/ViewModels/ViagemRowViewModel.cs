@@ -17,12 +17,16 @@ public class ViagemRowViewModel
     public string KmLabel { get; }
     public bool EmAndamento { get; }
 
+    /// <summary>Motorista a quem a viagem foi atribuída; vazio em viagens antigas sem motorista.</summary>
+    public string MotoristaNome { get; }
+    public bool HasMotorista => !string.IsNullOrEmpty(MotoristaNome);
+
     public bool HasFrete { get; }
     public string FreteFormatado { get; }
     public bool IsRecebido { get; }
     public string FreteStatusLabel => IsRecebido ? "Recebido" : "A receber";
 
-    /// <summary>Texto usado na busca local: rota, trajeto, placa e cliente.</summary>
+    /// <summary>Texto usado na busca local: rota, trajeto, placa, cliente e motorista.</summary>
     public string TextoBusca { get; }
 
     public ViagemRowViewModel(ViagemListItem item)
@@ -31,6 +35,8 @@ public class ViagemRowViewModel
         Id = item.Id;
         RotaNome = item.Rota?.Nome ?? "Rota";
         Trajeto = item.Rota is { } rota ? $"{rota.Origem} → {rota.Destino}" : string.Empty;
+
+        MotoristaNome = item.Motorista?.Name ?? string.Empty;
 
         var placa = item.Veiculo?.Placa ?? "-";
         Subtitulo = string.IsNullOrWhiteSpace(item.Cliente) ? placa : $"{placa} · {item.Cliente}";
@@ -49,7 +55,7 @@ public class ViagemRowViewModel
         FreteFormatado = item.ValorFrete?.ToString("C2", PtBr) ?? string.Empty;
         IsRecebido = item.Financeiro?.IsPago == true;
 
-        TextoBusca = $"{item.Rota?.Nome} {item.Rota?.Origem} {item.Rota?.Destino} {placa} {item.Cliente}";
+        TextoBusca = $"{item.Rota?.Nome} {item.Rota?.Origem} {item.Rota?.Destino} {placa} {item.Cliente} {MotoristaNome}";
     }
 
     private static string FormatarData(string? data) =>

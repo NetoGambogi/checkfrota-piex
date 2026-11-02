@@ -47,15 +47,13 @@ Route::middleware(['auth:sanctum', 'renovar.token'])->group(function () {
     });
 
     Route::middleware('role:motorista')->prefix('motorista')->group(function () {
-        // Leitura das listas que o motorista precisa para escolher ao iniciar uma viagem.
-        Route::get('/rotas', [MotoristaCatalogoController::class, 'rotas']);
+        // Veículos para o motorista escolher ao registrar um abastecimento.
         Route::get('/veiculos', [MotoristaCatalogoController::class, 'veiculos']);
 
+        // As viagens são iniciadas e atribuídas pela gestão da frota: o motorista vê as suas
+        // (atual e histórico) e registra a chegada.
         Route::get('/viagens', [MotoristaViagemController::class, 'index']);
-        Route::post('/viagens', [MotoristaViagemController::class, 'store']);
-        Route::put('/viagens/{viagem}', [MotoristaViagemController::class, 'update']);
         Route::patch('/viagens/{viagem}/concluir', [MotoristaViagemController::class, 'concluir']);
-        Route::delete('/viagens/{viagem}', [MotoristaViagemController::class, 'destroy']);
 
         Route::get('/abastecimentos', [MotoristaAbastecimentoController::class, 'index']);
         Route::post('/abastecimentos', [MotoristaAbastecimentoController::class, 'store']);
@@ -90,6 +88,7 @@ Route::middleware(['auth:sanctum', 'renovar.token'])->group(function () {
 
     Route::middleware('role:admin,frota')->prefix('viagens')->group(function () {
         Route::get('/', [ViagemController::class, 'index']);
+        Route::get('/motoristas', [ViagemController::class, 'motoristas']);
         Route::post('/', [ViagemController::class, 'store']);
         Route::put('/{viagem}', [ViagemController::class, 'update']);
         Route::delete('/{viagem}', [ViagemController::class, 'destroy']);

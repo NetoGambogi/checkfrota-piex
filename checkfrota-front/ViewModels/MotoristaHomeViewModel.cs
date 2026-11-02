@@ -64,6 +64,9 @@ public partial class MotoristaHomeViewModel : AdminSectionViewModelBase
 
         await LoadAvatarAsync();
         await LoadViagemAtualAsync();
+
+        // Deixa os veículos salvos para o abastecimento funcionar sem rede.
+        _ = _motoristaService.PreCarregarAsync();
     }
 
     private async Task LoadViagemAtualAsync()
@@ -98,25 +101,11 @@ public partial class MotoristaHomeViewModel : AdminSectionViewModelBase
     }
 
     [RelayCommand]
-    private Task IniciarViagemAsync() => Shell.Current.GoToAsync(nameof(MotoristaViagemFormPage));
-
-    [RelayCommand]
     private async Task ConcluirViagemAtualAsync()
     {
         if (ViagemAtual is null) return;
 
         await Shell.Current.GoToAsync(nameof(ConcluirViagemPage), new Dictionary<string, object>
-        {
-            ["viagem"] = ViagemAtual.Original,
-        });
-    }
-
-    [RelayCommand]
-    private async Task EditarViagemAtualAsync()
-    {
-        if (ViagemAtual is null) return;
-
-        await Shell.Current.GoToAsync(nameof(MotoristaViagemFormPage), new Dictionary<string, object>
         {
             ["viagem"] = ViagemAtual.Original,
         });

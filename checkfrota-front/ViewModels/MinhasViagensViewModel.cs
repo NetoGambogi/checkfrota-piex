@@ -171,12 +171,10 @@ public partial class MinhasViagensViewModel : AdminSectionViewModelBase
         }
     }
 
-    [RelayCommand]
-    private Task IniciarViagemAsync() => Shell.Current.GoToAsync(nameof(MotoristaViagemFormPage));
-
     /// <summary>
-    /// Viagem em andamento: concluir, editar ou relatar um problema. Concluída: os detalhes e a
-    /// opção de relatar um problema percebido no trajeto; correções nos dados ficam com a frota.
+    /// As viagens são iniciadas e atribuídas pela gestão da frota. Em andamento: concluir ou relatar
+    /// um problema. Concluída: os detalhes e a opção de relatar um problema percebido no trajeto;
+    /// correções nos dados ficam com a frota.
     /// </summary>
     [RelayCommand]
     private async Task AbrirViagemAsync(ViagemRowViewModel? row)
@@ -184,13 +182,12 @@ public partial class MinhasViagensViewModel : AdminSectionViewModelBase
         if (row is null) return;
 
         const string concluir = "Concluir viagem";
-        const string editar = "Editar viagem";
         const string ocorrencia = "Registrar ocorrência";
 
         string? escolha;
         if (row.EmAndamento)
         {
-            escolha = await Shell.Current.DisplayActionSheetAsync(row.RotaNome, "Cancelar", null, concluir, editar, ocorrencia);
+            escolha = await Shell.Current.DisplayActionSheetAsync(row.RotaNome, "Cancelar", null, concluir, ocorrencia);
         }
         else
         {
@@ -203,7 +200,6 @@ public partial class MinhasViagensViewModel : AdminSectionViewModelBase
         var rota = escolha switch
         {
             concluir => nameof(ConcluirViagemPage),
-            editar => nameof(MotoristaViagemFormPage),
             ocorrencia => nameof(MotoristaOcorrenciaFormPage),
             _ => null,
         };

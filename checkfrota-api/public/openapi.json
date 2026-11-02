@@ -2736,41 +2736,6 @@
         }
       }
     },
-    "/motorista/rotas": {
-      "get": {
-        "tags": [
-          "Motorista"
-        ],
-        "summary": "Rotas para iniciar viagem",
-        "description": "Rotas ativas, só com os campos de identificação.\n\n**Roles:** motorista.",
-        "responses": {
-          "200": {
-            "description": "Sucesso.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "rotas": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/RotaResumo"
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "$ref": "#/components/responses/NaoAutenticado"
-          },
-          "403": {
-            "$ref": "#/components/responses/SemPermissao"
-          }
-        }
-      }
-    },
     "/motorista/veiculos": {
       "get": {
         "tags": [
@@ -2812,7 +2777,7 @@
           "Motorista"
         ],
         "summary": "Minhas viagens",
-        "description": "Viagens do próprio motorista, paginadas, das mais recentes para as mais antigas.\n\n**Roles:** motorista.",
+        "description": "Viagens atribuídas ao motorista pela gestão da frota (atual e histórico), paginadas, das mais recentes para as mais antigas.\n\n**Roles:** motorista.",
         "responses": {
           "200": {
             "description": "Sucesso.",
@@ -2872,217 +2837,6 @@
               "minimum": 1,
               "maximum": 100
             }
-          }
-        ]
-      },
-      "post": {
-        "tags": [
-          "Motorista"
-        ],
-        "summary": "Iniciar viagem",
-        "description": "Registra a saída e, opcionalmente, o km do hodômetro. Recusa (422 em `veiculo_id`) se o veículo já\nestiver numa viagem em andamento, de qualquer motorista. Atualiza o km atual do veículo e notifica\nadmin e frota. Não lança frete: a receita é lançada pela frota.\n\n**Roles:** motorista.",
-        "responses": {
-          "201": {
-            "description": "Criada.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "viagem": {
-                      "$ref": "#/components/schemas/ViagemMotorista"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "$ref": "#/components/responses/NaoAutenticado"
-          },
-          "403": {
-            "$ref": "#/components/responses/SemPermissao"
-          },
-          "422": {
-            "$ref": "#/components/responses/Validacao"
-          }
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "rota_id": {
-                    "type": "integer"
-                  },
-                  "veiculo_id": {
-                    "type": "integer",
-                    "description": "O veículo não pode estar em outra viagem em andamento."
-                  },
-                  "data_saida": {
-                    "type": "string",
-                    "format": "date",
-                    "example": "2026-10-01"
-                  },
-                  "km_saida": {
-                    "type": "integer",
-                    "minimum": 0,
-                    "description": "Não pode ser menor que o km atual do veículo (ao iniciar ou ao trocar de veículo).",
-                    "nullable": true
-                  },
-                  "cliente": {
-                    "type": "string",
-                    "maxLength": 255,
-                    "nullable": true
-                  },
-                  "observacoes": {
-                    "type": "string",
-                    "maxLength": 255,
-                    "nullable": true
-                  }
-                },
-                "required": [
-                  "rota_id",
-                  "veiculo_id",
-                  "data_saida"
-                ]
-              }
-            }
-          }
-        }
-      }
-    },
-    "/motorista/viagens/{viagem}": {
-      "put": {
-        "tags": [
-          "Motorista"
-        ],
-        "summary": "Editar viagem em andamento",
-        "description": "Corrige uma viagem em andamento do próprio motorista. Viagens concluídas não podem ser editadas\n(422 em `data_chegada`); a correção é feita pela frota. Ao trocar de veículo, valem as regras de\nveículo livre e de km de saída.\n\n**Roles:** motorista.",
-        "responses": {
-          "200": {
-            "description": "Sucesso.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "viagem": {
-                      "$ref": "#/components/schemas/ViagemMotorista"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "$ref": "#/components/responses/NaoAutenticado"
-          },
-          "403": {
-            "$ref": "#/components/responses/SemPermissao"
-          },
-          "404": {
-            "$ref": "#/components/responses/NaoEncontrado"
-          },
-          "422": {
-            "$ref": "#/components/responses/Validacao"
-          }
-        },
-        "parameters": [
-          {
-            "name": "viagem",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer"
-            },
-            "description": "Id do registro."
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "rota_id": {
-                    "type": "integer"
-                  },
-                  "veiculo_id": {
-                    "type": "integer",
-                    "description": "O veículo não pode estar em outra viagem em andamento."
-                  },
-                  "data_saida": {
-                    "type": "string",
-                    "format": "date",
-                    "example": "2026-10-01"
-                  },
-                  "km_saida": {
-                    "type": "integer",
-                    "minimum": 0,
-                    "description": "Não pode ser menor que o km atual do veículo (ao iniciar ou ao trocar de veículo).",
-                    "nullable": true
-                  },
-                  "cliente": {
-                    "type": "string",
-                    "maxLength": 255,
-                    "nullable": true
-                  },
-                  "observacoes": {
-                    "type": "string",
-                    "maxLength": 255,
-                    "nullable": true
-                  }
-                },
-                "required": [
-                  "rota_id",
-                  "veiculo_id",
-                  "data_saida"
-                ]
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "Motorista"
-        ],
-        "summary": "Excluir viagem",
-        "description": "Exclui (soft delete) uma viagem do próprio motorista, ex.: iniciada por engano.\n\n**Roles:** motorista.",
-        "responses": {
-          "200": {
-            "description": "Sucesso.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Mensagem"
-                }
-              }
-            }
-          },
-          "401": {
-            "$ref": "#/components/responses/NaoAutenticado"
-          },
-          "403": {
-            "$ref": "#/components/responses/SemPermissao"
-          },
-          "404": {
-            "$ref": "#/components/responses/NaoEncontrado"
-          }
-        },
-        "parameters": [
-          {
-            "name": "viagem",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer"
-            },
-            "description": "Id do registro."
           }
         ]
       }
@@ -5091,6 +4845,13 @@
             "$ref": "#/components/parameters/veiculoId"
           },
           {
+            "name": "motorista_id",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
             "name": "rota_id",
             "in": "query",
             "schema": {
@@ -5114,7 +4875,7 @@
           "Viagens"
         ],
         "summary": "Cadastrar viagem",
-        "description": "Registra a viagem (em andamento ou já concluída). Com `valor_frete`, lança a receita no financeiro e notifica o financeiro. Notifica admin e frota.\n\n**Roles:** admin, frota.",
+        "description": "Inicia a viagem atribuindo-a a um motorista (notificado) (em andamento ou já concluída). Com `valor_frete`, lança a receita no financeiro e notifica o financeiro. Notifica admin e frota.\n\n**Roles:** admin, frota.",
         "responses": {
           "201": {
             "description": "Criado.",
@@ -5148,6 +4909,10 @@
               "schema": {
                 "type": "object",
                 "properties": {
+                  "motorista_id": {
+                    "type": "integer",
+                    "description": "Motorista (role motorista, ativo) a quem a viagem é atribuída; ele é notificado."
+                  },
                   "rota_id": {
                     "type": "integer"
                   },
@@ -5221,12 +4986,61 @@
                   }
                 },
                 "required": [
+                  "motorista_id",
                   "rota_id",
                   "veiculo_id",
                   "data_saida"
                 ]
               }
             }
+          }
+        }
+      }
+    },
+    "/viagens/motoristas": {
+      "get": {
+        "tags": [
+          "Viagens"
+        ],
+        "summary": "Motoristas para atribuir a viagem",
+        "description": "Motoristas ativos, por nome. `viagem_em_andamento` traz a placa do veículo quando o motorista já está numa viagem em andamento.\n\n**Roles:** admin, frota.",
+        "responses": {
+          "200": {
+            "description": "Sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "motoristas": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "integer"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "viagem_em_andamento": {
+                            "type": "string",
+                            "nullable": true,
+                            "example": "ABC1D23"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/NaoAutenticado"
+          },
+          "403": {
+            "$ref": "#/components/responses/SemPermissao"
           }
         }
       }
@@ -5285,6 +5099,10 @@
               "schema": {
                 "type": "object",
                 "properties": {
+                  "motorista_id": {
+                    "type": "integer",
+                    "description": "Motorista (role motorista, ativo) a quem a viagem é atribuída; ele é notificado."
+                  },
                   "rota_id": {
                     "type": "integer"
                   },
@@ -5358,6 +5176,7 @@
                   }
                 },
                 "required": [
+                  "motorista_id",
                   "rota_id",
                   "veiculo_id",
                   "data_saida"
@@ -6267,6 +6086,10 @@
             "$ref": "#/components/schemas/VeiculoResumo",
             "nullable": true
           },
+          "motorista": {
+            "$ref": "#/components/schemas/MotoristaResumo",
+            "nullable": true
+          },
           "data_saida": {
             "type": "string",
             "format": "date",
@@ -6344,6 +6167,10 @@
           },
           "veiculo": {
             "$ref": "#/components/schemas/VeiculoResumo",
+            "nullable": true
+          },
+          "motorista": {
+            "$ref": "#/components/schemas/MotoristaResumo",
             "nullable": true
           },
           "data_saida": {
@@ -6595,6 +6422,17 @@
             "type": "string",
             "format": "date-time",
             "example": "2026-10-23T14:30:00-03:00"
+          }
+        }
+      },
+      "MotoristaResumo": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
           }
         }
       }

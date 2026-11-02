@@ -31,6 +31,12 @@ public partial class ViagemFormViewModel : AdminSectionViewModelBase, IQueryAttr
     public string PageTitle => IsEditing ? "Editar viagem" : "Nova viagem";
 
     [ObservableProperty]
+    private ObservableCollection<MotoristaOpcao> motoristas = new();
+
+    [ObservableProperty]
+    private MotoristaOpcao? selectedMotorista;
+
+    [ObservableProperty]
     private ObservableCollection<RotaListItem> rotas = new();
 
     [ObservableProperty]
@@ -146,6 +152,10 @@ public partial class ViagemFormViewModel : AdminSectionViewModelBase, IQueryAttr
             BusyMessage = "Carregando…";
             IsBusy = true;
 
+            var motoristasAtivos = await _viagemService.GetMotoristasAsync();
+            Motoristas = new ObservableCollection<MotoristaOpcao>(motoristasAtivos);
+            SelectedMotorista = Motoristas.FirstOrDefault(m => m.Id == _original?.Motorista?.Id);
+
             var rotasAtivas = await _rotaService.GetRotasAsync();
             Rotas = new ObservableCollection<RotaListItem>(rotasAtivas);
             SelectedRota = Rotas.FirstOrDefault(r => r.Id == _original?.Rota?.Id);
@@ -162,12 +172,16 @@ public partial class ViagemFormViewModel : AdminSectionViewModelBase, IQueryAttr
             {
                 ErrorMessage = "Nenhuma rota cadastrada. Cadastre a rota antes de registrar a viagem.";
             }
+            else if (Motoristas.Count == 0)
+            {
+                ErrorMessage = "Nenhum motorista ativo. Aprove um usuário como motorista antes de iniciar a viagem.";
+            }
 
             _opcoesCarregadas = true;
         }
         catch (Exception ex)
         {
-            ErrorMessage = "Não foi possível carregar rotas, veículos e categorias.";
+            ErrorMessage = "Não foi possível carregar motoristas, rotas, veículos e categorias.";
             System.Diagnostics.Debug.WriteLine(ex);
         }
         finally
@@ -180,6 +194,12 @@ public partial class ViagemFormViewModel : AdminSectionViewModelBase, IQueryAttr
     private async Task SaveAsync()
     {
         if (IsBusy) return;
+
+        if (SelectedMotorista is null)
+        {
+            ErrorMessage = "Selecione o motorista da viagem.";
+            return;
+        }
 
         if (SelectedRota is null)
         {
@@ -237,6 +257,7 @@ public partial class ViagemFormViewModel : AdminSectionViewModelBase, IQueryAttr
 
             var resultado = await _viagemService.SaveAsync(
                 _original?.Id,
+                SelectedMotorista.Id,
                 SelectedRota.Id,
                 SelectedVeiculo.Id,
                 DataSaida,

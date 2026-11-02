@@ -32,6 +32,7 @@ class ViagemFactory extends Factory
             'observacoes' => null,
             'movimentacao_financeira_id' => null,
             'user_id' => User::factory()->frota(),
+            'motorista_id' => User::factory()->state(['role' => 'motorista']),
         ];
     }
 
