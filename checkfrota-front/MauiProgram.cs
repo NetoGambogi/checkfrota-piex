@@ -33,6 +33,7 @@ namespace checkfrota_front
 #if ANDROID
             builder.Services.AddSingleton<IGoogleAuthService, checkfrota_front.Platforms.Android.Services.GoogleAuthService>();
             builder.Services.AddSingleton<IPushNotificationService, checkfrota_front.Platforms.Android.Services.PushNotificationService>();
+            builder.Services.AddSingleton<ISincronizacaoSegundoPlano, checkfrota_front.Platforms.Android.Services.SincronizacaoSegundoPlano>();
 #elif WINDOWS
             builder.Services.AddSingleton<IGoogleAuthService, checkfrota_front.Platforms.Windows.Services.GoogleAuthService>();
             builder.Services.AddSingleton<IPushNotificationService, checkfrota_front.Platforms.Windows.Services.PushNotificationService>();

@@ -34,6 +34,13 @@
             <Setter Property="FontAttributes" Value="Bold" />
             <Setter Property="FontSize" Value="16" />
         </Style>
+        <Style x:Key="CampoSeletor" TargetType="Border">
+            <Setter Property="BackgroundColor" Value="{DynamicResource FieldBg}" />
+            <Setter Property="Stroke" Value="{DynamicResource FieldBorder}" />
+            <Setter Property="StrokeThickness" Value="1" />
+            <Setter Property="StrokeShape" Value="RoundRectangle 10" />
+            <Setter Property="Padding" Value="12,8" />
+        </Style>
         <Style x:Key="ChipPeriodo" TargetType="Button">
             <Setter Property="CornerRadius" Value="10" />
             <Setter Property="HeightRequest" Value="38" />
@@ -96,6 +103,81 @@
             </Button>
         </Grid>
 
+        <!-- Filtro de todos os gráficos: caminhão e rota, escolhidos num diálogo com busca -->
+        <Grid ColumnDefinitions="*,*" ColumnSpacing="8" IsVisible="{Binding HasData}">
+            <Border Grid.Column="0" Style="{StaticResource CampoSeletor}">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding EscolherVeiculoCommand}" />
+                </Border.GestureRecognizers>
+                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                    <Label Text="{x:Static helpers:IconFont.Frota}"
+                           FontFamily="FontAwesomeSolid"
+                           TextColor="{DynamicResource Accent}"
+                           FontSize="14"
+                           VerticalOptions="Center" />
+                    <VerticalStackLayout Grid.Column="1" Spacing="0" VerticalOptions="Center">
+                        <Label Text="Caminhão" TextColor="{DynamicResource TextSecondary}" FontSize="11" />
+                        <Label Text="{Binding VeiculoFiltroTexto}"
+                               TextColor="{DynamicResource TextPrimary}"
+                               FontAttributes="Bold"
+                               FontSize="14"
+                               LineBreakMode="TailTruncation" />
+                    </VerticalStackLayout>
+                    <Label Grid.Column="2"
+                           Text="{x:Static helpers:IconFont.ChevronBaixo}"
+                           FontFamily="FontAwesomeSolid"
+                           TextColor="{DynamicResource TextSecondary}"
+                           FontSize="11"
+                           VerticalOptions="Center" />
+                </Grid>
+            </Border>
+            <Border Grid.Column="1" Style="{StaticResource CampoSeletor}">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding EscolherRotaCommand}" />
+                </Border.GestureRecognizers>
+                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                    <Label Text="{x:Static helpers:IconFont.Rota}"
+                           FontFamily="FontAwesomeSolid"
+                           TextColor="{DynamicResource Accent}"
+                           FontSize="14"
+                           VerticalOptions="Center" />
+                    <VerticalStackLayout Grid.Column="1" Spacing="0" VerticalOptions="Center">
+                        <Label Text="Rota" TextColor="{DynamicResource TextSecondary}" FontSize="11" />
+                        <Label Text="{Binding RotaFiltroTexto}"
+                               TextColor="{DynamicResource TextPrimary}"
+                               FontAttributes="Bold"
+                               FontSize="14"
+                               LineBreakMode="TailTruncation" />
+                    </VerticalStackLayout>
+                    <Label Grid.Column="2"
+                           Text="{x:Static helpers:IconFont.ChevronBaixo}"
+                           FontFamily="FontAwesomeSolid"
+                           TextColor="{DynamicResource TextSecondary}"
+                           FontSize="11"
+                           VerticalOptions="Center" />
+                </Grid>
+            </Border>
+        </Grid>
+
+        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12" IsVisible="{Binding HasFiltro}">
+            <Label Text="Consumo e custos são dos caminhões que fizeram a rota: o abastecimento não é ligado à viagem."
+                   IsVisible="{Binding HasFiltroRota}"
+                   TextColor="{DynamicResource TextSecondary}"
+                   FontSize="11"
+                   VerticalOptions="Center" />
+            <Label Grid.Column="1"
+                   Text="Limpar filtros"
+                   TextColor="{DynamicResource Accent}"
+                   FontAttributes="Bold"
+                   FontSize="13"
+                   Padding="0,6"
+                   VerticalOptions="Center">
+                <Label.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding LimparFiltrosCommand}" />
+                </Label.GestureRecognizers>
+            </Label>
+        </Grid>
+
         <Label Text="{Binding ErrorMessage}"
                IsVisible="{Binding HasError}"
                TextColor="{DynamicResource Danger}"
@@ -122,7 +204,7 @@
                                TextColor="White"
                                FontSize="14"
                                VerticalOptions="Center" />
-                        <Label Text="Média de consumo da frota" TextColor="#9CA3AF" FontSize="13" VerticalOptions="Center" />
+                        <Label Text="{Binding TituloMedia}" TextColor="#9CA3AF" FontSize="13" VerticalOptions="Center" />
                     </HorizontalStackLayout>
                     <Label Text="{Binding MediaGeral}" TextColor="White" FontAttributes="Bold" FontSize="30" />
                     <Label FontSize="12" TextColor="#9CA3AF">
@@ -200,44 +282,37 @@
                 <VerticalStackLayout Spacing="12">
                     <VerticalStackLayout Spacing="2">
                         <Label Text="Média mês a mês" Style="{StaticResource TituloCard}" />
-                        <Label Text="Escolha a frota ou um caminhão" Style="{StaticResource SubtituloCard}" />
+                        <Label Text="Toque abaixo para escolher a frota ou um caminhão" Style="{StaticResource SubtituloCard}" />
                     </VerticalStackLayout>
 
-                    <ScrollView Orientation="Horizontal" HorizontalScrollBarVisibility="Never">
-                        <HorizontalStackLayout Spacing="8" BindableLayout.ItemsSource="{Binding SeriesConsumo}">
-                            <BindableLayout.ItemTemplate>
-                                <DataTemplate x:DataType="viewmodels:SerieConsumoOpcao">
-                                    <Border StrokeShape="RoundRectangle 16" StrokeThickness="1" Padding="12,6">
-                                        <Border.GestureRecognizers>
-                                            <TapGestureRecognizer
-                                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:FrotaDashboardViewModel}}, Path=SelecionarSerieCommand}"
-                                                CommandParameter="{Binding .}" />
-                                        </Border.GestureRecognizers>
-                                        <Border.Triggers>
-                                            <DataTrigger TargetType="Border" Binding="{Binding Selecionado}" Value="True">
-                                                <Setter Property="BackgroundColor" Value="{DynamicResource TextPrimary}" />
-                                                <Setter Property="Stroke" Value="{DynamicResource TextPrimary}" />
-                                            </DataTrigger>
-                                            <DataTrigger TargetType="Border" Binding="{Binding Selecionado}" Value="False">
-                                                <Setter Property="BackgroundColor" Value="{DynamicResource CardBg}" />
-                                                <Setter Property="Stroke" Value="{DynamicResource FieldBorder}" />
-                                            </DataTrigger>
-                                        </Border.Triggers>
-                                        <Label Text="{Binding Rotulo}" FontSize="12" FontAttributes="Bold">
-                                            <Label.Triggers>
-                                                <DataTrigger TargetType="Label" Binding="{Binding Selecionado}" Value="True">
-                                                    <Setter Property="TextColor" Value="{DynamicResource PageBg}" />
-                                                </DataTrigger>
-                                                <DataTrigger TargetType="Label" Binding="{Binding Selecionado}" Value="False">
-                                                    <Setter Property="TextColor" Value="{DynamicResource TextSecondary}" />
-                                                </DataTrigger>
-                                            </Label.Triggers>
-                                        </Label>
-                                    </Border>
-                                </DataTemplate>
-                            </BindableLayout.ItemTemplate>
-                        </HorizontalStackLayout>
-                    </ScrollView>
+                    <Border Style="{StaticResource CampoSeletor}">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding EscolherSerieCommand}" />
+                        </Border.GestureRecognizers>
+                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                            <Label Text="{x:Static helpers:IconFont.Pesquisar}"
+                                   FontFamily="FontAwesomeSolid"
+                                   TextColor="{DynamicResource Accent}"
+                                   FontSize="14"
+                                   VerticalOptions="Center" />
+                            <VerticalStackLayout Grid.Column="1" Spacing="0" VerticalOptions="Center">
+                                <Label Text="{Binding SerieRotulo}"
+                                       TextColor="{DynamicResource TextPrimary}"
+                                       FontAttributes="Bold"
+                                       FontSize="14" />
+                                <Label Text="{Binding SerieDescricao}"
+                                       TextColor="{DynamicResource TextSecondary}"
+                                       FontSize="11"
+                                       LineBreakMode="TailTruncation" />
+                            </VerticalStackLayout>
+                            <Label Grid.Column="2"
+                                   Text="{x:Static helpers:IconFont.ChevronBaixo}"
+                                   FontFamily="FontAwesomeSolid"
+                                   TextColor="{DynamicResource TextSecondary}"
+                                   FontSize="11"
+                                   VerticalOptions="Center" />
+                        </Grid>
+                    </Border>
 
                     <VerticalStackLayout Spacing="2">
                         <Label Text="{Binding ConsumoMes}" TextColor="{DynamicResource TextSecondary}" FontSize="12" />

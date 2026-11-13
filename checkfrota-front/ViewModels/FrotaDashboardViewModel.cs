@@ -3,18 +3,9 @@ using checkfrota_front.Models;
 using checkfrota_front.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using checkfrota_front.Views.Shared;
 
 namespace checkfrota_front.ViewModels;
-
-// Chip de escolha da série no gráfico de consumo: a frota inteira ou um veículo.
-public partial class SerieConsumoOpcao : ObservableObject
-{
-    public required int Indice { get; init; }
-    public required string Rotulo { get; init; }
-
-    [ObservableProperty]
-    private bool selecionado;
-}
 
 public partial class FrotaDashboardViewModel : ObservableObject
 {
@@ -54,6 +45,22 @@ public partial class FrotaDashboardViewModel : ObservableObject
     [ObservableProperty]
     private bool hasData;
 
+    // Filtro de todos os gráficos: um caminhão e/ou uma rota (null = todos).
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(VeiculoFiltroTexto), nameof(HasFiltro), nameof(TituloMedia))]
+    private VeiculoResumo? veiculoFiltro;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(RotaFiltroTexto), nameof(HasFiltro), nameof(HasFiltroRota))]
+    private RotaResumo? rotaFiltro;
+
+    public string VeiculoFiltroTexto => VeiculoFiltro?.Placa ?? "Todos";
+    public string RotaFiltroTexto => RotaFiltro?.Nome ?? "Todas";
+    public bool HasFiltro => VeiculoFiltro is not null || RotaFiltro is not null;
+    public bool HasFiltroRota => RotaFiltro is not null;
+
+    public string TituloMedia => VeiculoFiltro is null ? "Média de consumo da frota" : $"Média de consumo do {VeiculoFiltro.Placa}";
+
     [ObservableProperty] private string mediaGeral = "—";
     [ObservableProperty] private string kmRodados = "—";
     [ObservableProperty] private string custoPorKm = "—";
@@ -71,9 +78,11 @@ public partial class FrotaDashboardViewModel : ObservableObject
     public bool HasRankingMedia => RankingMedia.Count > 0;
     public bool HasNoRankingMedia => !HasRankingMedia;
 
-    // Média mês a mês, da frota ou do veículo escolhido no chip
-    [ObservableProperty]
-    private IReadOnlyList<SerieConsumoOpcao> seriesConsumo = [];
+    // Média mês a mês, da frota ou do caminhão escolhido no seletor
+    private int _serieIndice;
+
+    [ObservableProperty] private string serieRotulo = "Frota";
+    [ObservableProperty] private string serieDescricao = string.Empty;
 
     [ObservableProperty]
     private IReadOnlyList<ChartPoint> consumoMensal = [];
@@ -148,7 +157,7 @@ public partial class FrotaDashboardViewModel : ObservableObject
             IsAtualizando = HasData;
             ErrorMessage = null;
 
-            var dados = await _dashboardService.GetFrotaAsync(Meses);
+            var dados = await _dashboardService.GetFrotaAsync(Meses, VeiculoFiltro?.Id, RotaFiltro?.Id);
             if (dados is null)
             {
                 ErrorMessage = "Não foi possível carregar o dashboard.";
@@ -190,13 +199,87 @@ public partial class FrotaDashboardViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void SelecionarSerie(SerieConsumoOpcao opcao)
+    private async Task EscolherVeiculoAsync()
     {
-        foreach (var serie in SeriesConsumo)
-            serie.Selecionado = serie == opcao;
+        if (_dados is null) return;
 
+        var opcoes = new List<OpcaoSelecao>
+        {
+            new() { Titulo = "Todos os caminhões", Subtitulo = "Frota inteira", Selecionada = VeiculoFiltro is null },
+        };
+        opcoes.AddRange(_dados.OpcoesFiltro.Veiculos.Select(v => new OpcaoSelecao
+        {
+            Titulo = v.Placa,
+            Subtitulo = $"{v.Marca} {v.Modelo}",
+            Valor = v,
+            Selecionada = v.Id == VeiculoFiltro?.Id,
+        }));
+
+        var escolha = await SelecaoDialog.EscolherAsync("Filtrar por caminhão", "Buscar por placa ou modelo...", opcoes);
+        if (escolha is null || (escolha.Valor as VeiculoResumo)?.Id == VeiculoFiltro?.Id) return;
+
+        VeiculoFiltro = escolha.Valor as VeiculoResumo;
+        await CarregarAsync();
+    }
+
+    [RelayCommand]
+    private async Task EscolherRotaAsync()
+    {
+        if (_dados is null) return;
+
+        var opcoes = new List<OpcaoSelecao>
+        {
+            new() { Titulo = "Todas as rotas", Selecionada = RotaFiltro is null },
+        };
+        opcoes.AddRange(_dados.OpcoesFiltro.Rotas.Select(r => new OpcaoSelecao
+        {
+            Titulo = r.Nome,
+            Subtitulo = $"{r.Origem} → {r.Destino}",
+            Valor = r,
+            Selecionada = r.Id == RotaFiltro?.Id,
+        }));
+
+        var escolha = await SelecaoDialog.EscolherAsync("Filtrar por rota", "Buscar por nome, origem ou destino...", opcoes);
+        if (escolha is null || (escolha.Valor as RotaResumo)?.Id == RotaFiltro?.Id) return;
+
+        RotaFiltro = escolha.Valor as RotaResumo;
+        await CarregarAsync();
+    }
+
+    [RelayCommand]
+    private async Task LimparFiltrosAsync()
+    {
+        if (!HasFiltro) return;
+
+        VeiculoFiltro = null;
+        RotaFiltro = null;
+        await CarregarAsync();
+    }
+
+    [RelayCommand]
+    private async Task EscolherSerieAsync()
+    {
+        if (_dados is null || _dados.ConsumoMensal.Series.Count == 0) return;
+
+        var opcoes = _dados.ConsumoMensal.Series
+            .Select((s, i) => new OpcaoSelecao
+            {
+                Titulo = s.Rotulo,
+                Subtitulo = s.Veiculo is null ? MediaDaFrotaDescricao() : $"{s.Veiculo.Marca} {s.Veiculo.Modelo}",
+                Valor = i,
+                Selecionada = i == _serieIndice,
+            })
+            .ToList();
+
+        var escolha = await SelecaoDialog.EscolherAsync("Média mês a mês", "Buscar por placa ou modelo...", opcoes);
+        if (escolha?.Valor is not int indice || indice == _serieIndice) return;
+
+        _serieIndice = indice;
         AplicarSerieConsumo();
     }
+
+    private string MediaDaFrotaDescricao() =>
+        RotaFiltro is null ? "Média de todos os caminhões" : "Média dos caminhões que fizeram a rota";
 
     private void Aplicar(DashboardFrota dados)
     {
@@ -217,13 +300,9 @@ public partial class FrotaDashboardViewModel : ObservableObject
                 $"{KmL(r.MediaKmL)} · {r.KmRodados.ToString("N0", ChartFormat.PtBr)} km"))
             .ToList();
 
-        // Mantém a série escolhida (frota ou veículo) ao trocar o período, se ela ainda existir.
-        var rotuloAnterior = SeriesConsumo.FirstOrDefault(s => s.Selecionado)?.Rotulo;
-        SeriesConsumo = dados.ConsumoMensal.Series
-            .Select((s, i) => new SerieConsumoOpcao { Indice = i, Rotulo = s.Rotulo })
-            .ToList();
-        var selecionada = SeriesConsumo.FirstOrDefault(s => s.Rotulo == rotuloAnterior) ?? SeriesConsumo.FirstOrDefault();
-        if (selecionada is not null) selecionada.Selecionado = true;
+        // Mantém a série escolhida (frota ou veículo) ao trocar o período ou o filtro, se ela ainda existir.
+        var indiceAnterior = dados.ConsumoMensal.Series.FindIndex(s => s.Rotulo == SerieRotulo);
+        _serieIndice = Math.Max(0, indiceAnterior);
         AplicarSerieConsumo();
 
         RankingCustoPorKm = dados.CustoPorKm
@@ -262,9 +341,10 @@ public partial class FrotaDashboardViewModel : ObservableObject
     {
         if (_dados is null) return;
 
-        var indice = SeriesConsumo.FirstOrDefault(s => s.Selecionado)?.Indice ?? 0;
-        var serie = _dados.ConsumoMensal.Series.ElementAtOrDefault(indice);
+        var serie = _dados.ConsumoMensal.Series.ElementAtOrDefault(_serieIndice);
         var meses = _dados.ConsumoMensal.Meses;
+        SerieRotulo = serie?.Rotulo ?? "Frota";
+        SerieDescricao = serie?.Veiculo is VeiculoResumo veiculo ? $"{veiculo.Marca} {veiculo.Modelo}" : MediaDaFrotaDescricao();
 
         ConsumoMensal = meses
             .Select((mes, i) => new ChartPoint(ChartFormat.MesCurto(mes), serie?.Valores.ElementAtOrDefault(i) is decimal v ? (double)v : double.NaN))
@@ -280,7 +360,7 @@ public partial class FrotaDashboardViewModel : ObservableObject
     {
         if (_dados is null || value < 0 || value >= ConsumoMensal.Count) return;
 
-        var nome = SeriesConsumo.FirstOrDefault(s => s.Selecionado)?.Rotulo ?? "Frota";
+        var nome = SerieRotulo;
         var atual = ConsumoMensal[value].Valor;
         ConsumoMes = $"{nome} em {ChartFormat.MesLongo(_dados.ConsumoMensal.Meses[value])}";
         ConsumoValor = double.IsNaN(atual) ? "Sem medição" : KmL((decimal)atual);

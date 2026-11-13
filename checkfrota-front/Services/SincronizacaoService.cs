@@ -16,6 +16,7 @@ public enum ResultadoEnvio
 /// <summary>
 /// Envia a <see cref="FilaOffline"/> para a API, uma operação por vez e na ordem em que foram
 /// feitas. Roda quando a internet volta, quando o app é aberto/retomado e logo após cada registro.
+/// Com o app fechado, o <see cref="ISincronizacaoSegundoPlano"/> (Android) faz o envio quando a rede volta.
 /// </summary>
 public class SincronizacaoService
 {
@@ -55,8 +56,14 @@ public class SincronizacaoService
 
     public async Task SincronizarAsync()
     {
-        if (!TemInternet) return;
+        if (TemInternet) await EnviarFilaAsync();
 
+        // O que não foi enviado fica agendado com o sistema, para seguir mesmo se o app for fechado.
+        await AgendarSegundoPlanoAsync();
+    }
+
+    private async Task EnviarFilaAsync()
+    {
         await _enviando.WaitAsync();
         try
         {
@@ -92,6 +99,13 @@ public class SincronizacaoService
     /// mais que <paramref name="limite"/>, ela fica na fila.
     /// </summary>
     public async Task<(ResultadoEnvio Resultado, string? Erro)> EnviarAgoraAsync(Guid id, TimeSpan limite)
+    {
+        var envio = await TentarEnviarAgoraAsync(id, limite);
+        if (envio.Resultado == ResultadoEnvio.Pendente) await AgendarSegundoPlanoAsync();
+        return envio;
+    }
+
+    private async Task<(ResultadoEnvio Resultado, string? Erro)> TentarEnviarAgoraAsync(Guid id, TimeSpan limite)
     {
         if (!TemInternet) return (ResultadoEnvio.Pendente, null);
 
@@ -178,6 +192,22 @@ public class SincronizacaoService
                 ?? "O servidor recusou o registro.";
             await _fila.AtualizarAsync(operacao);
             return ResultadoEnvio.Recusada;
+        }
+    }
+
+    private async Task AgendarSegundoPlanoAsync()
+    {
+        try
+        {
+            var segundoPlano = _services.GetService<ISincronizacaoSegundoPlano>();
+            if (segundoPlano is null) return;
+
+            if ((await _fila.ListarAsync()).Any(o => o.Situacao == SituacaoOperacao.Pendente))
+                segundoPlano.Agendar();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine(ex);
         }
     }
 

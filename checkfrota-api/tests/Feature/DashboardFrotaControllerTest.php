@@ -146,3 +146,47 @@ test('periodo de 3 meses ignora dados mais antigos', function () {
         ->assertJsonCount(3, 'rotas_por_mes')
         ->assertJsonPath('manutencoes_por_veiculo.0.quantidade', 1);
 });
+
+test('filtro por caminhao restringe todos os graficos a ele', function () {
+    ['a' => $a] = frotaDeExemplo();
+
+    $this->actingAs(User::factory()->frota()->create(), 'sanctum')
+        ->getJson("/api/dashboards/frota?veiculo_id={$a->id}")
+        ->assertOk()
+        ->assertJsonPath('filtro.veiculo.placa', 'AAA1A11')
+        ->assertJsonPath('indicadores.km_rodados', 2000)
+        ->assertJsonPath('indicadores.gasto_manutencao', 300)
+        ->assertJsonCount(1, 'ranking_media')
+        ->assertJsonCount(1, 'custo_por_km')
+        ->assertJsonCount(1, 'manutencoes_por_veiculo')
+        ->assertJsonCount(1, 'consumo_mensal.series')
+        ->assertJsonPath('consumo_mensal.series.0.rotulo', 'AAA1A11')
+        ->assertJsonCount(2, 'opcoes_filtro.veiculos');
+});
+
+test('filtro por rota usa as viagens dela e os caminhoes que a fizeram', function () {
+    ['a' => $a, 'b' => $b] = frotaDeExemplo();
+    $rota = Rota::factory()->create(['nome' => 'Curitiba x São Paulo']);
+    $outra = Rota::factory()->create();
+    Viagem::factory()->for($a)->for($rota)->create(['data_saida' => '2026-10-02', 'valor_frete' => 3000]);
+    Viagem::factory()->for($b)->for($outra)->create(['data_saida' => '2026-10-03', 'valor_frete' => 9000]);
+
+    $this->actingAs(User::factory()->admin()->create(), 'sanctum')
+        ->getJson("/api/dashboards/frota?rota_id={$rota->id}")
+        ->assertOk()
+        ->assertJsonPath('filtro.rota.nome', 'Curitiba x São Paulo')
+        ->assertJsonPath('indicadores.viagens', 1)
+        ->assertJsonPath('indicadores.receita_fretes', 3000)
+        ->assertJsonCount(1, 'rotas_ranking')
+        ->assertJsonCount(1, 'ranking_media')
+        ->assertJsonPath('ranking_media.0.veiculo.placa', 'AAA1A11')
+        ->assertJsonPath('consumo_mensal.series.0.rotulo', 'Frota')
+        ->assertJsonCount(2, 'opcoes_filtro.rotas');
+});
+
+test('filtro com caminhao ou rota inexistente e recusado', function (string $parametro) {
+    $this->actingAs(User::factory()->frota()->create(), 'sanctum')
+        ->getJson("/api/dashboards/frota?{$parametro}=999")
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors($parametro);
+})->with(['veiculo_id', 'rota_id']);

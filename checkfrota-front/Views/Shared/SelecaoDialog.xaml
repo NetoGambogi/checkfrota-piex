@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:checkfrota_front.ViewModels"
+             xmlns:helpers="clr-namespace:checkfrota_front.Helpers"
+             x:Class="checkfrota_front.Views.Shared.SelecaoDialog"
+             IsVisible="False">
+
+    <Grid>
+        <!-- Escurece a tela de trás; tocar fora do diálogo fecha sem escolher -->
+        <!-- Grid e não BoxView: o estilo global de BoxView pinta o fundo de cinza-claro -->
+        <Grid x:Name="Fundo" BackgroundColor="Black" Opacity="0">
+            <Grid.GestureRecognizers>
+                <TapGestureRecognizer Tapped="OnFecharTocado" />
+            </Grid.GestureRecognizers>
+        </Grid>
+
+        <Border x:Name="Cartao"
+                BackgroundColor="{DynamicResource PageBg}"
+                Stroke="Transparent"
+                StrokeShape="RoundRectangle 20"
+                Padding="0"
+                Margin="20,48"
+                Opacity="0"
+                VerticalOptions="Center"
+                MaximumWidthRequest="520">
+
+            <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="12" Padding="0,18,0,8">
+
+                <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Padding="20,0,12,0">
+                    <Label x:Name="TituloLabel"
+                           TextColor="{DynamicResource TextPrimary}"
+                           FontAttributes="Bold"
+                           FontSize="18"
+                           VerticalOptions="Center" />
+                    <Label Grid.Column="1"
+                           Text="{x:Static helpers:IconFont.Fechar}"
+                           FontFamily="FontAwesomeSolid"
+                           TextColor="{DynamicResource TextSecondary}"
+                           FontSize="18"
+                           Padding="10"
+                           VerticalOptions="Center">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnFecharTocado" />
+                        </Label.GestureRecognizers>
+                    </Label>
+                </Grid>
+
+                <Border Grid.Row="1"
+                        Margin="20,0"
+                        BackgroundColor="{DynamicResource FieldBg}"
+                        Stroke="{DynamicResource FieldBorder}"
+                        StrokeThickness="1"
+                        StrokeShape="RoundRectangle 10"
+                        HeightRequest="46"
+                        Padding="4,0">
+                    <SearchBar x:Name="Busca"
+                               BackgroundColor="Transparent"
+                               VerticalOptions="Center"
+                               TextChanged="OnBuscaAlterada" />
+                </Border>
+
+                <CollectionView Grid.Row="2" x:Name="Lista" SelectionMode="None">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="viewmodels:OpcaoSelecao">
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12" Padding="20,12">
+                                <Grid.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnOpcaoTocada" CommandParameter="{Binding .}" />
+                                </Grid.GestureRecognizers>
+
+                                <VerticalStackLayout Spacing="2" VerticalOptions="Center">
+                                    <Label Text="{Binding Titulo}"
+                                           TextColor="{DynamicResource TextPrimary}"
+                                           FontAttributes="Bold"
+                                           FontSize="15" />
+                                    <Label Text="{Binding Subtitulo}"
+                                           IsVisible="{Binding HasSubtitulo}"
+                                           TextColor="{DynamicResource TextSecondary}"
+                                           FontSize="12"
+                                           LineBreakMode="TailTruncation" />
+                                </VerticalStackLayout>
+
+                                <Label Grid.Column="1"
+                                       Text="{x:Static helpers:IconFont.Selecionado}"
+                                       IsVisible="{Binding Selecionada}"
+                                       FontFamily="FontAwesomeSolid"
+                                       TextColor="{DynamicResource Accent}"
+                                       FontSize="14"
+                                       VerticalOptions="Center" />
+                            </Grid>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+
+                    <CollectionView.EmptyView>
+                        <Label Text="Nada encontrado."
+                               TextColor="{DynamicResource TextSecondary}"
+                               FontSize="13"
+                               HorizontalOptions="Center"
+                               Margin="0,24" />
+                    </CollectionView.EmptyView>
+                </CollectionView>
+            </Grid>
+        </Border>
+    </Grid>
+</ContentView>

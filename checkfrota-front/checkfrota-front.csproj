@@ -93,6 +93,10 @@
 	  <!-- O Firebase traz o LiveData.Core 2.11; alinha os demais pacotes do LiveData na mesma versão -->
 	  <PackageReference Include="Xamarin.AndroidX.Lifecycle.LiveData" Version="2.11.0.1" />
 	  <PackageReference Include="Xamarin.AndroidX.Lifecycle.LiveData.Core.Ktx" Version="2.11.0.1" />
+	  <!-- Envio da fila offline do motorista quando a rede volta, mesmo com o app fechado -->
+	  <PackageReference Include="Xamarin.AndroidX.Work.Runtime" Version="2.11.2.1" />
+	  <!-- O Work traz o Tracing 2.0; alinha o Tracing.Ktx (vindo de outros pacotes) na mesma versão -->
+	  <PackageReference Include="Xamarin.AndroidX.Tracing.Tracing.Ktx" Version="2.0.0" />
 	</ItemGroup>
 
 	<!-- Baixado no Console do Firebase (app Android com o pacote do ApplicationId). Sem ele o app

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Abastecimento;
 use App\Models\Manutencao;
+use App\Models\Rota;
 use App\Models\Veiculo;
 use App\Models\Viagem;
 use App\Services\ConsumoCombustivelService;
@@ -11,6 +12,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Validation\Rule;
 
 class DashboardFrotaController extends Controller
 {
@@ -18,22 +20,47 @@ class DashboardFrotaController extends Controller
 
     public function __construct(private ConsumoCombustivelService $consumo) {}
 
+    /**
+     * Indicadores e gráficos da frota no período. Com `veiculo_id`, tudo se refere a um caminhão; com
+     * `rota_id`, as viagens são as da rota e o consumo/custos são dos caminhões que a fizeram (o
+     * abastecimento não é ligado a uma viagem).
+     */
     public function __invoke(Request $request): JsonResponse
     {
         $validated = $request->validate([
             'meses' => ['nullable', 'integer', 'in:'.implode(',', self::MESES_PERMITIDOS)],
+            'veiculo_id' => ['nullable', 'integer', Rule::exists('veiculos', 'id')],
+            'rota_id' => ['nullable', 'integer', Rule::exists('rotas', 'id')],
         ]);
 
         $meses = (int) ($validated['meses'] ?? 6);
+        $veiculoId = isset($validated['veiculo_id']) ? (int) $validated['veiculo_id'] : null;
+        $rotaId = isset($validated['rota_id']) ? (int) $validated['rota_id'] : null;
         $hoje = CarbonImmutable::today();
         $inicio = $hoje->startOfMonth()->subMonths($meses - 1);
         $listaMeses = collect(range(0, $meses - 1))->map(fn (int $i) => $inicio->addMonths($i)->format('Y-m'));
 
+        $viagens = Viagem::with('rota')
+            ->whereBetween('data_saida', [$inicio->toDateString(), $hoje->toDateString()])
+            ->when($veiculoId, fn ($query) => $query->where('veiculo_id', $veiculoId))
+            ->when($rotaId, fn ($query) => $query->where('rota_id', $rotaId))
+            ->get();
+
+        $veiculosDoFiltro = match (true) {
+            $veiculoId !== null => collect([$veiculoId]),
+            $rotaId !== null => $viagens->pluck('veiculo_id')->unique()->values(),
+            default => null,
+        };
+
         // O histórico completo de abastecimentos é necessário: o tanque cheio que abre o primeiro
         // intervalo do período pode ser anterior a ele.
-        $abastecimentosPorVeiculo = Abastecimento::all()->groupBy('veiculo_id');
-        $manutencoes = Manutencao::whereBetween('data', [$inicio->toDateString(), $hoje->toDateString()])->get();
-        $viagens = Viagem::with('rota')->whereBetween('data_saida', [$inicio->toDateString(), $hoje->toDateString()])->get();
+        $abastecimentosPorVeiculo = Abastecimento::query()
+            ->when($veiculosDoFiltro, fn ($query) => $query->whereIn('veiculo_id', $veiculosDoFiltro))
+            ->get()
+            ->groupBy('veiculo_id');
+        $manutencoes = Manutencao::whereBetween('data', [$inicio->toDateString(), $hoje->toDateString()])
+            ->when($veiculosDoFiltro, fn ($query) => $query->whereIn('veiculo_id', $veiculosDoFiltro))
+            ->get();
 
         $veiculoIds = $abastecimentosPorVeiculo->keys()
             ->merge($manutencoes->pluck('veiculo_id'))
@@ -62,6 +89,11 @@ class DashboardFrotaController extends Controller
         return response()->json([
             'referencia' => $hoje->toDateString(),
             'meses' => $meses,
+            'filtro' => [
+                'veiculo' => $veiculoId ? Veiculo::withTrashed()->find($veiculoId)?->only('id', 'placa', 'marca', 'modelo') : null,
+                'rota' => $rotaId ? Rota::withTrashed()->find($rotaId)?->only('id', 'nome', 'origem', 'destino') : null,
+            ],
+            'opcoes_filtro' => $this->opcoesDeFiltro($veiculoId, $rotaId),
             'indicadores' => [
                 'media_km_l' => $consumoFrota['media_km_l'],
                 'km_rodados' => $kmRodados,
@@ -82,7 +114,7 @@ class DashboardFrotaController extends Controller
                     'litros' => $v['consumo']['litros_medidos'],
                 ])
                 ->values(),
-            'consumo_mensal' => $this->consumoMensal($porVeiculo, $listaMeses),
+            'consumo_mensal' => $this->consumoMensal($porVeiculo, $listaMeses, incluirFrota: $veiculoId === null),
             'custo_por_km' => $porVeiculo
                 ->filter(fn (array $v) => $v['custo_por_km'] !== null)
                 ->sortByDesc('custo_por_km')
@@ -164,7 +196,7 @@ class DashboardFrotaController extends Controller
      * @param  Collection<int, string>  $listaMeses
      * @return array{meses: list<string>, series: list<array{veiculo: ?array<string, mixed>, rotulo: string, valores: list<?float>}>}
      */
-    private function consumoMensal(Collection $porVeiculo, Collection $listaMeses): array
+    private function consumoMensal(Collection $porVeiculo, Collection $listaMeses, bool $incluirFrota): array
     {
         $media = fn (int $km, float $litros): ?float => $litros > 0 ? round($km / $litros, 2) : null;
 
@@ -181,9 +213,38 @@ class DashboardFrotaController extends Controller
                 'valores' => $listaMeses->map(fn (string $mes) => $media($v['consumo_mensal'][$mes]['km'], $v['consumo_mensal'][$mes]['litros']))->all(),
             ]);
 
+        // Filtrado por um caminhão, a "frota" seria ele mesmo: fica só a série dele.
+        $todas = $incluirFrota
+            ? collect([['veiculo' => null, 'rotulo' => 'Frota', 'valores' => $frota->all()]])->merge($series->values())
+            : $series->values();
+
         return [
             'meses' => $listaMeses->all(),
-            'series' => collect([['veiculo' => null, 'rotulo' => 'Frota', 'valores' => $frota->all()]])->merge($series->values())->all(),
+            'series' => $todas->all(),
+        ];
+    }
+
+    /**
+     * Caminhões e rotas que podem ser escolhidos no filtro: os ativos, mais o escolhido se tiver
+     * sido excluído depois.
+     *
+     * @return array{veiculos: list<array<string, mixed>>, rotas: list<array<string, mixed>>}
+     */
+    private function opcoesDeFiltro(?int $veiculoId, ?int $rotaId): array
+    {
+        return [
+            'veiculos' => Veiculo::withTrashed()
+                ->where(fn ($query) => $query->whereNull('deleted_at')->when($veiculoId, fn ($query) => $query->orWhereKey($veiculoId)))
+                ->orderBy('placa')
+                ->get()
+                ->map(fn (Veiculo $veiculo) => $veiculo->only('id', 'placa', 'marca', 'modelo'))
+                ->all(),
+            'rotas' => Rota::withTrashed()
+                ->where(fn ($query) => $query->whereNull('deleted_at')->when($rotaId, fn ($query) => $query->orWhereKey($rotaId)))
+                ->orderBy('nome')
+                ->get()
+                ->map(fn (Rota $rota) => $rota->only('id', 'nome', 'origem', 'destino'))
+                ->all(),
         ];
     }
 

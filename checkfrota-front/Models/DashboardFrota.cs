@@ -8,6 +8,12 @@ namespace checkfrota_front.Models
         public int Meses { get; set; }
         public IndicadoresFrota Indicadores { get; set; } = new();
 
+        /// <summary>Caminhão e rota aplicados nos números e gráficos (null = todos).</summary>
+        public FiltroDashboardFrota Filtro { get; set; } = new();
+
+        [JsonPropertyName("opcoes_filtro")]
+        public OpcoesFiltroFrota OpcoesFiltro { get; set; } = new();
+
         [JsonPropertyName("ranking_media")]
         public List<RankingMediaVeiculo> RankingMedia { get; set; } = new();
 
@@ -25,6 +31,18 @@ namespace checkfrota_front.Models
 
         [JsonPropertyName("manutencoes_por_veiculo")]
         public List<ManutencoesVeiculo> ManutencoesPorVeiculo { get; set; } = new();
+    }
+
+    public class FiltroDashboardFrota
+    {
+        public VeiculoResumo? Veiculo { get; set; }
+        public RotaResumo? Rota { get; set; }
+    }
+
+    public class OpcoesFiltroFrota
+    {
+        public List<VeiculoResumo> Veiculos { get; set; } = new();
+        public List<RotaResumo> Rotas { get; set; } = new();
     }
 
     public class IndicadoresFrota

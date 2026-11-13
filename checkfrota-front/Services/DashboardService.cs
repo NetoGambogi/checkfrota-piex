@@ -18,9 +18,14 @@ public class DashboardService
         return await client.GetFromJsonAsync<DashboardFinanceiro>($"dashboards/financeiro?meses={meses}");
     }
 
-    public async Task<DashboardFrota?> GetFrotaAsync(int meses)
+    /// <summary>Dashboard da frota, opcionalmente só de um caminhão e/ou de uma rota.</summary>
+    public async Task<DashboardFrota?> GetFrotaAsync(int meses, int? veiculoId = null, int? rotaId = null)
     {
         var client = await _apiAuth.GetAuthenticatedClientAsync();
-        return await client.GetFromJsonAsync<DashboardFrota>($"dashboards/frota?meses={meses}");
+        var url = $"dashboards/frota?meses={meses}";
+        if (veiculoId is int veiculo) url += $"&veiculo_id={veiculo}";
+        if (rotaId is int rota) url += $"&rota_id={rota}";
+
+        return await client.GetFromJsonAsync<DashboardFrota>(url);
     }
 }

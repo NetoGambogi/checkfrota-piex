@@ -28,4 +28,8 @@ public static class IconFont
     public const string Alerta = "";
     public const string Notificacao = "";
     public const string MarcarLidas = "";
+    public const string ChevronBaixo = "";
+    public const string Fechar = "";
+    public const string Selecionado = "";
+    public const string Pesquisar = "";
 }
