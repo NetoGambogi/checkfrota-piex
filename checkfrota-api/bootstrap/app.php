@@ -19,6 +19,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => CheckRole::class,
             'renovar.token' => RenovarExpiracaoToken::class,
         ]);
+
+        // A API não tem tela de login para onde redirecionar: sem sessão válida responde 401, mesmo
+        // quando o app não envia "Accept: application/json" (senão route('login') quebra com 500).
+        $middleware->redirectGuestsTo(fn (Request $request) => $request->is('api/*') ? null : '/');
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

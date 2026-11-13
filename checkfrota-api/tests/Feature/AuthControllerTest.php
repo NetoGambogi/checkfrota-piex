@@ -128,3 +128,10 @@ test('starts expiring legacy tokens without expiration on their next use', funct
 
     expect($user->tokens()->first()->expires_at)->not->toBeNull();
 });
+
+test('token invalido sem accept json responde 401 em vez de tentar redirecionar ao login', function () {
+    $this->withToken('999|token-que-nao-existe')
+        ->get('/api/notificacoes')
+        ->assertUnauthorized()
+        ->assertJsonPath('message', 'Unauthenticated.');
+});

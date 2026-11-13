@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * Problema relatado pelo motorista durante uma viagem (ex.: falha mecânica, pneu, acidente),
  * acompanhado e resolvido pela gestão da frota.
  */
-#[Fillable(['viagem_id', 'veiculo_id', 'user_id', 'tipo', 'gravidade', 'km', 'descricao', 'foto_public_id', 'foto_url', 'status', 'resolvida_em', 'resolvida_por', 'observacao_resolucao'])]
+#[Fillable(['viagem_id', 'veiculo_id', 'user_id', 'client_uuid', 'tipo', 'gravidade', 'km', 'descricao', 'foto_public_id', 'foto_url', 'status', 'resolvida_em', 'resolvida_por', 'observacao_resolucao'])]
 class OcorrenciaViagem extends Model
 {
     /** @use HasFactory<OcorrenciaViagemFactory> */

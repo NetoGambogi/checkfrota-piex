@@ -1,4 +1,5 @@
 using checkfrota_front.Models;
+using checkfrota_front.Services;
 using System.Globalization;
 
 namespace checkfrota_front.ViewModels;
@@ -21,13 +22,23 @@ public class OcorrenciaRowViewModel
     public bool IsBaixa { get; }
 
     public bool IsResolvida { get; }
-    public string StatusLabel => IsResolvida ? "Resolvida" : "Aberta";
+
+    /// <summary>Registrada no aparelho e ainda não confirmada pela API.</summary>
+    public OperacaoPendente? Pendencia { get; }
+
+    public string StatusLabel => Pendencia?.Situacao switch
+    {
+        SituacaoOperacao.Pendente => "Aguardando envio",
+        SituacaoOperacao.Recusada => "Não enviada",
+        _ => IsResolvida ? "Resolvida" : "Aberta",
+    };
 
     public bool HasFoto { get; }
 
-    public OcorrenciaRowViewModel(OcorrenciaItem item)
+    public OcorrenciaRowViewModel(OcorrenciaItem item, OperacaoPendente? pendencia = null)
     {
         Original = item;
+        Pendencia = pendencia;
 
         var placa = item.Veiculo?.Placa ?? "-";
         Titulo = $"{item.TipoLabel} · {placa}";

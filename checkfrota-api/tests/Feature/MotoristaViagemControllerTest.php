@@ -179,3 +179,23 @@ test('catalogo indica com qual motorista esta cada veiculo', function () {
         ->assertJsonPath('veiculos.1.em_viagem_propria', false)
         ->assertJsonPath('veiculos.2.em_viagem_propria', true);
 });
+
+test('reenviar a mesma conclusao devolve a viagem sem notificar de novo', function () {
+    Notification::fake();
+    $motorista = User::factory()->create(['role' => 'motorista']);
+    $frota = User::factory()->frota()->create();
+    $viagem = Viagem::factory()->create([
+        'motorista_id' => $motorista->id,
+        'data_saida' => '2026-10-01',
+        'km_saida' => 50000,
+    ]);
+    $payload = ['data_chegada' => '2026-10-02', 'km_chegada' => 50420];
+
+    test()->actingAs($motorista, 'sanctum')->patchJson("/api/motorista/viagens/{$viagem->id}/concluir", $payload)->assertOk();
+    test()->actingAs($motorista, 'sanctum')->patchJson("/api/motorista/viagens/{$viagem->id}/concluir", $payload)
+        ->assertOk()
+        ->assertJsonPath('viagem.status', 'concluida')
+        ->assertJsonPath('viagem.km_chegada', 50420);
+
+    Notification::assertSentToTimes($frota, ViagemConcluida::class, 1);
+});

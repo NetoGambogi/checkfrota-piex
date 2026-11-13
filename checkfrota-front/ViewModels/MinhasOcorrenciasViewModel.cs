@@ -2,6 +2,7 @@ using checkfrota_front.Services;
 using checkfrota_front.Views;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using System.Collections.ObjectModel;
 
 namespace checkfrota_front.ViewModels;
@@ -36,6 +37,10 @@ public partial class MinhasOcorrenciasViewModel : AdminSectionViewModelBase
     public MinhasOcorrenciasViewModel(MotoristaService motoristaService, ApiAuthService apiAuth) : base(apiAuth)
     {
         _motoristaService = motoristaService;
+
+        // Uma ocorrência enviada (ou recusada) em segundo plano atualiza a lista aberta.
+        WeakReferenceMessenger.Default.Register<MinhasOcorrenciasViewModel, FilaOfflineAlterada>(this,
+            (vm, _) => MainThread.BeginInvokeOnMainThread(() => vm.LoadOcorrenciasCommand.Execute(null)));
     }
 
     [RelayCommand]
@@ -56,9 +61,27 @@ public partial class MinhasOcorrenciasViewModel : AdminSectionViewModelBase
             IsBusy = true;
             ErrorMessage = null;
 
-            var items = await _motoristaService.GetOcorrenciasAsync();
-            Ocorrencias = new ObservableCollection<OcorrenciaRowViewModel>(items.Select(o => new OcorrenciaRowViewModel(o)));
-            HasNoResults = Ocorrencias.Count == 0;
+            var pendentes = await _motoristaService.GetOcorrenciasPendentesAsync();
+            var rows = pendentes
+                .OrderByDescending(p => p.CriadaEm)
+                .Where(p => p.Ocorrencia is not null)
+                .Select(p => new OcorrenciaRowViewModel(p.Ocorrencia!.ComoItemDaLista(p.CriadaEm), p))
+                .ToList();
+
+            try
+            {
+                var items = await _motoristaService.GetOcorrenciasAsync();
+                rows.AddRange(items.Select(o => new OcorrenciaRowViewModel(o)));
+            }
+            catch (Exception ex)
+            {
+                // Sem rede e sem nada salvo: ainda mostra as ocorrências feitas no aparelho.
+                ErrorMessage = "Não foi possível carregar suas ocorrências.";
+                System.Diagnostics.Debug.WriteLine(ex);
+            }
+
+            Ocorrencias = new ObservableCollection<OcorrenciaRowViewModel>(rows);
+            HasNoResults = Ocorrencias.Count == 0 && ErrorMessage is null;
         }
         catch (Exception ex)
         {
@@ -77,9 +100,38 @@ public partial class MinhasOcorrenciasViewModel : AdminSectionViewModelBase
     {
         if (row is null) return;
 
+        if (row.Pendencia is { } pendencia)
+        {
+            await ResolverPendenciaAsync(pendencia);
+            return;
+        }
+
         await Shell.Current.GoToAsync(nameof(OcorrenciaDetalhePage), new Dictionary<string, object>
         {
             ["ocorrencia"] = row.Original,
         });
+    }
+
+    private async Task ResolverPendenciaAsync(OperacaoPendente pendencia)
+    {
+        if (pendencia.Situacao == SituacaoOperacao.Pendente)
+        {
+            await Shell.Current.DisplayAlertAsync(
+                "Aguardando envio",
+                "Esta ocorrência está salva no aparelho e será enviada automaticamente quando houver internet.",
+                "OK");
+            return;
+        }
+
+        var descartar = await Shell.Current.DisplayAlertAsync(
+            "Ocorrência não enviada",
+            $"{pendencia.Erro}\n\nDescarte este registro e relate de novo com os dados corrigidos.",
+            "Descartar",
+            "Manter");
+
+        if (descartar)
+        {
+            await _motoristaService.DescartarPendenciaAsync(pendencia.Id);
+        }
     }
 }

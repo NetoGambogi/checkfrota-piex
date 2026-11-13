@@ -107,12 +107,20 @@ public partial class ConcluirViagemViewModel : AdminSectionViewModelBase, IQuery
             IsBusy = true;
             ErrorMessage = null;
 
-            var resultado = await _motoristaService.ConcluirViagemAsync(_viagem.Id, DataChegada, kmChegadaInt);
+            var (resultado, erro) = await _motoristaService.ConcluirViagemAsync(_viagem, DataChegada, kmChegadaInt);
 
-            if (!resultado.Sucesso)
+            if (resultado == ResultadoEnvio.Recusada)
             {
-                ErrorMessage = resultado.Erro ?? "Não foi possível concluir a viagem.";
+                ErrorMessage = erro ?? "Não foi possível concluir a viagem.";
                 return;
+            }
+
+            if (resultado == ResultadoEnvio.Pendente)
+            {
+                await Shell.Current.DisplayAlertAsync(
+                    "Salvo no aparelho",
+                    "Sem conexão com o servidor agora. A conclusão da viagem será enviada automaticamente quando a internet voltar.",
+                    "OK");
             }
 
             await Shell.Current.GoToAsync("..");

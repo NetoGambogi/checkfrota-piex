@@ -56,10 +56,19 @@ class MotoristaViagemController extends Controller
 
     /**
      * Conclui uma viagem atribuída ao motorista, registrando a chegada e o km final (hodômetro).
+     *
+     * O app conclui offline e reenvia quando volta a conexão: se a resposta do primeiro envio se
+     * perdeu, o reenvio com a mesma chegada devolve a viagem já concluída (200) em vez de recusar.
      */
     public function concluir(Request $request, Viagem $viagem): JsonResponse
     {
         $this->garantirViagemDoMotorista($request, $viagem);
+
+        if ($viagem->data_chegada !== null && $this->eMesmaConclusao($request, $viagem)) {
+            return response()->json([
+                'viagem' => $viagem->load(self::RELACOES)->toMotoristaPayload(),
+            ]);
+        }
 
         if ($viagem->data_chegada !== null) {
             throw ValidationException::withMessages([
@@ -91,6 +100,17 @@ class MotoristaViagemController extends Controller
         return response()->json([
             'viagem' => $viagem->toMotoristaPayload(),
         ]);
+    }
+
+    /**
+     * O pedido repete a chegada já gravada (reenvio da mesma conclusão pelo app).
+     */
+    private function eMesmaConclusao(Request $request, Viagem $viagem): bool
+    {
+        $kmChegada = $request->input('km_chegada');
+
+        return $request->input('data_chegada') === $viagem->data_chegada->toDateString()
+            && ($kmChegada === null ? $viagem->km_chegada === null : (int) $kmChegada === $viagem->km_chegada);
     }
 
     /**

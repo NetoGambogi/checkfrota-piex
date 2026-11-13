@@ -199,21 +199,33 @@ public partial class MotoristaOcorrenciaFormViewModel : AdminSectionViewModelBas
             IsBusy = true;
             ErrorMessage = null;
 
-            var resultado = await _motoristaService.RegistrarOcorrenciaAsync(
-                _viagem.Id,
+            var (resultado, erro) = await _motoristaService.RegistrarOcorrenciaAsync(
+                _viagem,
                 SelectedTipo.Key,
+                SelectedTipo.Label,
                 Gravidade,
                 kmInt,
                 Descricao.Trim(),
                 _foto);
 
-            if (!resultado.Sucesso)
+            if (resultado == ResultadoEnvio.Recusada)
             {
-                ErrorMessage = resultado.Erro ?? "Não foi possível registrar a ocorrência.";
+                ErrorMessage = erro ?? "Não foi possível registrar a ocorrência.";
                 return;
             }
 
-            await Shell.Current.DisplayAlertAsync("Ocorrência registrada", "A gestão da frota foi avisada.", "OK");
+            if (resultado == ResultadoEnvio.Pendente)
+            {
+                await Shell.Current.DisplayAlertAsync(
+                    "Salvo no aparelho",
+                    "Sem conexão com o servidor agora. A ocorrência será enviada automaticamente quando a internet voltar.",
+                    "OK");
+            }
+            else
+            {
+                await Shell.Current.DisplayAlertAsync("Ocorrência registrada", "A gestão da frota foi avisada.", "OK");
+            }
+
             await Shell.Current.GoToAsync("..");
         }
         catch (Exception ex)

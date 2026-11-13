@@ -2,6 +2,7 @@ using checkfrota_front.Services;
 using checkfrota_front.Views;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using System.Collections.ObjectModel;
 
 namespace checkfrota_front.ViewModels;
@@ -62,6 +63,10 @@ public partial class MinhasViagensViewModel : AdminSectionViewModelBase
     public MinhasViagensViewModel(MotoristaService motoristaService, ApiAuthService apiAuth) : base(apiAuth)
     {
         _motoristaService = motoristaService;
+
+        // Conclusão enviada (ou recusada) em segundo plano: atualiza a lista aberta.
+        WeakReferenceMessenger.Default.Register<MinhasViagensViewModel, FilaOfflineAlterada>(this,
+            (vm, _) => MainThread.BeginInvokeOnMainThread(() => vm.LoadViagensCommand.Execute(null)));
     }
 
     [RelayCommand]

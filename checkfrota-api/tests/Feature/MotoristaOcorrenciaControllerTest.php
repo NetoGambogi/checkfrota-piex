@@ -151,3 +151,19 @@ test('motorista lista apenas as proprias ocorrencias', function () {
         ->assertJsonCount(2, 'ocorrencias')
         ->assertJsonPath('ocorrencias.0.viagem.id', $viagem->id);
 });
+
+test('reenviar a ocorrencia com o mesmo client_uuid nao duplica nem notifica de novo', function () {
+    Notification::fake();
+    $motorista = User::factory()->create(['role' => 'motorista']);
+    $frota = User::factory()->frota()->create();
+    $viagem = viagemEmAndamento($motorista);
+    $uuid = '7f0c5a3e-2b1d-4c8e-9f6a-1d2e3f4a5b6c';
+
+    $primeira = registrarOcorrencia($motorista, $viagem, ['client_uuid' => $uuid])->assertCreated();
+    registrarOcorrencia($motorista, $viagem, ['client_uuid' => $uuid])
+        ->assertOk()
+        ->assertJsonPath('ocorrencia.id', $primeira->json('ocorrencia.id'));
+
+    expect(OcorrenciaViagem::count())->toBe(1);
+    Notification::assertSentToTimes($frota, OcorrenciaRegistrada::class, 1);
+});

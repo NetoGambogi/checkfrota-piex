@@ -41,6 +41,10 @@ class MotoristaOcorrenciaController extends Controller
     /**
      * Registra um problema ocorrido durante uma viagem do motorista (ex.: falha mecânica), com o km
      * do hodômetro, a gravidade e, opcionalmente, uma foto. A gestão da frota é avisada na hora.
+     *
+     * O app registra offline e reenvia quando volta a conexão, com o mesmo `client_uuid`: se a
+     * resposta do primeiro envio se perdeu, o reenvio devolve a ocorrência já gravada (200) em vez
+     * de duplicá-la e notificar de novo.
      */
     public function store(Request $request, Viagem $viagem, CloudinaryService $cloudinary): JsonResponse
     {
@@ -48,7 +52,23 @@ class MotoristaOcorrenciaController extends Controller
             abort(403, 'Esta viagem não foi atribuída a você.');
         }
 
+        $request->validate(['client_uuid' => ['nullable', 'uuid']]);
+
+        $jaRegistrada = $request->filled('client_uuid')
+            ? OcorrenciaViagem::query()
+                ->where('client_uuid', $request->input('client_uuid'))
+                ->where('user_id', $request->user()->id)
+                ->first()
+            : null;
+
+        if ($jaRegistrada) {
+            return response()->json([
+                'ocorrencia' => $jaRegistrada->load(self::RELACOES)->toApiPayload(),
+            ]);
+        }
+
         $validated = $request->validate([
+            'client_uuid' => ['nullable', 'uuid', Rule::unique('ocorrencias_viagem', 'client_uuid')],
             'tipo' => ['required', 'string', Rule::in(array_keys(OcorrenciaViagem::TIPOS))],
             'gravidade' => ['required', 'string', Rule::in(array_keys(OcorrenciaViagem::GRAVIDADES))],
             'km' => ['required', 'integer', 'min:0'],

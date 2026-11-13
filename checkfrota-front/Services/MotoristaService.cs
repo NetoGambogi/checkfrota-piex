@@ -12,6 +12,7 @@ namespace checkfrota_front.Services;
 public class MotoristaService
 {
     private const string CacheAbastecimentos = "motorista-abastecimentos";
+    private const string CacheOcorrencias = "motorista-ocorrencias";
 
     // Quanto o formulário espera pelo envio antes de deixar o registro na fila.
     private static readonly TimeSpan LimiteEnvioImediato = TimeSpan.FromSeconds(20);
@@ -98,27 +99,62 @@ public class MotoristaService
 
     /// <summary>
     /// Página das viagens atribuídas ao motorista pela gestão da frota; <paramref name="status"/> é
-    /// "em_andamento" ou "concluida".
+    /// "em_andamento" ou "concluida". Conclusões ainda na fila já aparecem como concluídas.
     /// </summary>
     public async Task<ViagemPaginadaResponse> GetViagensAsync(string status, int pagina = 1, int porPagina = 15)
     {
-        return await ConsultarAsync($"motorista-viagens-{status}-{pagina}-{porPagina}", async (client, cancelamento) =>
+        var resposta = await ConsultarAsync($"motorista-viagens-{status}-{pagina}-{porPagina}", async (client, cancelamento) =>
             await client.GetFromJsonAsync<ViagemPaginadaResponse>(
                 $"motorista/viagens?status={status}&page={pagina}&por_pagina={porPagina}", cancelamento) ?? new ViagemPaginadaResponse());
+
+        return await AplicarConclusoesPendentesAsync(resposta, status, pagina);
     }
 
-    /// <summary>Registra a chegada da viagem e, opcionalmente, o km final.</summary>
-    public async Task<ApiSaveResult<ViagemListItem>> ConcluirViagemAsync(int id, DateTime dataChegada, int? kmChegada)
+    private async Task<ViagemPaginadaResponse> AplicarConclusoesPendentesAsync(ViagemPaginadaResponse resposta, string status, int pagina)
     {
-        var client = await _apiAuth.GetAuthenticatedClientAsync();
-        var payload = new
+        var conclusoes = (await _fila.ListarAsync())
+            .Where(o => o.Tipo == OperacaoPendente.TipoConclusaoViagem && o.Situacao == SituacaoOperacao.Pendente && o.ConclusaoViagem is not null)
+            .Select(o => o.ConclusaoViagem!)
+            .ToList();
+        if (conclusoes.Count == 0) return resposta;
+
+        var ids = conclusoes.Select(c => c.Viagem.Id).ToHashSet();
+        var viagens = resposta.Viagens.Where(v => !ids.Contains(v.Id)).ToList();
+
+        if (status == "em_andamento")
         {
-            data_chegada = dataChegada.ToString("yyyy-MM-dd"),
-            km_chegada = kmChegada,
+            resposta.Paginacao.Total = Math.Max(0, resposta.Paginacao.Total - (resposta.Viagens.Count - viagens.Count));
+        }
+        else if (status == "concluida" && pagina == 1)
+        {
+            viagens.InsertRange(0, conclusoes.Select(c => c.ComoViagemConcluida()));
+        }
+
+        resposta.Viagens = viagens;
+        return resposta;
+    }
+
+    /// <summary>
+    /// Registra a chegada da viagem e, opcionalmente, o km final. Fica guardada no aparelho e é
+    /// enviada na hora, se houver rede, ou assim que ela voltar.
+    /// </summary>
+    public async Task<(ResultadoEnvio Resultado, string? Erro)> ConcluirViagemAsync(ViagemListItem viagem, DateTime dataChegada, int? kmChegada)
+    {
+        var operacao = new OperacaoPendente
+        {
+            Tipo = OperacaoPendente.TipoConclusaoViagem,
+            ConclusaoViagem = new RegistroConclusaoViagem(viagem, dataChegada, kmChegada),
         };
 
-        var response = await client.PatchAsJsonAsync($"motorista/viagens/{id}/concluir", payload);
-        return await ApiSaveResult<ViagemListItem>.FromResponseAsync<ViagemResponse>(response, r => r.Viagem);
+        // Uma tentativa anterior recusada (a viagem voltou para "em andamento") é substituída por esta.
+        foreach (var anterior in (await _fila.ListarAsync())
+            .Where(o => o.Tipo == OperacaoPendente.TipoConclusaoViagem && o.ConclusaoViagem?.Viagem.Id == viagem.Id))
+        {
+            await _fila.RemoverAsync(anterior.Id);
+        }
+
+        await _fila.EnfileirarAsync(operacao, null);
+        return await _sincronizacao.EnviarAgoraAsync(operacao.Id, LimiteEnvioImediato);
     }
 
     public async Task<List<AbastecimentoListItem>> GetAbastecimentosAsync()
@@ -159,6 +195,10 @@ public class MotoristaService
     public async Task<List<OperacaoPendente>> GetAbastecimentosPendentesAsync() =>
         (await _fila.ListarAsync()).Where(o => o.Tipo == OperacaoPendente.TipoAbastecimento).ToList();
 
+    /// <summary>Ocorrências registradas no aparelho que a API ainda não confirmou.</summary>
+    public async Task<List<OperacaoPendente>> GetOcorrenciasPendentesAsync() =>
+        (await _fila.ListarAsync()).Where(o => o.Tipo == OperacaoPendente.TipoOcorrencia).ToList();
+
     public Task DescartarPendenciaAsync(Guid id) => _fila.RemoverAsync(id);
 
     /// <summary>Envia uma operação da fila; o <see cref="SincronizacaoService"/> trata a resposta.</summary>
@@ -185,6 +225,30 @@ public class MotoristaService
                 return await form.EnviarAsync(client, "motorista/abastecimentos", cancelamento: cancelamento);
             }
 
+            case OperacaoPendente.TipoOcorrencia when operacao.Ocorrencia is { } dados:
+            {
+                await using var form = new FormularioMultipart()
+                    .Campo("client_uuid", operacao.Id.ToString())
+                    .Campo("tipo", dados.Tipo)
+                    .Campo("gravidade", dados.Gravidade)
+                    .Campo("km", dados.Km)
+                    .Campo("descricao", dados.Descricao);
+                await form.ArquivoAsync("foto", operacao.Anexo is null ? null : new FileResult(operacao.Anexo, operacao.AnexoContentType));
+
+                return await form.EnviarAsync(client, $"motorista/viagens/{dados.Viagem.Id}/ocorrencias", cancelamento: cancelamento);
+            }
+
+            case OperacaoPendente.TipoConclusaoViagem when operacao.ConclusaoViagem is { } dados:
+            {
+                var payload = new
+                {
+                    data_chegada = dados.DataChegada.ToString("yyyy-MM-dd"),
+                    km_chegada = dados.KmChegada,
+                };
+
+                return await client.PatchAsJsonAsync($"motorista/viagens/{dados.Viagem.Id}/concluir", payload, cancelamento);
+            }
+
             default:
                 throw new InvalidOperationException($"Operação offline inválida: {operacao.Tipo}");
         }
@@ -196,44 +260,62 @@ public class MotoristaService
     /// </summary>
     internal async Task ConfirmarOperacaoAsync(OperacaoPendente operacao, HttpResponseMessage resposta)
     {
-        if (operacao.Tipo != OperacaoPendente.TipoAbastecimento) return;
+        switch (operacao.Tipo)
+        {
+            case OperacaoPendente.TipoAbastecimento:
+            {
+                var salvo = (await resposta.Content.ReadFromJsonAsync<AbastecimentoResponse>())?.Abastecimento;
+                if (salvo is null) return;
 
-        var salvo = (await resposta.Content.ReadFromJsonAsync<AbastecimentoResponse>())?.Abastecimento;
-        if (salvo is null) return;
+                var cache = await _cache.LerAsync<List<AbastecimentoListItem>>(CacheAbastecimentos) ?? new();
+                cache.RemoveAll(a => a.Id == salvo.Id);
+                cache.Insert(0, salvo);
+                await _cache.SalvarAsync(CacheAbastecimentos, cache);
+                break;
+            }
 
-        var cache = await _cache.LerAsync<List<AbastecimentoListItem>>(CacheAbastecimentos) ?? new();
-        cache.RemoveAll(a => a.Id == salvo.Id);
-        cache.Insert(0, salvo);
-        await _cache.SalvarAsync(CacheAbastecimentos, cache);
+            case OperacaoPendente.TipoOcorrencia:
+            {
+                var salva = (await resposta.Content.ReadFromJsonAsync<OcorrenciaResponse>())?.Ocorrencia;
+                if (salva is null) return;
+
+                var cache = await _cache.LerAsync<List<OcorrenciaItem>>(CacheOcorrencias) ?? new();
+                cache.RemoveAll(o => o.Id == salva.Id);
+                cache.Insert(0, salva);
+                await _cache.SalvarAsync(CacheOcorrencias, cache);
+                break;
+            }
+        }
     }
 
     /// <summary>Ocorrências relatadas pelo motorista, com o status do tratamento pela frota.</summary>
     public async Task<List<OcorrenciaItem>> GetOcorrenciasAsync()
     {
-        return await ConsultarAsync("motorista-ocorrencias", async (client, cancelamento) =>
+        return await ConsultarAsync(CacheOcorrencias, async (client, cancelamento) =>
             (await client.GetFromJsonAsync<OcorrenciaListResponse>("motorista/ocorrencias", cancelamento))?.Ocorrencias
                 ?? new List<OcorrenciaItem>());
     }
 
-    /// <summary>Relata um problema na viagem; a gestão da frota é avisada por notificação.</summary>
-    public async Task<ApiSaveResult<OcorrenciaItem>> RegistrarOcorrenciaAsync(
-        int viagemId,
+    /// <summary>
+    /// Relata um problema na viagem; a gestão da frota é avisada por notificação. Fica guardada no
+    /// aparelho (com a foto) e é enviada na hora, se houver rede, ou assim que ela voltar.
+    /// </summary>
+    public async Task<(ResultadoEnvio Resultado, string? Erro)> RegistrarOcorrenciaAsync(
+        ViagemListItem viagem,
         string tipo,
+        string tipoLabel,
         string gravidade,
         int km,
         string descricao,
         FileResult? foto)
     {
-        var client = await _apiAuth.GetAuthenticatedClientAsync();
+        var operacao = new OperacaoPendente
+        {
+            Tipo = OperacaoPendente.TipoOcorrencia,
+            Ocorrencia = new RegistroOcorrencia(viagem, tipo, tipoLabel, gravidade, km, descricao),
+        };
 
-        await using var form = new FormularioMultipart()
-            .Campo("tipo", tipo)
-            .Campo("gravidade", gravidade)
-            .Campo("km", km)
-            .Campo("descricao", descricao);
-        await form.ArquivoAsync("foto", foto);
-
-        var response = await form.EnviarAsync(client, $"motorista/viagens/{viagemId}/ocorrencias");
-        return await ApiSaveResult<OcorrenciaItem>.FromResponseAsync<OcorrenciaResponse>(response, r => r.Ocorrencia);
+        await _fila.EnfileirarAsync(operacao, foto);
+        return await _sincronizacao.EnviarAgoraAsync(operacao.Id, LimiteEnvioImediato);
     }
 }
