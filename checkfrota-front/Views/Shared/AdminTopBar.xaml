@@ -6,21 +6,30 @@
              x:Class="checkfrota_front.Views.Shared.AdminTopBar"
              x:Name="Root">
 
-    <Grid BackgroundColor="{DynamicResource HeaderBg}" HeightRequest="64" Padding="20,0" ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="12">
+    <!-- Botões com área de toque de 48x48 (mínimo recomendado no Android), maior que o ícone:
+         o padding menor compensa, mantendo os ícones onde estavam. -->
+    <Grid BackgroundColor="{DynamicResource HeaderBg}" HeightRequest="64" Padding="6,0" ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="0">
 
-        <Label Grid.Column="0"
-               Text="{x:Static helpers:IconFont.Back}"
-               FontFamily="FontAwesomeSolid"
-               FontSize="18"
-               TextColor="White"
-               VerticalOptions="Center"
-               IsVisible="{Binding ShowBackButton, Source={x:Reference Root}}">
-            <Label.GestureRecognizers>
+        <Grid Grid.Column="0"
+              WidthRequest="52"
+              HeightRequest="56"
+              BackgroundColor="Transparent"
+              VerticalOptions="Center"
+              IsVisible="{Binding ShowBackButton, Source={x:Reference Root}}">
+            <Label Text="{x:Static helpers:IconFont.Back}"
+                   FontFamily="FontAwesomeSolid"
+                   FontSize="20"
+                   TextColor="White"
+                   HorizontalOptions="Center"
+                   VerticalOptions="Center" />
+            <Grid.GestureRecognizers>
                 <TapGestureRecognizer Tapped="OnBackTapped" />
-            </Label.GestureRecognizers>
-        </Label>
+            </Grid.GestureRecognizers>
+        </Grid>
 
-        <Label Grid.Column="1"
+        <Label x:Name="Titulo"
+               Grid.Column="1"
+               Margin="14,0,8,0"
                Text="{Binding Title, Source={x:Reference Root}}"
                TextColor="White"
                FontAttributes="Bold"
@@ -32,8 +41,9 @@
         <Grid x:Name="Sino"
               x:DataType="services:NotificacaoService"
               Grid.Column="2"
-              WidthRequest="36"
-              HeightRequest="36"
+              WidthRequest="48"
+              HeightRequest="56"
+              BackgroundColor="Transparent"
               VerticalOptions="Center">
             <Label Text="{x:Static helpers:IconFont.Notificacao}"
                    FontFamily="FontAwesomeSolid"
@@ -50,7 +60,7 @@
                     Padding="4,0"
                     HorizontalOptions="End"
                     VerticalOptions="Start"
-                    Margin="0,-2,-6,0"
+                    Margin="0,10,3,0"
                     IsVisible="{Binding PossuiNaoLidas}">
                 <Label Text="{Binding NaoLidasTexto}"
                        TextColor="White"
@@ -64,24 +74,31 @@
             </Grid.GestureRecognizers>
         </Grid>
 
-        <Border Grid.Column="3"
-                WidthRequest="36"
-                HeightRequest="36"
-                StrokeShape="Ellipse"
-                Stroke="Transparent"
-                Padding="0"
-                HorizontalOptions="End"
-                VerticalOptions="Center">
-            <Grid>
-                <Image Source="person_icon.svg" Aspect="AspectFill" />
-                <Image Source="{Binding AvatarUrl, Source={x:Reference Root}}"
-                       Aspect="AspectFill"
-                       IsVisible="{Binding HasAvatar, Source={x:Reference Root}}" />
-                <Grid.GestureRecognizers>
-                    <TapGestureRecognizer Tapped="OnAvatarTapped" />
-                </Grid.GestureRecognizers>
-            </Grid>
-        </Border>
+        <!-- A área de toque é o Grid inteiro (56x56), não só a foto de 36px. -->
+        <Grid Grid.Column="3"
+              WidthRequest="56"
+              HeightRequest="56"
+              BackgroundColor="Transparent"
+              VerticalOptions="Center">
+            <Border WidthRequest="38"
+                    HeightRequest="38"
+                    StrokeShape="Ellipse"
+                    Stroke="Transparent"
+                    Padding="0"
+                    HorizontalOptions="Center"
+                    VerticalOptions="Center"
+                    InputTransparent="True">
+                <Grid>
+                    <Image Source="person_icon.svg" Aspect="AspectFill" />
+                    <Image Source="{Binding AvatarUrl, Source={x:Reference Root}}"
+                           Aspect="AspectFill"
+                           IsVisible="{Binding HasAvatar, Source={x:Reference Root}}" />
+                </Grid>
+            </Border>
+            <Grid.GestureRecognizers>
+                <TapGestureRecognizer Tapped="OnAvatarTapped" />
+            </Grid.GestureRecognizers>
+        </Grid>
     </Grid>
 
 </ContentView>

@@ -17,7 +17,14 @@ public partial class AdminTopBar : ContentView
     // O sino, como o avatar, só aparece nas telas principais (sem botão de voltar).
     public static readonly BindableProperty ShowBackButtonProperty =
         BindableProperty.Create(nameof(ShowBackButton), typeof(bool), typeof(AdminTopBar),
-            propertyChanged: (bindable, _, newValue) => ((AdminTopBar)bindable).Sino.IsVisible = !(bool)newValue);
+            propertyChanged: (bindable, _, newValue) =>
+            {
+                var barra = (AdminTopBar)bindable;
+                barra.Sino.IsVisible = !(bool)newValue;
+
+                // Com o voltar, a área de toque dele já afasta o título da borda.
+                barra.Titulo.Margin = (bool)newValue ? new Thickness(0, 0, 8, 0) : new Thickness(14, 0, 8, 0);
+            });
 
     public bool ShowBackButton
     {
