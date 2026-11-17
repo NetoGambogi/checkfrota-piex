@@ -36,6 +36,9 @@ public partial class FinanciamentoFormViewModel : AdminSectionViewModelBase
     [ObservableProperty]
     private string quantidadeParcelas = string.Empty;
 
+    /// <summary>Mesmo limite da API (Financiamento::PARCELAS_MAXIMAS): 192 meses, 16 anos.</summary>
+    public const int ParcelasMaximas = 192;
+
     [ObservableProperty]
     private string diaVencimento = string.Empty;
 
@@ -119,6 +122,12 @@ public partial class FinanciamentoFormViewModel : AdminSectionViewModelBase
         if (!int.TryParse(QuantidadeParcelas, out var quantidade) || quantidade < 1)
         {
             ErrorMessage = "Informe a quantidade de parcelas.";
+            return;
+        }
+
+        if (quantidade > ParcelasMaximas)
+        {
+            ErrorMessage = $"O financiamento pode ter no máximo {ParcelasMaximas} parcelas (16 anos).";
             return;
         }
 

@@ -17,6 +17,9 @@ class Financiamento extends Model
     /** @use HasFactory<FinanciamentoFactory> */
     use HasFactory, SoftDeletes;
 
+    /** Máximo de parcelas de um financiamento: 192 meses (16 anos). */
+    public const PARCELAS_MAXIMAS = 192;
+
     /**
      * Get the attributes that should be cast.
      *

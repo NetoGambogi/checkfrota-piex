@@ -803,7 +803,7 @@
                 "properties": {
                   "nome": {
                     "type": "string",
-                    "maxLength": 255
+                    "maxLength": 50
                   },
                   "tipo": {
                     "type": "string",
@@ -895,7 +895,7 @@
                 "properties": {
                   "nome": {
                     "type": "string",
-                    "maxLength": 255
+                    "maxLength": 50
                   },
                   "tipo": {
                     "type": "string",
@@ -1616,6 +1616,21 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/situacao"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "description": "`pendente`: ainda há parcela a pagar; `concluido`: todas as parcelas pagas; `todos` (padrão).",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "todos",
+                "pendente",
+                "concluido"
+              ],
+              "default": "todos"
+            }
           }
         ]
       },
@@ -1676,7 +1691,7 @@
                   "quantidade_parcelas": {
                     "type": "integer",
                     "minimum": 1,
-                    "maximum": 600
+                    "maximum": 192
                   },
                   "dia_vencimento": {
                     "type": "integer",
@@ -1923,7 +1938,7 @@
                 "properties": {
                   "nome": {
                     "type": "string",
-                    "maxLength": 255
+                    "maxLength": 50
                   }
                 },
                 "required": [
@@ -1991,7 +2006,7 @@
                 "properties": {
                   "nome": {
                     "type": "string",
-                    "maxLength": 255
+                    "maxLength": 50
                   }
                 },
                 "required": [
@@ -3164,7 +3179,7 @@
                   },
                   "descricao": {
                     "type": "string",
-                    "maxLength": 255
+                    "maxLength": 150
                   },
                   "valor": {
                     "type": "number",
@@ -3323,7 +3338,7 @@
                   },
                   "descricao": {
                     "type": "string",
-                    "maxLength": 255
+                    "maxLength": 150
                   },
                   "valor": {
                     "type": "number",
@@ -4020,7 +4035,7 @@
                   "km_aproximado": {
                     "type": "integer",
                     "minimum": 1,
-                    "maximum": 100000
+                    "maximum": 7000
                   },
                   "observacoes": {
                     "type": "string",
@@ -4109,7 +4124,7 @@
                   "km_aproximado": {
                     "type": "integer",
                     "minimum": 1,
-                    "maximum": 100000
+                    "maximum": 7000
                   },
                   "observacoes": {
                     "type": "string",

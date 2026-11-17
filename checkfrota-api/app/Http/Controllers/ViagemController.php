@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Concerns\FiltraPorPeriodo;
 use App\Http\Controllers\Concerns\ValidaLancamentoFinanceiro;
+use App\Http\Controllers\Concerns\ValidaLimiteHodometro;
 use App\Models\User;
 use App\Models\Veiculo;
 use App\Models\Viagem;
@@ -21,7 +22,7 @@ use Illuminate\Validation\ValidationException;
 
 class ViagemController extends Controller
 {
-    use FiltraPorPeriodo, ValidaLancamentoFinanceiro;
+    use FiltraPorPeriodo, ValidaLancamentoFinanceiro, ValidaLimiteHodometro;
 
     private const SITUACOES = ['ativos', 'inativos', 'todos'];
 
@@ -273,6 +274,9 @@ class ViagemController extends Controller
                 'km_chegada' => 'O km de chegada não pode ser menor que o km de saída.',
             ]);
         }
+
+        $this->validarLimiteDoHodometro($validated['veiculo_id'], $validated['km_saida'] ?? null, 'km_saida');
+        $this->validarLimiteDaChegada($validated['veiculo_id'], $validated['km_saida'] ?? null, $validated['km_chegada'] ?? null);
 
         return $validated;
     }

@@ -35,6 +35,18 @@
             <Label Text="{Binding ErrorMessage}"
                    TextColor="{DynamicResource Danger}"
                    FontSize="13" />
+
+            <Button Text="Excluir financiamento"
+                    Command="{Binding ExcluirCommand}"
+                    IsVisible="{Binding CanExcluir}"
+                    IsEnabled="{Binding IsNotBusy}"
+                    BackgroundColor="Transparent"
+                    TextColor="{DynamicResource Danger}"
+                    FontAttributes="Bold"
+                    BorderColor="{DynamicResource Danger}"
+                    BorderWidth="1"
+                    CornerRadius="10"
+                    HeightRequest="44" />
         </VerticalStackLayout>
 
         <Grid Grid.Row="2">

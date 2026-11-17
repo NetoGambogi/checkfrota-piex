@@ -136,3 +136,27 @@ test('admin can restore an inactive forma de pagamento', function () {
     $response->assertOk()->assertJsonPath('forma.ativo', true);
     expect($forma->fresh()->trashed())->toBeFalse();
 });
+
+test('forma de pagamento aceita nome de no maximo 50 caracteres', function () {
+    $admin = User::factory()->admin()->create();
+
+    $this->actingAs($admin, 'sanctum')->postJson('/api/formas-pagamento', ['nome' => str_repeat('a', 51)])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('nome');
+
+    $this->actingAs($admin, 'sanctum')->postJson('/api/formas-pagamento', ['nome' => str_repeat('a', 50)])
+        ->assertCreated();
+});
+
+test('editar forma de pagamento com nome longo ja gravado so aplica o limite se o nome mudar', function () {
+    $admin = User::factory()->admin()->create();
+    $nomeLongo = str_repeat('b', 80);
+    $forma = FormaPagamento::factory()->create(['nome' => $nomeLongo]);
+
+    $this->actingAs($admin, 'sanctum')->putJson("/api/formas-pagamento/{$forma->id}", ['nome' => $nomeLongo])
+        ->assertOk();
+
+    $this->actingAs($admin, 'sanctum')->putJson("/api/formas-pagamento/{$forma->id}", ['nome' => str_repeat('c', 51)])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('nome');
+});

@@ -16,6 +16,9 @@ class MovimentacaoFinanceira extends Model
     /** @use HasFactory<MovimentacaoFinanceiraFactory> */
     use HasFactory, PossuiComprovante, SoftDeletes;
 
+    /** Tamanho máximo da descrição digitada num lançamento. */
+    public const DESCRICAO_MAXIMA = 150;
+
     protected $table = 'movimentacoes_financeiras';
 
     /**

@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Concerns\AnexaComprovanteAoLancamento;
 use App\Http\Controllers\Concerns\FiltraPorPeriodo;
 use App\Http\Controllers\Concerns\ValidaLancamentoFinanceiro;
+use App\Http\Controllers\Concerns\ValidaLimiteHodometro;
+use App\Http\Controllers\Concerns\ValidaPrecoPorLitro;
 use App\Http\Controllers\Concerns\ValidaSequenciaHodometro;
 use App\Models\Abastecimento;
 use App\Models\Veiculo;
@@ -21,7 +23,7 @@ use Illuminate\Validation\Rule;
 
 class AbastecimentoController extends Controller
 {
-    use AnexaComprovanteAoLancamento, FiltraPorPeriodo, ValidaLancamentoFinanceiro, ValidaSequenciaHodometro;
+    use AnexaComprovanteAoLancamento, FiltraPorPeriodo, ValidaLancamentoFinanceiro, ValidaLimiteHodometro, ValidaPrecoPorLitro, ValidaSequenciaHodometro;
 
     private const SITUACOES = ['ativos', 'inativos', 'todos'];
 
@@ -123,7 +125,9 @@ class AbastecimentoController extends Controller
     {
         $validated = $request->validate($this->rules(criando: true), $this->mensagensComprovante());
         $this->validarLancamentoFinanceiro($validated, 'despesa', 'abastecimentos');
+        $this->validarPrecoPorLitro($validated);
         $this->validarSequenciaDoHodometro($validated);
+        $this->validarLimiteDoHodometro($validated['veiculo_id'], $validated['km']);
 
         // O upload fica dentro da transação: se o Cloudinary falhar, nada é gravado.
         try {
@@ -161,7 +165,9 @@ class AbastecimentoController extends Controller
     {
         $validated = Arr::except($request->validate($this->rules(criando: false), $this->mensagensComprovante()), 'status');
         $this->validarLancamentoFinanceiro($validated, 'despesa', 'abastecimentos');
+        $this->validarPrecoPorLitro($validated);
         $this->validarSequenciaDoHodometro($validated, $abastecimento);
+        $this->validarLimiteDoHodometro($validated['veiculo_id'], $validated['km']);
 
         try {
             DB::transaction(function () use ($validated, $abastecimento, $request, $cloudinary) {

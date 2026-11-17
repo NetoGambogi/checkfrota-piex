@@ -76,6 +76,7 @@
                             HeightRequest="48"
                             Padding="12,0">
                         <Entry Text="{Binding Nome}"
+                               MaxLength="{Binding NomeMaxLength}"
                                Placeholder="Ex: Combustível"
                                BackgroundColor="Transparent"
                                VerticalOptions="Center" />

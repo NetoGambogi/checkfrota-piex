@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\ValidaLimiteHodometro;
 use App\Models\User;
 use App\Models\Veiculo;
 use App\Models\Viagem;
@@ -19,6 +20,8 @@ use Illuminate\Validation\ValidationException;
  */
 class MotoristaViagemController extends Controller
 {
+    use ValidaLimiteHodometro;
+
     private const STATUSES = ['em_andamento', 'concluida'];
 
     private const RELACOES = ['rota', 'veiculo', 'motorista'];
@@ -88,6 +91,8 @@ class MotoristaViagemController extends Controller
                 'km_chegada' => 'O km de chegada não pode ser menor que o km de saída.',
             ]);
         }
+
+        $this->validarLimiteDaChegada($viagem->veiculo_id, $viagem->km_saida, $validated['km_chegada'] ?? null);
 
         DB::transaction(function () use ($validated, $viagem) {
             $viagem->update($validated);

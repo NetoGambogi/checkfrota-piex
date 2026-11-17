@@ -101,7 +101,7 @@ class MovimentacaoFinanceiraController extends Controller
     {
         $validated = $request->validate([
             'tipo' => ['required', 'string', Rule::in(self::TIPOS)],
-            'descricao' => ['required', 'string', 'max:255'],
+            'descricao' => ['required', 'string', 'max:'.MovimentacaoFinanceira::DESCRICAO_MAXIMA],
             'valor' => ['required', 'numeric', 'min:0.01'],
             'data_vencimento' => ['required', 'date'],
             'categoria_financeira_id' => ['required', 'integer', Rule::exists('categorias_financeiras', 'id')->whereNull('deleted_at')],
@@ -138,11 +138,17 @@ class MovimentacaoFinanceiraController extends Controller
         ], 201);
     }
 
+    /**
+     * A descrição só precisa respeitar o limite se for alterada: lançamentos antigos ou gerados pela
+     * frota/financiamento (ex.: "Manutenção ABC1D23 - ...") podem ter descrição maior e continuam editáveis.
+     */
     public function update(Request $request, MovimentacaoFinanceira $movimentacaoFinanceira): JsonResponse
     {
+        $descricaoAlterada = $request->input('descricao') !== $movimentacaoFinanceira->descricao;
+
         $validated = $request->validate([
             'tipo' => ['required', 'string', Rule::in(self::TIPOS)],
-            'descricao' => ['required', 'string', 'max:255'],
+            'descricao' => ['required', 'string', $descricaoAlterada ? 'max:'.MovimentacaoFinanceira::DESCRICAO_MAXIMA : 'max:255'],
             'valor' => ['required', 'numeric', 'min:0.01'],
             'data_vencimento' => ['required', 'date'],
             'categoria_financeira_id' => ['required', 'integer', Rule::exists('categorias_financeiras', 'id')->whereNull('deleted_at')],
@@ -230,8 +236,17 @@ class MovimentacaoFinanceiraController extends Controller
         ]);
     }
 
+    /**
+     * Parcelas de financiamento não são excluídas sozinhas: exclui-se o financiamento inteiro.
+     */
     public function destroy(MovimentacaoFinanceira $movimentacaoFinanceira): JsonResponse
     {
+        if ($movimentacaoFinanceira->financiamento_id !== null) {
+            throw ValidationException::withMessages([
+                'financiamento_id' => 'Parcelas de financiamento não podem ser excluídas. Para corrigir, exclua o financiamento inteiro.',
+            ]);
+        }
+
         $movimentacaoFinanceira->delete();
 
         return response()->json(['message' => 'Lançamento excluído com sucesso.']);

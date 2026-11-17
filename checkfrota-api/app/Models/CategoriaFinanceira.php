@@ -14,6 +14,9 @@ class CategoriaFinanceira extends Model
     /** @use HasFactory<CategoriaFinanceiraFactory> */
     use HasFactory, SoftDeletes;
 
+    /** Tamanho máximo do nome (título) exibido nas listas e seleções. */
+    public const NOME_MAXIMO = 50;
+
     /**
      * Laravel pluraliza "CategoriaFinanceira" errado (assume regras de inglês); força o nome
      * real da tabela em vez de deixar a convenção adivinhar.

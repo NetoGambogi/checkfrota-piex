@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\ValidaLimiteHodometro;
+use App\Http\Controllers\Concerns\ValidaPrecoPorLitro;
 use App\Http\Controllers\Concerns\ValidaSequenciaHodometro;
 use App\Models\Abastecimento;
 use App\Models\User;
@@ -18,7 +20,7 @@ use Illuminate\Validation\Rule;
 
 class MotoristaAbastecimentoController extends Controller
 {
-    use ValidaSequenciaHodometro;
+    use ValidaLimiteHodometro, ValidaPrecoPorLitro, ValidaSequenciaHodometro;
 
     /**
      * Histórico dos abastecimentos registrados pelo próprio motorista.
@@ -74,7 +76,9 @@ class MotoristaAbastecimentoController extends Controller
             'comprovante.max' => 'O comprovante deve ter no máximo 10 MB.',
         ]);
 
+        $this->validarPrecoPorLitro($validated);
         $this->validarSequenciaDoHodometro($validated);
+        $this->validarLimiteDoHodometro($validated['veiculo_id'], $validated['km']);
 
         $arquivo = $request->file('comprovante');
 

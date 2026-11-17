@@ -14,7 +14,20 @@ namespace checkfrota_front
         protected override void OnCreate(Bundle? savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
+            DesativarPreenchimentoAutomatico();
             ReceberToqueEmNotificacao(Intent);
+        }
+
+        // O app não tem campos de senha (o login é pelo Google), mas o serviço de preenchimento
+        // automático do Android (Gerenciador de Senhas do Google) confunde formulários como o de
+        // abastecimento com um login e oferece salvar "senha" a cada envio. Excluir a janela inteira
+        // do autofill evita esse diálogo em todas as telas.
+        private void DesativarPreenchimentoAutomatico()
+        {
+            if (OperatingSystem.IsAndroidVersionAtLeast(26) && Window?.DecorView is { } decorView)
+            {
+                decorView.ImportantForAutofill = global::Android.Views.ImportantForAutofill.NoExcludeDescendants;
+            }
         }
 
         // App em segundo plano: a Activity já existe e recebe o novo Intent.

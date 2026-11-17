@@ -202,3 +202,19 @@ test('abastecimento do motorista rejeita client_uuid invalido', function () {
         ->assertUnprocessable()
         ->assertJsonValidationErrors('client_uuid');
 });
+
+test('abastecimento do motorista rejeita preco por litro fora da faixa', function () {
+    $motorista = User::factory()->create(['role' => 'motorista']);
+
+    registrarAbastecimentoMotorista($motorista, ['litros' => 100, 'valor_total' => 2000])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('valor_total');
+});
+
+test('abastecimento do motorista nao aceita km mais de 2000 acima do km atual', function () {
+    $motorista = User::factory()->create(['role' => 'motorista']);
+
+    registrarAbastecimentoMotorista($motorista, ['km' => 52001])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('km');
+});

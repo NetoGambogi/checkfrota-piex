@@ -27,6 +27,14 @@ class Abastecimento extends Model
     ];
 
     /**
+     * Faixa aceita para o preço por litro (valor total / litros), em reais: fora dela, o valor ou
+     * os litros foram digitados errado.
+     */
+    public const PRECO_LITRO_MINIMO = 3.0;
+
+    public const PRECO_LITRO_MAXIMO = 15.0;
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>

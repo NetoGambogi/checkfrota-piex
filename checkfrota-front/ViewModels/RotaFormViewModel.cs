@@ -1,3 +1,4 @@
+using checkfrota_front.Helpers;
 using checkfrota_front.Models;
 using checkfrota_front.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -80,6 +81,12 @@ public partial class RotaFormViewModel : AdminSectionViewModelBase, IQueryAttrib
         if (!int.TryParse(KmAproximado.Replace(".", ""), out var km) || km < 1)
         {
             ErrorMessage = "Informe a distância aproximada em km.";
+            return;
+        }
+
+        if (km > LimitesFrota.KmMaximoRota)
+        {
+            ErrorMessage = $"A distância da rota deve ser de no máximo {LimitesFrota.KmMaximoRota.ToString("N0", System.Globalization.CultureInfo.GetCultureInfo("pt-BR"))} km.";
             return;
         }
 

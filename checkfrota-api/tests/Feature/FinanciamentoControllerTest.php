@@ -123,7 +123,7 @@ test('viewing a financiamento reflete a contagem de parcelas pagas', function ()
     $response->assertOk()->assertJsonPath('financiamento.parcelas_pagas', 1);
 });
 
-test('deleting a financiamento remove apenas as parcelas pendentes', function () {
+test('deleting a financiamento exclui o financiamento inteiro com todas as parcelas', function () {
     $admin = User::factory()->admin()->create();
     $financiamento = Financiamento::factory()->create(['quantidade_parcelas' => 2]);
     $financiamento->gerarParcelas();
@@ -134,7 +134,7 @@ test('deleting a financiamento remove apenas as parcelas pendentes', function ()
     $this->actingAs($admin, 'sanctum')->deleteJson("/api/financiamentos/{$financiamento->id}")->assertOk();
 
     expect($financiamento->fresh()->trashed())->toBeTrue();
-    expect($parcelaPaga->fresh()->trashed())->toBeFalse();
+    expect($parcelaPaga->fresh()->trashed())->toBeTrue();
     expect($parcelaPendente->fresh()->trashed())->toBeTrue();
 });
 
@@ -149,4 +149,74 @@ test('admin can restore a financiamento e suas parcelas pendentes voltam', funct
     $response->assertOk()->assertJsonPath('financiamento.ativo', true);
     expect($financiamento->fresh()->trashed())->toBeFalse();
     expect($financiamento->movimentacoes()->count())->toBe(2);
+});
+
+test('restaurar o financiamento traz de volta todas as parcelas, inclusive as pagas', function () {
+    $admin = User::factory()->admin()->create();
+    $financiamento = Financiamento::factory()->create(['quantidade_parcelas' => 2]);
+    $financiamento->gerarParcelas();
+    $financiamento->movimentacoes()->where('numero_parcela', 1)->update(['status' => 'pago']);
+    $this->actingAs($admin, 'sanctum')->deleteJson("/api/financiamentos/{$financiamento->id}")->assertOk();
+
+    $this->actingAs($admin, 'sanctum')->patchJson("/api/financiamentos/{$financiamento->id}/restore")->assertOk();
+
+    expect($financiamento->movimentacoes()->count())->toBe(2);
+    expect($financiamento->movimentacoes()->where('status', 'pago')->count())->toBe(1);
+});
+
+test('listing financiamentos filtra pendentes e concluidos', function () {
+    $admin = User::factory()->admin()->create();
+    $pendente = Financiamento::factory()->create(['descricao' => 'Pendente', 'quantidade_parcelas' => 2]);
+    $pendente->gerarParcelas();
+    $pendente->movimentacoes()->where('numero_parcela', 1)->update(['status' => 'pago']);
+    $concluido = Financiamento::factory()->create(['descricao' => 'Concluído', 'quantidade_parcelas' => 2]);
+    $concluido->gerarParcelas();
+    $concluido->movimentacoes()->update(['status' => 'pago']);
+
+    $this->actingAs($admin, 'sanctum')->getJson('/api/financiamentos?status=pendente')
+        ->assertOk()
+        ->assertJsonCount(1, 'financiamentos')
+        ->assertJsonPath('financiamentos.0.descricao', 'Pendente');
+
+    $this->actingAs($admin, 'sanctum')->getJson('/api/financiamentos?status=concluido')
+        ->assertOk()
+        ->assertJsonCount(1, 'financiamentos')
+        ->assertJsonPath('financiamentos.0.descricao', 'Concluído')
+        ->assertJsonPath('financiamentos.0.parcelas_pagas', 2);
+
+    $this->actingAs($admin, 'sanctum')->getJson('/api/financiamentos?status=todos')
+        ->assertOk()
+        ->assertJsonCount(2, 'financiamentos');
+});
+
+test('parcela de financiamento nao pode ser excluida sozinha', function () {
+    $financeiro = User::factory()->financeiro()->create();
+    $financiamento = Financiamento::factory()->create(['quantidade_parcelas' => 2]);
+    $financiamento->gerarParcelas();
+    $parcela = $financiamento->movimentacoes()->first();
+
+    $this->actingAs($financeiro, 'sanctum')->deleteJson("/api/movimentacoes-financeiras/{$parcela->id}")
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('financiamento_id');
+
+    expect($parcela->fresh()->trashed())->toBeFalse();
+});
+
+test('financiamento aceita no maximo 192 parcelas', function () {
+    $financeiro = User::factory()->financeiro()->create();
+    $categoria = CategoriaFinanceira::factory()->despesa()->create();
+    $dados = [
+        'descricao' => 'Caminhão financiado',
+        'categoria_financeira_id' => $categoria->id,
+        'valor_parcela' => 1000,
+        'dia_vencimento' => 10,
+        'data_inicio' => '2026-01-01',
+    ];
+
+    $this->actingAs($financeiro, 'sanctum')->postJson('/api/financiamentos', [...$dados, 'quantidade_parcelas' => 193])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('quantidade_parcelas');
+
+    $this->actingAs($financeiro, 'sanctum')->postJson('/api/financiamentos', [...$dados, 'quantidade_parcelas' => 192])
+        ->assertCreated();
 });

@@ -12,10 +12,11 @@ public class FinanciamentoService
         _apiAuth = apiAuth;
     }
 
-    public async Task<List<FinanciamentoListItem>> GetFinanciamentosAsync()
+    /// <param name="status">"todos", "pendente" (ainda há parcela a pagar) ou "concluido" (todas pagas).</param>
+    public async Task<List<FinanciamentoListItem>> GetFinanciamentosAsync(string status = "todos")
     {
         var client = await _apiAuth.GetAuthenticatedClientAsync();
-        var response = await client.GetFromJsonAsync<FinanciamentoListResponse>("financiamentos");
+        var response = await client.GetFromJsonAsync<FinanciamentoListResponse>($"financiamentos?status={Uri.EscapeDataString(status)}");
         return response?.Financiamentos ?? new List<FinanciamentoListItem>();
     }
 

@@ -32,6 +32,7 @@ public partial class MovimentacaoFinanceiraFormViewModel : AdminSectionViewModel
     [NotifyPropertyChangedFor(nameof(IsCreating))]
     [NotifyPropertyChangedFor(nameof(CanMarcarComoPago))]
     [NotifyPropertyChangedFor(nameof(ShowDataPagamentoPicker))]
+    [NotifyPropertyChangedFor(nameof(CanExcluir))]
     private bool isEditing;
 
     public string PageTitle => IsEditing ? "Editar lançamento" : "Novo lançamento";
@@ -44,6 +45,18 @@ public partial class MovimentacaoFinanceiraFormViewModel : AdminSectionViewModel
 
     [ObservableProperty]
     private string descricao = string.Empty;
+
+    /// <summary>Mesmo limite da API (MovimentacaoFinanceira::DESCRICAO_MAXIMA).</summary>
+    public const int DescricaoMaxima = 150;
+
+    /// <summary>
+    /// Limite do campo. Lançamentos antigos ou gerados pela frota/financiamento podem ter descrição
+    /// maior: o campo aceita o tamanho atual para não cortar o texto ao abrir para edição.
+    /// </summary>
+    [ObservableProperty]
+    private int descricaoMaxLength = DescricaoMaxima;
+
+    private string? _descricaoOriginal;
 
     [ObservableProperty]
     private string valor = string.Empty;
@@ -102,6 +115,13 @@ public partial class MovimentacaoFinanceiraFormViewModel : AdminSectionViewModel
 
     public bool HasParcelaLabel => ParcelaLabel is not null;
 
+    // Parcela de financiamento não é excluída sozinha: só junto com o financiamento inteiro.
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanExcluir))]
+    private bool isParcelaDeFinanciamento;
+
+    public bool CanExcluir => IsEditing && !IsParcelaDeFinanciamento;
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsNotBusy))]
     private bool isBusy;
@@ -129,11 +149,14 @@ public partial class MovimentacaoFinanceiraFormViewModel : AdminSectionViewModel
             _movimentacaoId = item.Id;
             Tipo = item.Tipo;
             Descricao = item.Descricao;
+            _descricaoOriginal = item.Descricao;
+            DescricaoMaxLength = Math.Max(DescricaoMaxima, item.Descricao.Length);
             Valor = item.Valor.ToString("0.00", CultureInfo.InvariantCulture).Replace(".", ",");
             if (DateTime.TryParse(item.DataVencimento, out var venc)) DataVencimento = venc;
             Status = item.Status;
             DataPagamento = DateTime.TryParse(item.DataPagamento, out var pag) ? pag : DateTime.Today;
             ParcelaLabel = item.NumeroParcela is int numero ? $"Parcela {numero}" : null;
+            IsParcelaDeFinanciamento = item.FinanciamentoId is not null;
             _categoriaIdParaSelecionar = item.Categoria?.Id;
             _formaPagamentoIdParaSelecionar = item.FormaPagamento?.Id;
             _possuiComprovanteSalvo = item.Comprovante is not null;
@@ -230,6 +253,12 @@ public partial class MovimentacaoFinanceiraFormViewModel : AdminSectionViewModel
         if (string.IsNullOrWhiteSpace(Descricao))
         {
             ErrorMessage = "Informe a descrição do lançamento.";
+            return;
+        }
+
+        if (Descricao.Trim().Length > DescricaoMaxima && Descricao.Trim() != _descricaoOriginal?.Trim())
+        {
+            ErrorMessage = $"A descrição deve ter no máximo {DescricaoMaxima} caracteres.";
             return;
         }
 
@@ -437,7 +466,7 @@ public partial class MovimentacaoFinanceiraFormViewModel : AdminSectionViewModel
     [RelayCommand]
     private async Task DeleteAsync()
     {
-        if (IsBusy || _movimentacaoId is not int id) return;
+        if (IsBusy || _movimentacaoId is not int id || !CanExcluir) return;
 
         var confirmar = await Shell.Current.DisplayAlertAsync(
             "Excluir lançamento",

@@ -37,6 +37,15 @@ public partial class CategoriaFinanceiraFormViewModel : AdminSectionViewModelBas
     [ObservableProperty]
     private string nome = string.Empty;
 
+    /// <summary>Mesmo limite da API (NOME_MAXIMO).</summary>
+    public const int NomeMaximo = 50;
+
+    /// <summary>Registros antigos podem ter nome maior: o campo aceita o tamanho atual para não cortar o texto.</summary>
+    [ObservableProperty]
+    private int nomeMaxLength = NomeMaximo;
+
+    private string? _nomeOriginal;
+
     [ObservableProperty]
     private string? descricao;
 
@@ -66,6 +75,8 @@ public partial class CategoriaFinanceiraFormViewModel : AdminSectionViewModelBas
         {
             _categoriaId = categoria.Id;
             Nome = categoria.Nome;
+            _nomeOriginal = categoria.Nome;
+            NomeMaxLength = Math.Max(NomeMaximo, categoria.Nome.Length);
             Descricao = categoria.Descricao;
             Tipo = categoria.Tipo;
             SelectedIcone = IconOptions.FirstOrDefault(o => o.Key == categoria.Icone) ?? IconOptions[^1];
@@ -97,6 +108,12 @@ public partial class CategoriaFinanceiraFormViewModel : AdminSectionViewModelBas
         if (string.IsNullOrWhiteSpace(Nome))
         {
             ErrorMessage = "Informe o nome da categoria.";
+            return;
+        }
+
+        if (Nome.Trim().Length > NomeMaximo && Nome.Trim() != _nomeOriginal?.Trim())
+        {
+            ErrorMessage = $"O nome deve ter no máximo {NomeMaximo} caracteres.";
             return;
         }
 

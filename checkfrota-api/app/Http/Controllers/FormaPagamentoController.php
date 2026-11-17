@@ -38,7 +38,7 @@ class FormaPagamentoController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'nome' => ['required', 'string', 'max:255'],
+            'nome' => ['required', 'string', 'max:'.FormaPagamento::NOME_MAXIMO],
         ]);
 
         $forma = FormaPagamento::create($validated);
@@ -46,10 +46,15 @@ class FormaPagamentoController extends Controller
         return response()->json(['forma' => $forma->toApiPayload()], 201);
     }
 
+    /**
+     * O limite do nome só vale se ele for alterado: formas antigas com nome maior continuam editáveis.
+     */
     public function update(Request $request, FormaPagamento $formaPagamento): JsonResponse
     {
+        $nomeAlterado = $request->input('nome') !== $formaPagamento->nome;
+
         $validated = $request->validate([
-            'nome' => ['required', 'string', 'max:255'],
+            'nome' => ['required', 'string', $nomeAlterado ? 'max:'.FormaPagamento::NOME_MAXIMO : 'max:255'],
         ]);
 
         $formaPagamento->update($validated);

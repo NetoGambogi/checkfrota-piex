@@ -95,6 +95,12 @@ public partial class ConcluirViagemViewModel : AdminSectionViewModelBase, IQuery
             return;
         }
 
+        if (_viagem.KmSaida is int kmSaida && LimitesFrota.ValidarKmChegada(kmChegadaInt, kmSaida) is string erroKm)
+        {
+            ErrorMessage = erroKm;
+            return;
+        }
+
         if (DataChegada < DataSaida)
         {
             ErrorMessage = "A data de chegada não pode ser anterior à data de saída.";

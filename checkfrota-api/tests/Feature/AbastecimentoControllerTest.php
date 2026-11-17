@@ -307,3 +307,34 @@ test('editar o abastecimento com novo comprovante substitui o anterior', functio
     Http::assertSent(fn ($request) => str_ends_with($request->url(), '/image/destroy')
         && $request['public_id'] === 'checkfrota/comprovantes/nota-posto');
 });
+
+test('abastecimento nao aceita km mais de 2000 acima do km atual do veiculo', function () {
+    $frota = User::factory()->frota()->create();
+    $veiculo = Veiculo::factory()->create(['km_atual' => 10000]);
+
+    lancarAbastecimento($frota, ['veiculo_id' => $veiculo->id, 'km' => 12001])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('km');
+
+    expect($veiculo->fresh()->km_atual)->toBe(10000);
+});
+
+test('abastecimento rejeita preco por litro fora da faixa de 3 a 15 reais', function (float $valorTotal) {
+    $frota = User::factory()->frota()->create();
+
+    lancarAbastecimento($frota, ['litros' => 100, 'valor_total' => $valorTotal])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('valor_total');
+})->with([
+    'abaixo de 3 reais' => 299.0,
+    'acima de 15 reais' => 1501.0,
+]);
+
+test('abastecimento aceita preco por litro nos limites da faixa', function (float $valorTotal) {
+    $frota = User::factory()->frota()->create();
+
+    lancarAbastecimento($frota, ['litros' => 100, 'valor_total' => $valorTotal])->assertCreated();
+})->with([
+    '3 reais' => 300.0,
+    '15 reais' => 1500.0,
+]);

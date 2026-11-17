@@ -27,6 +27,32 @@ test('creating a rota requires km aproximado positivo', function () {
     ])->assertUnprocessable()->assertJsonValidationErrors('km_aproximado');
 });
 
+test('rota nao aceita distancia acima de 7000 km', function () {
+    $frota = User::factory()->frota()->create();
+    $rota = Rota::factory()->create();
+
+    $this->actingAs($frota, 'sanctum')->postJson('/api/rotas', [
+        'nome' => 'Rota',
+        'origem' => 'A',
+        'destino' => 'B',
+        'km_aproximado' => 7001,
+    ])->assertUnprocessable()->assertJsonValidationErrors('km_aproximado');
+
+    $this->actingAs($frota, 'sanctum')->putJson("/api/rotas/{$rota->id}", [
+        'nome' => $rota->nome,
+        'origem' => $rota->origem,
+        'destino' => $rota->destino,
+        'km_aproximado' => 999999,
+    ])->assertUnprocessable()->assertJsonValidationErrors('km_aproximado');
+
+    $this->actingAs($frota, 'sanctum')->postJson('/api/rotas', [
+        'nome' => 'Rota longa',
+        'origem' => 'Porto Alegre/RS',
+        'destino' => 'Manaus/AM',
+        'km_aproximado' => 7000,
+    ])->assertCreated();
+});
+
 test('frota can update a rota', function () {
     $frota = User::factory()->frota()->create();
     $rota = Rota::factory()->create();

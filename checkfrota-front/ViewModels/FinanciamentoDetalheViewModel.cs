@@ -34,7 +34,14 @@ public partial class FinanciamentoDetalheViewModel : AdminSectionViewModelBase, 
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowInitialLoading))]
+    [NotifyPropertyChangedFor(nameof(IsNotBusy))]
     private bool isBusy;
+
+    public bool IsNotBusy => !IsBusy;
+
+    /// <summary>Só dá para excluir depois que o financiamento carregou (a confirmação usa os dados dele).</summary>
+    [ObservableProperty]
+    private bool canExcluir;
 
     [ObservableProperty]
     private string? errorMessage;
@@ -85,10 +92,58 @@ public partial class FinanciamentoDetalheViewModel : AdminSectionViewModelBase, 
 
             Parcelas = new ObservableCollection<MovimentacaoFinanceiraRowViewModel>(
                 detalhe.Parcelas.Select(p => new MovimentacaoFinanceiraRowViewModel(p)));
+            CanExcluir = detalhe.Financiamento.Ativo;
         }
         catch (Exception ex)
         {
             ErrorMessage = $"Não foi possível carregar o financiamento. ({ex.Message})";
+            System.Diagnostics.Debug.WriteLine(ex);
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    /// <summary>
+    /// Exclui o financiamento inteiro, com todas as parcelas (inclusive as já pagas). Parcelas não
+    /// são excluídas uma a uma: um financiamento lançado errado sai por completo.
+    /// </summary>
+    [RelayCommand]
+    private async Task ExcluirAsync()
+    {
+        if (IsBusy || !CanExcluir) return;
+
+        var parcelasPagas = Parcelas.Count(p => p.IsPago);
+        var avisoPagas = parcelasPagas > 0
+            ? $" As {parcelasPagas} parcela(s) já paga(s) também serão excluídas do financeiro."
+            : string.Empty;
+
+        var confirmar = await Shell.Current.DisplayAlertAsync(
+            "Excluir financiamento",
+            $"Tem certeza que deseja excluir \"{Descricao}\" e todas as suas {Parcelas.Count} parcelas?{avisoPagas}",
+            "Excluir",
+            "Cancelar");
+
+        if (!confirmar) return;
+
+        try
+        {
+            BusyMessage = "Excluindo…";
+            IsBusy = true;
+            ErrorMessage = null;
+
+            if (!await _financiamentoService.DeleteAsync(_financiamentoId))
+            {
+                ErrorMessage = "Não foi possível excluir esse financiamento.";
+                return;
+            }
+
+            await Shell.Current.GoToAsync("..");
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = "Erro inesperado ao excluir o financiamento.";
             System.Diagnostics.Debug.WriteLine(ex);
         }
         finally

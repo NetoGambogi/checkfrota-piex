@@ -199,3 +199,21 @@ test('reenviar a mesma conclusao devolve a viagem sem notificar de novo', functi
 
     Notification::assertSentToTimes($frota, ViagemConcluida::class, 1);
 });
+
+test('motorista nao conclui a viagem com km de chegada alem da distancia maxima de uma rota', function () {
+    $motorista = User::factory()->create(['role' => 'motorista']);
+    $veiculo = Veiculo::factory()->create(['km_atual' => 50000]);
+    $viagem = Viagem::factory()->create([
+        'motorista_id' => $motorista->id,
+        'veiculo_id' => $veiculo->id,
+        'data_saida' => '2026-10-01',
+        'km_saida' => 50000,
+    ]);
+
+    test()->actingAs($motorista, 'sanctum')->patchJson("/api/motorista/viagens/{$viagem->id}/concluir", [
+        'data_chegada' => '2026-10-02',
+        'km_chegada' => 999999,
+    ])->assertUnprocessable()->assertJsonValidationErrors('km_chegada');
+
+    expect($veiculo->fresh()->km_atual)->toBe(50000);
+});

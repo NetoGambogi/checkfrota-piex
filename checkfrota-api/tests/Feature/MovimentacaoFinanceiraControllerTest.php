@@ -250,3 +250,45 @@ test('resumo calcula saldo atual apenas com lancamentos pagos e saldo previsto c
 test('unauthenticated user cannot access resumo', function () {
     $this->getJson('/api/movimentacoes-financeiras/resumo')->assertUnauthorized();
 });
+
+test('lancamento aceita descricao de no maximo 150 caracteres', function () {
+    $financeiro = User::factory()->financeiro()->create();
+    $categoria = CategoriaFinanceira::factory()->despesa()->create();
+    $dados = [
+        'tipo' => 'saida',
+        'valor' => 100,
+        'data_vencimento' => '2026-10-01',
+        'categoria_financeira_id' => $categoria->id,
+    ];
+
+    $this->actingAs($financeiro, 'sanctum')->postJson('/api/movimentacoes-financeiras', [...$dados, 'descricao' => str_repeat('a', 151)])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('descricao');
+
+    $this->actingAs($financeiro, 'sanctum')->postJson('/api/movimentacoes-financeiras', [...$dados, 'descricao' => str_repeat('a', 150)])
+        ->assertCreated();
+});
+
+test('editar lancamento com descricao longa ja gravada so aplica o limite se a descricao mudar', function () {
+    $financeiro = User::factory()->financeiro()->create();
+    $categoria = CategoriaFinanceira::factory()->despesa()->create();
+    $descricaoLonga = str_repeat('b', 200);
+    $movimentacao = MovimentacaoFinanceira::factory()->create([
+        'tipo' => 'saida',
+        'descricao' => $descricaoLonga,
+        'categoria_financeira_id' => $categoria->id,
+    ]);
+    $dados = [
+        'tipo' => 'saida',
+        'valor' => 250,
+        'data_vencimento' => '2026-10-01',
+        'categoria_financeira_id' => $categoria->id,
+    ];
+
+    $this->actingAs($financeiro, 'sanctum')->putJson("/api/movimentacoes-financeiras/{$movimentacao->id}", [...$dados, 'descricao' => $descricaoLonga])
+        ->assertOk();
+
+    $this->actingAs($financeiro, 'sanctum')->putJson("/api/movimentacoes-financeiras/{$movimentacao->id}", [...$dados, 'descricao' => str_repeat('c', 151)])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('descricao');
+});

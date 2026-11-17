@@ -16,6 +16,12 @@ class Veiculo extends Model
     use HasFactory, SoftDeletes;
 
     /**
+     * Quanto uma leitura do hodômetro (manutenção, abastecimento, saída de viagem) pode passar do
+     * km atual do veículo: evita que um km digitado errado vire o novo km atual.
+     */
+    public const KM_MAXIMO_ACIMA_DO_ATUAL = 2000;
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>

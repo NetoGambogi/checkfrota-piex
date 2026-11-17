@@ -113,6 +113,7 @@
                             <Entry Text="{Binding QuantidadeParcelas}"
                                    Placeholder="Ex: 48"
                                    Keyboard="Numeric"
+                                   MaxLength="3"
                                    BackgroundColor="Transparent"
                                    VerticalOptions="Center" />
                         </Border>

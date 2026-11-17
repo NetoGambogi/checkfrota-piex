@@ -15,6 +15,12 @@ class Rota extends Model
     use HasFactory, SoftDeletes;
 
     /**
+     * Distância máxima aceita para uma rota, em km. Também limita o km de chegada de uma viagem
+     * em relação ao km de saída.
+     */
+    public const KM_MAXIMO = 7000;
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>

@@ -19,16 +19,96 @@
                              ShowBackButton="True" />
 
         <VerticalStackLayout Grid.Row="1" Padding="20,16,20,12" Spacing="8" BackgroundColor="{DynamicResource PageBg}">
-            <Label Text="Financiamentos"
-                   TextColor="{DynamicResource TextPrimary}"
-                   FontAttributes="Bold"
-                   FontSize="20" />
+            <Grid ColumnDefinitions="*,Auto">
+                <Label Grid.Column="0"
+                       Text="Financiamentos"
+                       TextColor="{DynamicResource TextPrimary}"
+                       FontAttributes="Bold"
+                       FontSize="20"
+                       VerticalOptions="Center" />
+
+                <Border Grid.Column="1"
+                        BackgroundColor="{DynamicResource FieldBg}"
+                        Stroke="{DynamicResource FieldBorder}"
+                        StrokeThickness="1"
+                        StrokeShape="RoundRectangle 20"
+                        Padding="12,7">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding ToggleFiltrosCommand}" />
+                    </Border.GestureRecognizers>
+                    <HorizontalStackLayout Spacing="6">
+                        <Label Text="Filtros" TextColor="{DynamicResource TextPrimary}" FontSize="13" VerticalOptions="Center" />
+                        <Label Text="{x:Static helpers:IconFont.ChevronDireita}"
+                               FontFamily="FontAwesomeSolid"
+                               TextColor="{DynamicResource TextSecondary}"
+                               FontSize="11"
+                               Rotation="{Binding FiltrosChevronRotation}"
+                               VerticalOptions="Center" />
+                    </HorizontalStackLayout>
+                </Border>
+            </Grid>
             <Label Text="Compras parceladas, como veículos financiados"
                    TextColor="{DynamicResource TextSecondary}"
                    FontSize="13" />
             <Label Text="{Binding ErrorMessage}"
                    TextColor="{DynamicResource Danger}"
                    FontSize="13" />
+
+            <Label Text="{Binding FiltrosResumoLabel}"
+                   IsVisible="{Binding IsFiltrosColapsado}"
+                   TextColor="{DynamicResource TextSecondary}"
+                   FontSize="12" />
+
+            <Grid IsVisible="{Binding IsFiltrosExpandido}" ColumnDefinitions="*,*,*" ColumnSpacing="8">
+                <Button Grid.Column="0" Text="Todos" CornerRadius="10" HeightRequest="38" FontSize="12"
+                        Command="{Binding SelectStatusTodosCommand}">
+                    <Button.Triggers>
+                        <DataTrigger TargetType="Button" Binding="{Binding IsStatusTodosSelected}" Value="True">
+                            <Setter Property="BackgroundColor" Value="{DynamicResource TextPrimary}" />
+                            <Setter Property="TextColor" Value="{DynamicResource PageBg}" />
+                            <Setter Property="BorderWidth" Value="0" />
+                        </DataTrigger>
+                        <DataTrigger TargetType="Button" Binding="{Binding IsStatusTodosSelected}" Value="False">
+                            <Setter Property="BackgroundColor" Value="{DynamicResource PageBg}" />
+                            <Setter Property="TextColor" Value="{DynamicResource TextSecondary}" />
+                            <Setter Property="BorderColor" Value="{DynamicResource FieldBorder}" />
+                            <Setter Property="BorderWidth" Value="1" />
+                        </DataTrigger>
+                    </Button.Triggers>
+                </Button>
+                <Button Grid.Column="1" Text="Pendentes" CornerRadius="10" HeightRequest="38" FontSize="12"
+                        Command="{Binding SelectStatusPendenteCommand}">
+                    <Button.Triggers>
+                        <DataTrigger TargetType="Button" Binding="{Binding IsStatusPendenteSelected}" Value="True">
+                            <Setter Property="BackgroundColor" Value="{DynamicResource TextPrimary}" />
+                            <Setter Property="TextColor" Value="{DynamicResource PageBg}" />
+                            <Setter Property="BorderWidth" Value="0" />
+                        </DataTrigger>
+                        <DataTrigger TargetType="Button" Binding="{Binding IsStatusPendenteSelected}" Value="False">
+                            <Setter Property="BackgroundColor" Value="{DynamicResource PageBg}" />
+                            <Setter Property="TextColor" Value="{DynamicResource TextSecondary}" />
+                            <Setter Property="BorderColor" Value="{DynamicResource FieldBorder}" />
+                            <Setter Property="BorderWidth" Value="1" />
+                        </DataTrigger>
+                    </Button.Triggers>
+                </Button>
+                <Button Grid.Column="2" Text="Concluídos" CornerRadius="10" HeightRequest="38" FontSize="12"
+                        Command="{Binding SelectStatusConcluidoCommand}">
+                    <Button.Triggers>
+                        <DataTrigger TargetType="Button" Binding="{Binding IsStatusConcluidoSelected}" Value="True">
+                            <Setter Property="BackgroundColor" Value="{DynamicResource TextPrimary}" />
+                            <Setter Property="TextColor" Value="{DynamicResource PageBg}" />
+                            <Setter Property="BorderWidth" Value="0" />
+                        </DataTrigger>
+                        <DataTrigger TargetType="Button" Binding="{Binding IsStatusConcluidoSelected}" Value="False">
+                            <Setter Property="BackgroundColor" Value="{DynamicResource PageBg}" />
+                            <Setter Property="TextColor" Value="{DynamicResource TextSecondary}" />
+                            <Setter Property="BorderColor" Value="{DynamicResource FieldBorder}" />
+                            <Setter Property="BorderWidth" Value="1" />
+                        </DataTrigger>
+                    </Button.Triggers>
+                </Button>
+            </Grid>
         </VerticalStackLayout>
 
         <Grid Grid.Row="2">
@@ -38,7 +118,7 @@
                                  HorizontalOptions="Center"
                                  VerticalOptions="Center" />
 
-            <Label Text="Nenhum financiamento cadastrado."
+            <Label Text="{Binding EmptyStateLabel}"
                    IsVisible="{Binding ShowEmptyState}"
                    TextColor="{DynamicResource TextSecondary}"
                    HorizontalOptions="Center"

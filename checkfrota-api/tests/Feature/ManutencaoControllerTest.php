@@ -270,3 +270,32 @@ test('app edita a manutencao com novo comprovante via post com _method put', fun
 
     expect((float) Manutencao::find($id)->movimentacaoFinanceira->valor)->toBe(1200.5);
 });
+
+test('manutencao nao aceita km mais de 2000 acima do km atual do veiculo', function () {
+    $frota = User::factory()->frota()->create();
+    $veiculo = Veiculo::factory()->create(['km_atual' => 50000]);
+
+    lancarManutencao($frota, ['veiculo_id' => $veiculo->id, 'km' => 52001])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('km');
+
+    expect($veiculo->fresh()->km_atual)->toBe(50000);
+});
+
+test('editar a manutencao nao aceita km mais de 2000 acima do km atual do veiculo', function () {
+    $frota = User::factory()->frota()->create();
+    $veiculo = Veiculo::factory()->create(['km_atual' => 50000]);
+    $manutencao = Manutencao::find(lancarManutencao($frota, ['veiculo_id' => $veiculo->id, 'km' => 50000])->json('manutencao.id'));
+
+    $this->actingAs($frota, 'sanctum')->putJson("/api/manutencoes/{$manutencao->id}", [
+        'veiculo_id' => $veiculo->id,
+        'tipo' => 'preventiva',
+        'descricao' => 'Troca de óleo',
+        'data' => '2026-10-01',
+        'km' => 900000,
+        'valor' => 450.90,
+        'categoria_financeira_id' => $manutencao->movimentacaoFinanceira->categoria_financeira_id,
+    ])->assertUnprocessable()->assertJsonValidationErrors('km');
+
+    expect($veiculo->fresh()->km_atual)->toBe(50000);
+});

@@ -174,3 +174,27 @@ test('admin can restore an inactive categoria', function () {
     $response->assertOk()->assertJsonPath('categoria.ativo', true);
     expect($categoria->fresh()->trashed())->toBeFalse();
 });
+
+test('categoria aceita nome de no maximo 50 caracteres', function () {
+    $admin = User::factory()->admin()->create();
+
+    $this->actingAs($admin, 'sanctum')->postJson('/api/categorias-financeiras', ['nome' => str_repeat('a', 51), 'tipo' => 'despesa'])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('nome');
+
+    $this->actingAs($admin, 'sanctum')->postJson('/api/categorias-financeiras', ['nome' => str_repeat('a', 50), 'tipo' => 'receita'])
+        ->assertCreated();
+});
+
+test('editar categoria com nome longo ja gravado so aplica o limite se o nome mudar', function () {
+    $admin = User::factory()->admin()->create();
+    $nomeLongo = str_repeat('b', 80);
+    $categoria = CategoriaFinanceira::factory()->despesa()->create(['nome' => $nomeLongo]);
+
+    $this->actingAs($admin, 'sanctum')->putJson("/api/categorias-financeiras/{$categoria->id}", ['nome' => $nomeLongo, 'tipo' => 'despesa'])
+        ->assertOk();
+
+    $this->actingAs($admin, 'sanctum')->putJson("/api/categorias-financeiras/{$categoria->id}", ['nome' => str_repeat('c', 51), 'tipo' => 'despesa'])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('nome');
+});

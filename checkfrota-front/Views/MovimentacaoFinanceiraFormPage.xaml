@@ -104,6 +104,7 @@
                             HeightRequest="48"
                             Padding="12,0">
                         <Entry Text="{Binding Descricao}"
+                               MaxLength="{Binding DescricaoMaxLength}"
                                Placeholder="Ex: Recebimento de frete"
                                BackgroundColor="Transparent"
                                VerticalOptions="Center" />
@@ -303,7 +304,7 @@
 
                 <Button Text="Excluir lançamento"
                         Command="{Binding DeleteCommand}"
-                        IsVisible="{Binding IsEditing}"
+                        IsVisible="{Binding CanExcluir}"
                         IsEnabled="{Binding IsNotBusy}"
                         BackgroundColor="Transparent"
                         TextColor="{DynamicResource Danger}"

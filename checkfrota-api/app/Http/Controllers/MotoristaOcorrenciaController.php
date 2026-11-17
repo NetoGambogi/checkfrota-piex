@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\OcorrenciaViagem;
+use App\Models\Rota;
 use App\Models\User;
 use App\Models\Veiculo;
 use App\Models\Viagem;
@@ -130,8 +131,8 @@ class MotoristaOcorrenciaController extends Controller
     }
 
     /**
-     * O km da ocorrência precisa estar dentro do trecho da viagem: depois da saída e, se ela
-     * já foi concluída, antes da chegada.
+     * O km da ocorrência precisa estar dentro do trecho da viagem: depois da saída e antes da
+     * chegada (com a viagem em andamento, no máximo a distância máxima de uma rota após a saída).
      */
     private function validarKmNaViagem(int $km, Viagem $viagem): void
     {
@@ -144,6 +145,14 @@ class MotoristaOcorrenciaController extends Controller
         if ($viagem->km_chegada !== null && $km > $viagem->km_chegada) {
             throw ValidationException::withMessages([
                 'km' => "O km deve ser no máximo {$viagem->km_chegada}, o km de chegada desta viagem.",
+            ]);
+        }
+
+        if ($viagem->km_chegada === null && $viagem->km_saida !== null && $km > $viagem->km_saida + Rota::KM_MAXIMO) {
+            $limite = $viagem->km_saida + Rota::KM_MAXIMO;
+
+            throw ValidationException::withMessages([
+                'km' => "O km deve ser no máximo {$limite}, até ".Rota::KM_MAXIMO.' km após o km de saída desta viagem.',
             ]);
         }
     }

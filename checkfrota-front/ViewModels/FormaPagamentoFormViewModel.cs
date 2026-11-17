@@ -20,6 +20,15 @@ public partial class FormaPagamentoFormViewModel : AdminSectionViewModelBase, IQ
     [ObservableProperty]
     private string nome = string.Empty;
 
+    /// <summary>Mesmo limite da API (NOME_MAXIMO).</summary>
+    public const int NomeMaximo = 50;
+
+    /// <summary>Registros antigos podem ter nome maior: o campo aceita o tamanho atual para não cortar o texto.</summary>
+    [ObservableProperty]
+    private int nomeMaxLength = NomeMaximo;
+
+    private string? _nomeOriginal;
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsNotBusy))]
     private bool isBusy;
@@ -40,6 +49,8 @@ public partial class FormaPagamentoFormViewModel : AdminSectionViewModelBase, IQ
         {
             _formaId = forma.Id;
             Nome = forma.Nome;
+            _nomeOriginal = forma.Nome;
+            NomeMaxLength = Math.Max(NomeMaximo, forma.Nome.Length);
             IsEditing = true;
         }
     }
@@ -58,6 +69,12 @@ public partial class FormaPagamentoFormViewModel : AdminSectionViewModelBase, IQ
         if (string.IsNullOrWhiteSpace(Nome))
         {
             ErrorMessage = "Informe o nome da forma de pagamento.";
+            return;
+        }
+
+        if (Nome.Trim().Length > NomeMaximo && Nome.Trim() != _nomeOriginal?.Trim())
+        {
+            ErrorMessage = $"O nome deve ter no máximo {NomeMaximo} caracteres.";
             return;
         }
 

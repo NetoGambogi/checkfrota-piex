@@ -47,7 +47,7 @@ class CategoriaFinanceiraController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'nome' => ['required', 'string', 'max:255'],
+            'nome' => ['required', 'string', 'max:'.CategoriaFinanceira::NOME_MAXIMO],
             'tipo' => ['required', 'string', Rule::in(self::TIPOS)],
             'descricao' => ['nullable', 'string', 'max:255'],
             'icone' => ['nullable', 'string', Rule::in(self::ICONES)],
@@ -61,10 +61,15 @@ class CategoriaFinanceiraController extends Controller
         return response()->json(['categoria' => $categoria->toApiPayload()], 201);
     }
 
+    /**
+     * O limite do nome só vale se ele for alterado: categorias antigas com nome maior continuam editáveis.
+     */
     public function update(Request $request, CategoriaFinanceira $categoriaFinanceira): JsonResponse
     {
+        $nomeAlterado = $request->input('nome') !== $categoriaFinanceira->nome;
+
         $validated = $request->validate([
-            'nome' => ['required', 'string', 'max:255'],
+            'nome' => ['required', 'string', $nomeAlterado ? 'max:'.CategoriaFinanceira::NOME_MAXIMO : 'max:255'],
             'tipo' => ['required', 'string', Rule::in(self::TIPOS)],
             'descricao' => ['nullable', 'string', 'max:255'],
             'icone' => ['nullable', 'string', Rule::in(self::ICONES)],

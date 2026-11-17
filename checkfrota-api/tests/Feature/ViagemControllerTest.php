@@ -294,3 +294,19 @@ test('listing viagens filtra por motorista', function () {
         ->assertJsonCount(1, 'viagens')
         ->assertJsonPath('viagens.0.motorista.id', $motorista->id);
 });
+
+test('viagem nao aceita km de saida acima do limite nem chegada alem da distancia maxima de uma rota', function () {
+    $frota = User::factory()->frota()->create();
+    $veiculo = Veiculo::factory()->create(['km_atual' => 50000]);
+
+    registrarViagem($frota, ['veiculo_id' => $veiculo->id, 'km_saida' => 52001])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('km_saida');
+
+    registrarViagem($frota, ['veiculo_id' => $veiculo->id, 'km_saida' => 50000, 'data_chegada' => '2026-10-05', 'km_chegada' => 57001])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('km_chegada');
+
+    registrarViagem($frota, ['veiculo_id' => $veiculo->id, 'km_saida' => 50000, 'data_chegada' => '2026-10-05', 'km_chegada' => 57000])
+        ->assertCreated();
+});

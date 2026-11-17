@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Concerns\AnexaComprovanteAoLancamento;
 use App\Http\Controllers\Concerns\FiltraPorPeriodo;
 use App\Http\Controllers\Concerns\ValidaLancamentoFinanceiro;
+use App\Http\Controllers\Concerns\ValidaLimiteHodometro;
 use App\Models\Manutencao;
 use App\Models\Veiculo;
 use App\Services\CloudinaryService;
@@ -17,7 +18,7 @@ use Illuminate\Validation\Rule;
 
 class ManutencaoController extends Controller
 {
-    use AnexaComprovanteAoLancamento, FiltraPorPeriodo, ValidaLancamentoFinanceiro;
+    use AnexaComprovanteAoLancamento, FiltraPorPeriodo, ValidaLancamentoFinanceiro, ValidaLimiteHodometro;
 
     private const TIPOS = ['preventiva', 'corretiva'];
 
@@ -80,6 +81,7 @@ class ManutencaoController extends Controller
     {
         $validated = $request->validate($this->rules(criando: true), $this->mensagensComprovante());
         $this->validarLancamentoFinanceiro($validated, 'despesa', 'manutenções');
+        $this->validarLimiteDoHodometro($validated['veiculo_id'], $validated['km'] ?? null);
 
         // O upload fica dentro da transação: se o Cloudinary falhar, nada é gravado.
         try {
@@ -118,6 +120,7 @@ class ManutencaoController extends Controller
     {
         $validated = Arr::except($request->validate($this->rules(criando: false), $this->mensagensComprovante()), 'status');
         $this->validarLancamentoFinanceiro($validated, 'despesa', 'manutenções');
+        $this->validarLimiteDoHodometro($validated['veiculo_id'], $validated['km'] ?? null);
 
         try {
             DB::transaction(function () use ($validated, $manutencao, $request, $cloudinary) {

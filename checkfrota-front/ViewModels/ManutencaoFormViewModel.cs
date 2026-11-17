@@ -181,6 +181,12 @@ public partial class ManutencaoFormViewModel : AdminSectionViewModelBase, IQuery
             return;
         }
 
+        if (LimitesFrota.ValidarKmHodometro(kmInt, SelectedVeiculo.KmAtual) is string erroKm)
+        {
+            ErrorMessage = erroKm;
+            return;
+        }
+
         if (Financeiro.Validar() is string erroFinanceiro)
         {
             ErrorMessage = erroFinanceiro;

@@ -76,7 +76,7 @@ class RotaController extends Controller
             'nome' => ['required', 'string', 'max:255'],
             'origem' => ['required', 'string', 'max:255'],
             'destino' => ['required', 'string', 'max:255'],
-            'km_aproximado' => ['required', 'integer', 'min:1', 'max:100000'],
+            'km_aproximado' => ['required', 'integer', 'min:1', 'max:'.Rota::KM_MAXIMO],
             'observacoes' => ['nullable', 'string', 'max:255'],
         ];
     }

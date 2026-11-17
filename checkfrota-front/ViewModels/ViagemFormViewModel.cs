@@ -225,6 +225,13 @@ public partial class ViagemFormViewModel : AdminSectionViewModelBase, IQueryAttr
             return;
         }
 
+        if ((LimitesFrota.ValidarKmHodometro(kmSaidaInt, SelectedVeiculo.KmAtual)
+            ?? LimitesFrota.ValidarKmChegada(kmChegadaInt, kmSaidaInt ?? SelectedVeiculo.KmAtual)) is string erroKm)
+        {
+            ErrorMessage = erroKm;
+            return;
+        }
+
         DateTime? dataChegadaFinal = Concluida ? DataChegada : null;
         if (dataChegadaFinal < DataSaida)
         {

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Tema escuro do sistema: o roxo escuro do colorAccent (values/colors.xml) some sobre o fundo
+    escuro dos diálogos nativos (DatePicker/TimePicker: botões OK e Cancelar, dia selecionado).
+    Usa o mesmo Accent do DarkTheme.xaml.
+-->
+<resources>
+    <color name="colorAccent">#6573F5</color>
+</resources>

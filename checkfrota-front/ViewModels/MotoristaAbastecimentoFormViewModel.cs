@@ -139,6 +139,12 @@ public partial class MotoristaAbastecimentoFormViewModel : AdminSectionViewModel
             return;
         }
 
+        if (LimitesFrota.ValidarKmHodometro(kmInt, SelectedVeiculo.KmAtual) is string erroKm)
+        {
+            ErrorMessage = erroKm;
+            return;
+        }
+
         if (!FormParsing.TryParseDecimal(Litros, out var litrosDecimal) || litrosDecimal <= 0)
         {
             ErrorMessage = "Informe a quantidade de litros.";
@@ -148,6 +154,12 @@ public partial class MotoristaAbastecimentoFormViewModel : AdminSectionViewModel
         if (!FormParsing.TryParseValor(ValorTotal, out var valorDecimal))
         {
             ErrorMessage = "Informe o valor total do abastecimento.";
+            return;
+        }
+
+        if (LimitesFrota.ValidarPrecoPorLitro(litrosDecimal, valorDecimal) is string erroPreco)
+        {
+            ErrorMessage = erroPreco;
             return;
         }
 
